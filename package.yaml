@@ -1,0 +1,87 @@
+name: defect-process
+version: '0.8.0'
+synopsis: '2d hack n'' slash game'
+category: Game
+author: Garrick Chin
+license: BSD3
+
+default-extensions:
+    - ScopedTypeVariables
+    - PatternGuards
+    - GeneralizedNewtypeDeriving
+    - OverloadedStrings
+    - MultiWayIf
+    - LambdaCase
+    - TupleSections
+    - DuplicateRecordFields
+    - StrictData
+    - BangPatterns
+    - InstanceSigs
+    - GADTs
+    - MultiParamTypeClasses
+    - FunctionalDependencies
+    - FlexibleContexts
+    - FlexibleInstances
+    - ConstraintKinds
+    - AllowAmbiguousTypes
+    - TypeApplications
+    - DeriveGeneric
+    - DerivingVia
+    - DeriveAnyClass
+    - RankNTypes
+
+ghc-options:
+    - -Wall
+    - -Wincomplete-uni-patterns
+    - -Wincomplete-record-updates
+    - -Wredundant-constraints
+    - -Wcompat
+    - -Wmissing-export-lists
+    - -Wincomplete-patterns
+    - -Wpartial-fields
+    - -Werror
+    - -fno-warn-missing-signatures
+    - -fno-warn-type-defaults
+    - -j
+    - +RTS
+    - -A128m
+    - -n2m
+    - -xn
+    - -RTS
+    - -O2
+
+dependencies:
+    - base
+    - random
+    - mtl
+    - containers
+    - transformers
+    - text
+    - bytestring
+    - vector
+    - unordered-containers
+    - random-shuffle
+    - MonadRandom
+    - StateVar
+    - directory
+    - filepath
+    - yaml
+    - aeson
+    - scientific
+    - time
+    - exceptions
+    - sdl2
+    - sdl2-image
+    - sdl2-ttf
+    - stm
+    - hashable
+
+include-dirs:
+    - inc
+executables:
+    defect-process:
+        main: Main.hs
+        source-dirs: src
+        c-sources: src/Audio/Fmod/wrapper-NOAUDIO.c
+        #extra-lib-dirs: lib
+        #extra-libraries: [fmod, fmodstudio]
