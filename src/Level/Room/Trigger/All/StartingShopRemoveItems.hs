@@ -52,7 +52,8 @@ think room trigger = return $ if
                 , let pos = hitboxBotCenter $ RI._hitbox ri
                 ]
 
-            removeRoomPortalBarrierMsgs
-                | WeaponPickupItemType `elem` itemTypesToRemove = [mkMsg RoomMsgRemovePortalBarrier]
-                | otherwise                                     = []
-        in removeItemTypesMsgs ++ removeItemParticlesMsgs ++ removeRoomPortalBarrierMsgs
+            weaponPickupCount           = M.findWithDefault 0 WeaponPickupItemType itemTypeCounts
+            roomPortalBarrierMsgs
+                | weaponPickupCount > 0 = [mkMsg RoomMsgKeepPortalBarrierAlive]
+                | otherwise             = []
+        in removeItemTypesMsgs ++ removeItemParticlesMsgs ++ roomPortalBarrierMsgs

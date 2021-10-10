@@ -155,7 +155,7 @@ data RoomMsgPayload where
     RoomMsgUpdateArenaWalls        :: (RoomArenaWalls -> RoomArenaWalls) -> RoomMsgPayload
     RoomMsgArenaWallsSplat         :: Pos2 -> RoomMsgPayload
     RoomMsgAddPortalBarrier        :: RoomMsgPayload
-    RoomMsgRemovePortalBarrier     :: RoomMsgPayload
+    RoomMsgKeepPortalBarrierAlive  :: RoomMsgPayload
 
 data ParticleMsgPayload
     = ParticleMsgAdd (Some Particle)

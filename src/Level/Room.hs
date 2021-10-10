@@ -9,13 +9,12 @@ module Level.Room
     , preloadRoomDeferredPackResources
     ) where
 
-import Control.Applicative    ((<|>))
-import Control.Monad          (when)
-import Control.Monad.State    (get, execStateT, lift, modify, put)
-import Data.Dynamic           (toDyn)
-import Data.Foldable          (foldlM, for_, sequenceA_, traverse_)
-import Data.Functor           ((<&>))
-import Data.Traversable       (for)
+import Control.Applicative ((<|>))
+import Control.Monad       (when)
+import Control.Monad.State (get, execStateT, lift, modify, put)
+import Data.Dynamic        (toDyn)
+import Data.Foldable       (foldlM, for_, sequenceA_, traverse_)
+import Data.Traversable    (for)
 import qualified Data.List as L
 
 import AppEnv
@@ -140,13 +139,10 @@ processRoomMsgs room = foldlM processMsg room =<< readMsgs
                 }
 
             RoomMsgAddPortalBarrier -> return $ r
-                { _portalManager = _portalManager r <&> \m -> m {_isBarrier = True}
+                { _portalManager = activateRoomPortalManagerBarrier <$> _portalManager r
                 }
 
-            RoomMsgRemovePortalBarrier -> return $ r
-                { _portalManager = _portalManager r <&> \m -> m {_isBarrier = False}
-                }
-
+            RoomMsgKeepPortalBarrierAlive  -> return r
             RoomMsgReappearItem _          -> return r
             RoomMsgShowPickupItemIndicator -> return r
             RoomMsgUpdateArenaWalls _      -> return r

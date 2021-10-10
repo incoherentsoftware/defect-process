@@ -30,8 +30,8 @@ import World.ScreenWipe
 import World.Screenshake
 import World.UI
 
-updateWorld :: World -> AppEnv BaseMsgsPhase World
-updateWorld world =
+updateWorld :: GameMode -> World -> AppEnv BaseMsgsPhase World
+updateWorld prevGameMode world =
     let
         player          = _player world
         enemyManager    = _enemyManager world
@@ -56,7 +56,7 @@ updateWorld world =
         projectileManager' <- withMsgsPhase @UpdateProjectileMsgsPhase (updateProjectileManager projectileManager)
         particleManager'   <- withMsgsPhase @UpdateParticleMsgsPhase (updateParticleManager particleManager)
         worldUI'           <- withMsgsPhase @UpdateWorldUiMsgsPhase (updateWorldUI player' worldUI)
-        statsManager'      <- withMsgsPhase @UpdateStatsManagerMsgsPhase (updateStatsManager statsManager)
+        statsManager'      <- withMsgsPhase @UpdateStatsManagerMsgsPhase (updateStatsManager prevGameMode statsManager)
         audio'             <- withMsgsPhase @UpdateAudioMsgsPhase (updateWorldAudio audio)
 
         screenWipe <- case _screenWipe world of
@@ -130,7 +130,7 @@ worldMain game =
                     }
 
             | otherwise -> do
-                world'   <- updateWorld world
+                world'   <- updateWorld (_prevMode game) world
                 gameMode <- case _status world' of
                     WorldDeadStatus -> do
                         setMenuAudioAndCursor

@@ -89,7 +89,6 @@ thinkLightningStrike lightningStrike
             return
                 [ mkMsg $ NewUpdateProjectileMsgAddsM (mkArenaGoldDrops dropGoldPos dropGoldValue)
                 , mkMsgTo (ProjectileMsgSetTtl 0.0) msgId
-                , mkMsg RoomMsgRemovePortalBarrier
                 ]
 
         | otherwise -> do
@@ -108,9 +107,10 @@ thinkLightningStrike lightningStrike
             return
                 [ mkMsg $ NewUpdateProjectileMsgAdd (Some waveProj)
                 , mkMsgTo (ProjectileMsgUpdate update) msgId
+                , mkMsg RoomMsgKeepPortalBarrierAlive
                 ]
 
-    | otherwise = return []
+    | otherwise = return [mkMsg RoomMsgKeepPortalBarrierAlive]
 
     where
         lightningStrikeData = _data lightningStrike

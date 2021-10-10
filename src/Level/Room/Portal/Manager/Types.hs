@@ -11,6 +11,7 @@ data RoomPortalManager = RoomPortalManager
     , _infoPlayerX        :: Maybe PosX
     , _barrierPos         :: Pos2
     , _isBarrier          :: Bool
+    , _barrierTtl         :: Secs
     , _barrierImage       :: Image
     , _barrierStrongImage :: Image
     }

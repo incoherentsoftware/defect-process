@@ -114,13 +114,12 @@ thinkBouncingBall bouncingBall = do
         ttl  = _ttl (E._data bouncingBall :: BouncingBallData)
         ttl' = max 0.0 (ttl - timeStep)
 
-        disappearMsgs
+        aliveDeadMsgs
             | ttl' <= 0.0 =
                 [ mkMsg $ ParticleMsgAddM (loadSimpleParticle pos dir worldEffectZIndex disappearSpritePath)
                 , mkMsgTo EnemyMsgSetDead bouncingBallMsgId
-                , mkMsg RoomMsgRemovePortalBarrier
                 ]
-            | otherwise   = []
+            | otherwise   = [mkMsg RoomMsgKeepPortalBarrierAlive]
 
     isAtRoomTopBounds <- readIsAtRoomTopBounds bouncingBall
 
@@ -157,7 +156,7 @@ thinkBouncingBall bouncingBall = do
                     , E._sprite = Just spr'
                     }
 
-    return $ mkMsgTo (EnemyMsgUpdateM update) bouncingBallMsgId:disappearMsgs
+    return $ mkMsgTo (EnemyMsgUpdateM update) bouncingBallMsgId:aliveDeadMsgs
 
 drawBouncingBall :: (GraphicsReadWrite m, MonadIO m) => EnemyDraw BouncingBallData m
 drawBouncingBall bouncingBall =

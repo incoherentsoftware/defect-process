@@ -6,18 +6,21 @@ module Stats.Manager
 
 import qualified Data.List as L
 
+import Game.Mode
 import Msg
 import World.Util
 
 data StatsManager = StatsManager
-    { _acquiredGold    :: GoldValue
-    , _numBoughtHealth :: Int
+    { _acquiredGold      :: GoldValue
+    , _numBoughtHealth   :: Int
+    , _numPauseMenuViews :: Int
     }
 
 mkStatsManager :: StatsManager
 mkStatsManager = StatsManager
-    { _acquiredGold    = GoldValue 0
-    , _numBoughtHealth = 0
+    { _acquiredGold      = GoldValue 0
+    , _numBoughtHealth   = 0
+    , _numPauseMenuViews = 0
     }
 
 processMessages :: MsgsReadWrite UpdateStatsManagerMsgsPhase m => StatsManager -> m StatsManager
@@ -42,5 +45,13 @@ processMessages statsManager =
         processWorldMsgs statsManager' =<< readMsgs
         return statsManager'
 
-updateStatsManager :: MsgsReadWrite UpdateStatsManagerMsgsPhase m => StatsManager -> m StatsManager
-updateStatsManager statsManager = processMessages statsManager
+updateStatsManager :: MsgsReadWrite UpdateStatsManagerMsgsPhase m => GameMode -> StatsManager -> m StatsManager
+updateStatsManager prevGameMode statsManager = do
+    statsManager' <- processMessages statsManager
+    return $ statsManager'
+        { _numPauseMenuViews =
+            let numPauseMenuViews = _numPauseMenuViews statsManager
+            in if
+                | prevGameMode == PauseMenuMode -> numPauseMenuViews + 1
+                | otherwise                     -> numPauseMenuViews
+        }

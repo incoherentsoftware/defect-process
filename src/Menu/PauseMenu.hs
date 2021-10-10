@@ -40,6 +40,7 @@ import Player.MovementSkill.Types
 import Player.SecondarySkill.Types
 import Player.Upgrade
 import Player.Weapon.Types
+import Stats.Manager
 import Util
 import Window
 import Window.Graphics.UiControls
@@ -550,6 +551,12 @@ drawSlotComboBoxes pauseMenuData =
                     let img = _secondarySkillDownInputOverlayImage pauseMenuData
                     in drawImage pos RightDir menuOverExpandedZIndex img
 
+drawInfoOverlayImages :: (GraphicsReadWrite m, MonadIO m) => World -> PauseMenuData -> m ()
+drawInfoOverlayImages world pauseMenuData =
+    when (_numPauseMenuViews (_statsManager world) <= 0 || isWorldPlayerTouchingInfoSign world) $ do
+        drawImage infoOverlayLeftImagePos RightDir menuZIndex (_infoOverlayLeftImage pauseMenuData)
+        drawImage infoOverlayRightImagePos RightDir menuZIndex (_infoOverlayRightImage pauseMenuData)
+
 drawPauseMenu :: (ConfigsRead m, GraphicsReadWrite m, InputRead m, MonadIO m) => Game -> m ()
 drawPauseMenu game =
     let
@@ -616,10 +623,7 @@ drawPauseMenu game =
 
         drawSelectionInfoText pauseMenuData
         drawSettingsMenuData $ _settingsMenuData pauseMenuData
-
-        when (isWorldPlayerTouchingInfoSign world) $ do
-            drawImage infoOverlayLeftImagePos RightDir menuZIndex (_infoOverlayLeftImage pauseMenuData)
-            drawImage infoOverlayRightImagePos RightDir menuZIndex (_infoOverlayRightImage pauseMenuData)
+        drawInfoOverlayImages world pauseMenuData
 
         let isSlotExpanded = isSlotComboBoxesExpanded $ _slotComboBoxes pauseMenuData
         when (allOverlaysInactive pauseMenuData || isSlotExpanded) $ do
