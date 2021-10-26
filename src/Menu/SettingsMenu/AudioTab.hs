@@ -35,6 +35,7 @@ settingsMenuPack             = \p -> PackResourceFilePath "data/menu/settings-me
 controlsBtnImgPath           = settingsMenuPack "controls-button-inactive.image" :: PackResourceFilePath
 graphicsBtnImgPath           = settingsMenuPack "graphics-button-inactive.image" :: PackResourceFilePath
 audioBtnImgPath              = settingsMenuPack "audio-button.image"             :: PackResourceFilePath
+gameBtnImgPath               = settingsMenuPack "game-button-inactive.image"     :: PackResourceFilePath
 creditsBtnImgPath            = settingsMenuPack "credits-button-inactive.image"  :: PackResourceFilePath
 audioTabBackgroundImgPath    = settingsMenuPack "audio-background.image"         :: PackResourceFilePath
 restoreDefaultsButtonImgPath = settingsMenuPack "restore-default-audio.image"    :: PackResourceFilePath
@@ -50,11 +51,13 @@ formatVolume = formatIntPercent . volumeToInt
 
 mkSettingsAudioTab :: (ConfigsRead m, FileCache m, GraphicsRead m, MonadIO m) => m SettingsAudioTab
 mkSettingsAudioTab = do
-    tabBtns       <- mkSettingsTabButtons controlsBtnImgPath graphicsBtnImgPath audioBtnImgPath creditsBtnImgPath
+    tabBtns       <-
+        mkSettingsTabButtons controlsBtnImgPath graphicsBtnImgPath audioBtnImgPath gameBtnImgPath creditsBtnImgPath
     backgroundImg <- loadPackImage audioTabBackgroundImgPath
 
     menuCfg  <- readConfig _settings (_menu :: SettingsConfig -> MenuConfig)
     audioCfg <- readConfig _settings _audio
+
     let
         mkComboBox' = \pos volume ->
             let
@@ -99,6 +102,9 @@ updateSelections selection audioTab = do
             | upPressed                   -> (SettingsMenuCloseSelection, AudioNoSubSelection)
             | downPressed                 -> (SettingsMenuAudioSubSelection, AudioSoundSubSelection)
         SettingsMenuAudioTabSelection
+            | upPressed                   -> (SettingsMenuCloseSelection, AudioNoSubSelection)
+            | downPressed                 -> (SettingsMenuAudioSubSelection, AudioSoundSubSelection)
+        SettingsMenuGameTabSelection
             | upPressed                   -> (SettingsMenuCloseSelection, AudioNoSubSelection)
             | downPressed                 -> (SettingsMenuAudioSubSelection, AudioSoundSubSelection)
         SettingsMenuCreditsTabSelection
@@ -155,6 +161,10 @@ updateTabButtons settingsMenuData tabBtns
     | _isPressed (_graphicsButton tabBtns :: Button) =
         ( GraphicsTabChoice
         , _buttons (_graphicsTab settingsMenuData :: SettingsGraphicsTab)
+        )
+    | _isPressed (_gameButton tabBtns :: Button)     =
+        ( GameTabChoice
+        , _buttons (_gameTab settingsMenuData :: SettingsGameTab)
         )
     | _isPressed (_creditsButton tabBtns :: Button)  =
         ( CreditsTabChoice

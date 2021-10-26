@@ -21,6 +21,7 @@ data BossEnemyConfig = BossEnemyConfig
     , _staggerThreshold     :: Stagger
     , _idleSecs             :: Secs
     , _maxIncapacitatedSecs :: Secs
+    , _healthbarBackdropPos :: Pos2
     , _attackShortRange     :: Distance
     , _attackMediumRange    :: Distance
     , _attackLongRange      :: Distance

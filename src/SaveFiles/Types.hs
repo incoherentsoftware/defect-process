@@ -10,6 +10,7 @@ import qualified Data.Set as S
 import qualified Data.Text as T
 
 import Audio.Volume
+import Menu.SettingsMenu.Util
 import Player.Gun.Types
 import Player.MovementSkill.Types
 import Player.SecondarySkill.Types
@@ -31,6 +32,8 @@ data SaveFilesSettings = SaveFilesSettings
     , _audioMusicVolume             :: Volume
     , _audioBattleMusic             :: LayeredMusicType
     , _audioExplorationMusic        :: LayeredMusicType
+    , _gameEnemyHealthPercent       :: EnemyHealthPercent
+    , _gamePauseMenuHints           :: Bool
     }
     deriving Generic
 
@@ -54,7 +57,9 @@ instance FromJSON SaveFilesSettings where
             v .: "audioSoundVolume" <*>
             v .: "audioMusicVolume" <*>
             v .:? "audioBattleMusic" .!= BattleAMusic <*>
-            v .:? "audioExplorationMusic" .!= ExploreAMusic
+            v .:? "audioExplorationMusic" .!= ExploreAMusic <*>
+            v .:? "gameEnemyHealthPercent" .!= EnemyHealth100Percent <*>
+            v .:? "gamePauseMenuHints" .!= True
     parseJSON value = typeMismatch "SaveFilesSettings" value
 
 instance ToJSON SaveFilesSettings where

@@ -11,6 +11,7 @@ module Enemy.Types
     , EnemyUpdateSprite
     , EnemyUpdateDynamic
     , EnemyDraw
+    , EnemyDrawOverlay
     , EnemySetDebugBehavior
     , Enemy(..)
     ) where
@@ -99,6 +100,7 @@ type EnemyUpdateHangtimeResponse d = Secs -> Enemy d -> Enemy d
 type EnemyUpdateSprite d           = Enemy d -> Enemy d
 type EnemyUpdateDynamic d m        = Dynamic -> Enemy d -> m (Enemy d)
 type EnemyDraw d m                 = Enemy d -> m ()
+type EnemyDrawOverlay d m          = Enemy d -> m ()
 type EnemySetDebugBehavior d       = [T.Text] -> Enemy d -> (T.Text, Enemy d)
 
 data Enemy d = Enemy
@@ -127,6 +129,7 @@ data Enemy d = Enemy
     , _updateSprite           :: EnemyUpdateSprite d
     , _updateDynamic          :: EnemyUpdateDynamic d (AppEnv UpdateEnemyMsgsPhase)
     , _draw                   :: Maybe (EnemyDraw d (AppEnv DrawMsgsPhase))
+    , _drawOverlay            :: EnemyDrawOverlay d (AppEnv DrawMsgsPhase)
     , _setDebugBehavior       :: EnemySetDebugBehavior d
     , _bodyZIndex             :: ZIndex
     , _debugText              :: Maybe EnemyDebugText

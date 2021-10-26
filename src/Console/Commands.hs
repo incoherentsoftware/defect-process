@@ -564,7 +564,12 @@ playerDamageMultiplierCmd args _ = case readMaybe' (args0 args) :: Maybe Float o
 
 enemiesDamageMultiplierCmd :: ConfigsRead m => ConsoleCommand m
 enemiesDamageMultiplierCmd args _ = case readMaybe' (args0 args) :: Maybe Float of
-    Nothing         -> return $ NoUpdateResult "invalid percent value"
+    Nothing
+        | args0 args == "" -> do
+            enDamageMult <- readSettingsConfig _debug _enemiesDamageMultiplier
+            return $ NoUpdateResult ("enemiesDamageMultiplier: " <> T.pack (show enDamageMult))
+        | otherwise        -> return $ NoUpdateResult "invalid percent value"
+
     Just multiplier -> do
         configs <- readConfigs <&> \cfgs -> cfgs
             { _settings =

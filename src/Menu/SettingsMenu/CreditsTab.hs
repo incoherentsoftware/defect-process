@@ -21,12 +21,14 @@ settingsMenuPack            = \p -> PackResourceFilePath "data/menu/settings-men
 controlsBtnImgPath          = settingsMenuPack "controls-button-inactive.image" :: PackResourceFilePath
 graphicsBtnImgPath          = settingsMenuPack "graphics-button-inactive.image" :: PackResourceFilePath
 audioBtnImgPath             = settingsMenuPack "audio-button-inactive.image"    :: PackResourceFilePath
+gameBtnImgPath              = settingsMenuPack "game-button-inactive.image"     :: PackResourceFilePath
 creditsBtnImgPath           = settingsMenuPack "credits-button.image"           :: PackResourceFilePath
 creditsTabBackgroundImgPath = settingsMenuPack "credits-background.image"       :: PackResourceFilePath
 
 mkSettingsCreditsTab :: (ConfigsRead m, FileCache m, GraphicsRead m, MonadIO m) => m SettingsCreditsTab
 mkSettingsCreditsTab = do
-    tabBtns       <- mkSettingsTabButtons controlsBtnImgPath graphicsBtnImgPath audioBtnImgPath creditsBtnImgPath
+    tabBtns       <-
+        mkSettingsTabButtons controlsBtnImgPath graphicsBtnImgPath audioBtnImgPath gameBtnImgPath creditsBtnImgPath
     backgroundImg <- loadPackImage creditsTabBackgroundImgPath
 
     return $ SettingsCreditsTab
@@ -48,6 +50,8 @@ updateSelections selection = do
             | upPressed || downPressed -> SettingsMenuCloseSelection
         SettingsMenuAudioTabSelection
             | upPressed || downPressed -> SettingsMenuCloseSelection
+        SettingsMenuGameTabSelection
+            | upPressed || downPressed -> SettingsMenuCloseSelection
         SettingsMenuCreditsTabSelection
             | upPressed || downPressed -> SettingsMenuCloseSelection
         SettingsMenuCloseSelection
@@ -67,6 +71,10 @@ updateTabButtons settingsMenuData tabBtns
     | _isPressed (_audioButton tabBtns :: Button)    =
         ( AudioTabChoice
         , _buttons (_audioTab settingsMenuData :: SettingsAudioTab)
+        )
+    | _isPressed (_gameButton tabBtns :: Button)     =
+        ( GameTabChoice
+        , _buttons (_gameTab settingsMenuData :: SettingsGameTab)
         )
     | otherwise                                      = (CreditsTabChoice, tabBtns)
 

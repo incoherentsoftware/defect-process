@@ -551,9 +551,12 @@ drawSlotComboBoxes pauseMenuData =
                     let img = _secondarySkillDownInputOverlayImage pauseMenuData
                     in drawImage pos RightDir menuOverExpandedZIndex img
 
-drawInfoOverlayImages :: (GraphicsReadWrite m, MonadIO m) => World -> PauseMenuData -> m ()
-drawInfoOverlayImages world pauseMenuData =
-    when (_numPauseMenuViews (_statsManager world) <= 0 || isWorldPlayerTouchingInfoSign world) $ do
+drawInfoOverlayImages :: (ConfigsRead m, GraphicsReadWrite m, MonadIO m) => World -> PauseMenuData -> m ()
+drawInfoOverlayImages world pauseMenuData = do
+    isHintsEnabled       <- not <$> readSettingsConfig _debug _disablePauseMenuHints
+    let numPauseMenuViews = _numPauseMenuViews $ _statsManager world
+
+    when (isHintsEnabled && (numPauseMenuViews <= 0 || isWorldPlayerTouchingInfoSign world)) $ do
         drawImage infoOverlayLeftImagePos RightDir menuZIndex (_infoOverlayLeftImage pauseMenuData)
         drawImage infoOverlayRightImagePos RightDir menuZIndex (_infoOverlayRightImage pauseMenuData)
 

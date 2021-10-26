@@ -9,6 +9,7 @@ module Window.Graphics.DisplayText
     , drawDisplayTextEx
     , drawDisplayTextCentered
     , drawDisplayTextCenteredEx
+    , drawDisplayTextRightAligned
     , drawDisplayTextRightAlignedEx
     ) where
 
@@ -116,6 +117,10 @@ drawDisplayTextCenteredEx (Pos2 x y) zIndex scale opacity displayTxt = do
     height <- displayTextHeight displayTxt
     let pos = Pos2 (x - width / 2.0) (y - height / 2.0)
     drawDisplayTextEx pos zIndex scale opacity displayTxt
+
+drawDisplayTextRightAligned :: (GraphicsReadWrite m, MonadIO m) => Pos2 -> ZIndex -> DisplayText -> m ()
+drawDisplayTextRightAligned pos zIndex displayTxt =
+    drawDisplayTextRightAlignedEx pos zIndex NonScaled FullOpacity displayTxt
 
 drawDisplayTextRightAlignedEx
     :: (GraphicsReadWrite m, MonadIO m)

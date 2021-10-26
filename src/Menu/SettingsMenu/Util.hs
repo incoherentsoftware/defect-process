@@ -1,9 +1,14 @@
 module Menu.SettingsMenu.Util
     ( SettingsTabButtons(..)
     , mkSettingsTabButtons
+    , EnemyHealthPercent(..)
+    , enemyHealthPercentToDamageMultiplier
+    , enemyDamageMultiplierToHealthPercent
     ) where
 
 import Control.Monad.IO.Class (MonadIO)
+import Data.Aeson.Types       (FromJSON, ToJSON)
+import GHC.Generics           (Generic)
 
 import Configs
 import Configs.All.Settings
@@ -20,6 +25,7 @@ data SettingsTabButtons = SettingsTabButtons
     { _controlsButton :: Button
     , _graphicsButton :: Button
     , _audioButton    :: Button
+    , _gameButton     :: Button
     , _creditsButton  :: Button
     }
 
@@ -29,12 +35,14 @@ mkSettingsTabButtons
     -> PackResourceFilePath
     -> PackResourceFilePath
     -> PackResourceFilePath
+    -> PackResourceFilePath
     -> m SettingsTabButtons
-mkSettingsTabButtons controlsBtnImgPath graphicsBtnImgPath audioBtnImgPath creditsBtnImgPath =
+mkSettingsTabButtons controlsBtnImgPath graphicsBtnImgPath audioBtnImgPath gameBtnImgPath creditsBtnImgPath =
     SettingsTabButtons <$>
     mkImageButton' _settingsControlsButtonPos controlsBtnImgPath <*>
     mkImageButton' _settingsGraphicsButtonPos graphicsBtnImgPath <*>
     mkImageButton' _settingsAudioButtonPos audioBtnImgPath <*>
+    mkImageButton' _settingsGameButtonPos gameBtnImgPath <*>
     mkImageButton' _settingsCreditsButtonPos creditsBtnImgPath
     where
         mkImageButton' = \posF btnImgPath -> do
@@ -45,3 +53,28 @@ mkSettingsTabButtons controlsBtnImgPath graphicsBtnImgPath audioBtnImgPath credi
                 Just baseFileName ->
                     let btnSelectedImgPath = btnImgPath {_fileName = baseFileName ++ selectedFileNameSuffix}
                     in mkImageButtonEx pos btnImgPath btnSelectedImgPath
+
+data EnemyHealthPercent
+    = EnemyHealth100Percent
+    | EnemyHealth150Percent
+    | EnemyHealth200Percent
+    | EnemyHealth300Percent
+    | EnemyHealth500Percent
+    deriving (Bounded, Enum, Eq, Generic)
+    deriving anyclass (FromJSON, ToJSON)
+
+enemyHealthPercentToDamageMultiplier :: EnemyHealthPercent -> Float
+enemyHealthPercentToDamageMultiplier = \case
+    EnemyHealth100Percent -> 1.0
+    EnemyHealth150Percent -> 0.666
+    EnemyHealth200Percent -> 0.5
+    EnemyHealth300Percent -> 0.333
+    EnemyHealth500Percent -> 0.2
+
+enemyDamageMultiplierToHealthPercent :: Float -> EnemyHealthPercent
+enemyDamageMultiplierToHealthPercent mult
+    | mult `approxEq` 0.666 = EnemyHealth150Percent
+    | mult `approxEq` 0.5   = EnemyHealth200Percent
+    | mult `approxEq` 0.333 = EnemyHealth300Percent
+    | mult `approxEq` 0.2   = EnemyHealth500Percent
+    | otherwise             = EnemyHealth100Percent

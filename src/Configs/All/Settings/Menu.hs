@@ -15,16 +15,20 @@ import {-# SOURCE #-} Player.SecondarySkill.Types
 import {-# SOURCE #-} Player.Weapon.Types
 
 data MenuConfig = MenuConfig
-    { _menuCursorHotspotPos   :: Pos2
-    , _mainNewGameButtonPosY  :: PosY
-    , _mainContinueButtonPos  :: Pos2
-    , _mainUnlocksButtonPosY  :: PosY
-    , _mainSettingsButtonPosY :: PosY
-    , _mainQuitButtonPosY     :: PosY
+    { _menuCursorHotspotPos      :: Pos2
+    , _mainNewGameButtonPosY     :: PosY
+    , _mainContinueButtonPos     :: Pos2
+    , _mainUnlocksButtonPosY     :: PosY
+    , _mainSettingsButtonPosY    :: PosY
+    , _mainQuitButtonPosY        :: PosY
+    , _mainPromptImagePos        :: Pos2
+    , _mainPromptQuitButtonPos   :: Pos2
+    , _mainPromptCancelButtonPos :: Pos2
 
     , _settingsControlsButtonPos :: Pos2
     , _settingsGraphicsButtonPos :: Pos2
     , _settingsAudioButtonPos    :: Pos2
+    , _settingsGameButtonPos     :: Pos2
     , _settingsCreditsButtonPos  :: Pos2
     , _settingsCloseButtonPos    :: Pos2
 
@@ -45,6 +49,12 @@ data MenuConfig = MenuConfig
     , _settingsAudioTabMusicComboBoxPos         :: Pos2
     , _settingsAudioTabComboBoxValueOffset      :: Pos2
     , _settingsAudioTabRestoreDefaultsButtonPos :: Pos2
+
+    , _settingsGameTabEnemyHealthComboBoxPos            :: Pos2
+    , _settingsGameTabPauseMenuHintsComboBoxPos         :: Pos2
+    , _settingsGameTabEnemyHealthComboBoxValueOffset    :: Pos2
+    , _settingsGameTabPauseMenuHintsComboBoxValueOffset :: Pos2
+    , _settingsGameTabRestoreDefaultsButtonPos          :: Pos2
 
     , _helpPopupCloseButtonPos               :: Pos2
     , _helpPopupControlsButtonPos            :: Pos2

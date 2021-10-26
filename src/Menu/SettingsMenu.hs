@@ -20,17 +20,20 @@ import Menu.SettingsMenu.AudioTab
 import Menu.SettingsMenu.ControlsTab
 import Menu.SettingsMenu.ControlsTab.Types
 import Menu.SettingsMenu.CreditsTab
+import Menu.SettingsMenu.GameTab
 import Menu.SettingsMenu.GraphicsTab
 import Menu.SettingsMenu.Types
 import Menu.SoundIndices
 import Menu.ZIndex
 import Msg
+import Util
 import Window.Graphics
 import Window.Graphics.UiControls.Button
 import Window.InputState
 
-settingsMenuPack   = \p -> PackResourceFilePath "data/menu/settings-menu.pack" p
-closeButtonImgPath = settingsMenuPack "close-button.image" :: PackResourceFilePath
+settingsMenuPack        = \p -> PackResourceFilePath "data/menu/settings-menu.pack" p
+closeButtonImgPath      = settingsMenuPack "close-button.image"      :: PackResourceFilePath
+commonBackgroundImgPath = settingsMenuPack "common-background.image" :: PackResourceFilePath
 
 mkSettingsMenuData :: (ConfigsRead m, FileCache m, GraphicsRead m, InputRead m, MonadIO m) => m SettingsMenuData
 mkSettingsMenuData = do
@@ -40,20 +43,24 @@ mkSettingsMenuData = do
     controlsTab  <- mkSettingsControlsTab
     graphicsTab  <- mkSettingsGraphicsTab
     audioTab     <- mkSettingsAudioTab
+    gameTab      <- mkSettingsGameTab
     creditsTab   <- mkSettingsCreditsTab
+    commonBgImg  <- loadPackImage commonBackgroundImgPath
     soundIndices <- mkMenuSoundIndices
 
     return $ SettingsMenuData
-        { _active       = False
-        , _tabChoice    = ControlsTabChoice
-        , _tabButtons   = _buttons (controlsTab :: SettingsControlsTab)
-        , _controlsTab  = controlsTab
-        , _graphicsTab  = graphicsTab
-        , _audioTab     = audioTab
-        , _creditsTab   = creditsTab
-        , _closeButton  = closeButton
-        , _selection    = SettingsMenuCloseSelection
-        , _soundIndices = soundIndices
+        { _active                = False
+        , _tabChoice             = ControlsTabChoice
+        , _tabButtons            = _buttons (controlsTab :: SettingsControlsTab)
+        , _controlsTab           = controlsTab
+        , _graphicsTab           = graphicsTab
+        , _gameTab               = gameTab
+        , _audioTab              = audioTab
+        , _creditsTab            = creditsTab
+        , _commonBackgroundImage = commonBgImg
+        , _closeButton           = closeButton
+        , _selection             = SettingsMenuCloseSelection
+        , _soundIndices          = soundIndices
         }
 
 readSelection :: InputState -> SettingsMenuData -> SettingsMenuSelection
@@ -71,10 +78,14 @@ readSelection inputState settingsMenuData = case _selection settingsMenuData of
 
     SettingsMenuAudioTabSelection
         | leftPressed  -> SettingsMenuGraphicsTabSelection
+        | rightPressed -> SettingsMenuGameTabSelection
+
+    SettingsMenuGameTabSelection
+        | leftPressed  -> SettingsMenuAudioTabSelection
         | rightPressed -> SettingsMenuCreditsTabSelection
 
     SettingsMenuCreditsTabSelection
-        | leftPressed  -> SettingsMenuAudioTabSelection
+        | leftPressed  -> SettingsMenuGameTabSelection
         | rightPressed -> SettingsMenuControlsTabSelection
 
     selection -> selection
@@ -95,10 +106,14 @@ tabLeftRightInputPressedSelection inputState settingsMenuData = case _tabChoice 
 
     AudioTabChoice
         | tabLeftPressed  -> Just SettingsMenuGraphicsTabSelection
+        | tabRightPressed -> Just SettingsMenuGameTabSelection
+
+    GameTabChoice
+        | tabLeftPressed  -> Just SettingsMenuAudioTabSelection
         | tabRightPressed -> Just SettingsMenuCreditsTabSelection
 
     CreditsTabChoice
-        | tabLeftPressed  -> Just SettingsMenuAudioTabSelection
+        | tabLeftPressed  -> Just SettingsMenuGameTabSelection
         | tabRightPressed -> Just SettingsMenuControlsTabSelection
 
     _ -> Nothing
@@ -122,7 +137,8 @@ updateSettingsMenuData settingsBtn settingsMenuData = do
 
             isAnyExpandedComboBox           =
                 isSettingsAudioTabExpandedComboBox (_audioTab settingsMenuData) ||
-                isSettingsGraphicsTabExpandedComboBox (_graphicsTab settingsMenuData)
+                isSettingsGraphicsTabExpandedComboBox (_graphicsTab settingsMenuData) ||
+                isSettingsGameTabExpandedComboBox (_gameTab settingsMenuData)
             isControlsTabAndWaitingForInput =
                 tabChoice == ControlsTabChoice && isControlsTabWaitingForInput (_controlsTab settingsMenuData)
             isButtonSelectionBlocked        = isAnyExpandedComboBox || isControlsTabAndWaitingForInput
@@ -158,15 +174,17 @@ updateSettingsMenuData settingsBtn settingsMenuData = do
                 controlsBtn <- updateButtonAndSelection SettingsMenuControlsTabSelection (_controlsButton tabBtns)
                 graphicsBtn <- updateButtonAndSelection SettingsMenuGraphicsTabSelection (_graphicsButton tabBtns)
                 audioBtn    <- updateButtonAndSelection SettingsMenuAudioTabSelection (_audioButton tabBtns)
+                gameBtn     <- updateButtonAndSelection SettingsMenuGameTabSelection (_gameButton tabBtns)
                 creditsBtn  <- updateButtonAndSelection SettingsMenuCreditsTabSelection (_creditsButton tabBtns)
 
-                when (or (map _isPressed [controlsBtn, graphicsBtn, audioBtn, creditsBtn])) $
+                when (or (map _isPressed [controlsBtn, graphicsBtn, audioBtn, gameBtn, creditsBtn])) $
                     void $ playFmodSound (_confirmSmall soundIndices)
 
                 return $ tabBtns
                     { _controlsButton = controlsBtn
                     , _graphicsButton = graphicsBtn
                     , _audioButton    = audioBtn
+                    , _gameButton     = gameBtn
                     , _creditsButton  = creditsBtn
                     }
 
@@ -174,6 +192,7 @@ updateSettingsMenuData settingsBtn settingsMenuData = do
                 ControlsTabChoice -> updateSettingsControlsTab selection tabButtons settingsMenuData
                 GraphicsTabChoice -> updateSettingsGraphicsTab selection tabButtons settingsMenuData
                 AudioTabChoice    -> updateSettingsAudioTab selection tabButtons settingsMenuData
+                GameTabChoice     -> updateSettingsGameTab selection tabButtons settingsMenuData
                 CreditsTabChoice  -> updateSettingsCreditsTab selection tabButtons settingsMenuData
 
             let
@@ -195,16 +214,19 @@ updateSettingsMenuData settingsBtn settingsMenuData = do
 
 drawSettingsMenuData :: (ConfigsRead m, GraphicsReadWrite m, InputRead m, MonadIO m) => SettingsMenuData -> m ()
 drawSettingsMenuData settingsMenuData = when (_active settingsMenuData) $ do
+    drawImage zeroPos2 RightDir menuOverZIndex (_commonBackgroundImage settingsMenuData)
     case _tabChoice settingsMenuData of
         ControlsTabChoice -> drawSettingsControlsTab $ _controlsTab settingsMenuData
         GraphicsTabChoice -> drawSettingsGraphicsTab $ _graphicsTab settingsMenuData
         AudioTabChoice    -> drawSettingsAudioTab $ _audioTab settingsMenuData
+        GameTabChoice     -> drawSettingsGameTab $ _gameTab settingsMenuData
         CreditsTabChoice  -> drawSettingsCreditsTab $ _creditsTab settingsMenuData
 
     let tabBtns = _tabButtons settingsMenuData
     drawButton menuOverZIndex (_controlsButton tabBtns)
     drawButton menuOverZIndex (_graphicsButton tabBtns)
     drawButton menuOverZIndex (_audioButton tabBtns)
+    drawButton menuOverZIndex (_gameButton tabBtns)
     drawButton menuOverZIndex (_creditsButton tabBtns)
     drawButton menuOverZIndex (_closeButton settingsMenuData)
 

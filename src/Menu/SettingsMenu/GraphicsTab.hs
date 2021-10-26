@@ -35,6 +35,7 @@ settingsMenuPack               = \p -> PackResourceFilePath "data/menu/settings-
 controlsBtnImgPath             = settingsMenuPack "controls-button-inactive.image"            :: PackResourceFilePath
 graphicsBtnImgPath             = settingsMenuPack "graphics-button.image"                     :: PackResourceFilePath
 audioBtnImgPath                = settingsMenuPack "audio-button-inactive.image"               :: PackResourceFilePath
+gameBtnImgPath                 = settingsMenuPack "game-button-inactive.image"                :: PackResourceFilePath
 creditsBtnImgPath              = settingsMenuPack "credits-button-inactive.image"             :: PackResourceFilePath
 backgroundImgPath              = settingsMenuPack "graphics-background.image"                 :: PackResourceFilePath
 disabledComboBoxOverlayImgPath = settingsMenuPack "graphics-disabled-combo-box-overlay.image" :: PackResourceFilePath
@@ -97,7 +98,8 @@ mkDisplayModeComboBox = do
 
 mkSettingsGraphicsTab :: (ConfigsRead m, FileCache m, GraphicsRead m, MonadIO m) => m SettingsGraphicsTab
 mkSettingsGraphicsTab = do
-    tabBtns <- mkSettingsTabButtons controlsBtnImgPath graphicsBtnImgPath audioBtnImgPath creditsBtnImgPath
+    tabBtns <-
+        mkSettingsTabButtons controlsBtnImgPath graphicsBtnImgPath audioBtnImgPath gameBtnImgPath creditsBtnImgPath
 
     backgroundImg              <- loadPackImage backgroundImgPath
     resolutionComboBox         <- mkResolutionComboBox
@@ -134,25 +136,34 @@ updateSelections selection graphicsTab = do
 
     return $ case selection of
         SettingsMenuControlsTabSelection
-            | upPressed                   -> (SettingsMenuCloseSelection, GraphicsNoSubSelection)
-            | downPressed                 -> if
+            | upPressed   -> (SettingsMenuCloseSelection, GraphicsNoSubSelection)
+            | downPressed -> if
                 | isResolutionDisabled -> (SettingsMenuGraphicsSubSelection, GraphicsDisplayModeSubSelection)
                 | otherwise            -> (SettingsMenuGraphicsSubSelection, GraphicsResolutionSubSelection)
+
         SettingsMenuGraphicsTabSelection
-            | upPressed                   -> (SettingsMenuCloseSelection, GraphicsNoSubSelection)
-            | downPressed                 -> if
+            | upPressed   -> (SettingsMenuCloseSelection, GraphicsNoSubSelection)
+            | downPressed -> if
                 | isResolutionDisabled -> (SettingsMenuGraphicsSubSelection, GraphicsDisplayModeSubSelection)
                 | otherwise            -> (SettingsMenuGraphicsSubSelection, GraphicsResolutionSubSelection)
+
         SettingsMenuAudioTabSelection
-            | upPressed                   -> (SettingsMenuCloseSelection, GraphicsNoSubSelection)
-            | downPressed                 -> if
+            | upPressed   -> (SettingsMenuCloseSelection, GraphicsNoSubSelection)
+            | downPressed -> if
                 | isResolutionDisabled -> (SettingsMenuGraphicsSubSelection, GraphicsDisplayModeSubSelection)
                 | otherwise            -> (SettingsMenuGraphicsSubSelection, GraphicsResolutionSubSelection)
+        SettingsMenuGameTabSelection
+            | upPressed   -> (SettingsMenuCloseSelection, GraphicsNoSubSelection)
+            | downPressed -> if
+                | isResolutionDisabled -> (SettingsMenuGraphicsSubSelection, GraphicsDisplayModeSubSelection)
+                | otherwise            -> (SettingsMenuGraphicsSubSelection, GraphicsResolutionSubSelection)
+
         SettingsMenuCreditsTabSelection
-            | upPressed                   -> (SettingsMenuCloseSelection, GraphicsNoSubSelection)
-            | downPressed                 -> if
+            | upPressed   -> (SettingsMenuCloseSelection, GraphicsNoSubSelection)
+            | downPressed -> if
                 | isResolutionDisabled -> (SettingsMenuGraphicsSubSelection, GraphicsDisplayModeSubSelection)
                 | otherwise            -> (SettingsMenuGraphicsSubSelection, GraphicsResolutionSubSelection)
+
         SettingsMenuCloseSelection
             | upPressed                   -> (SettingsMenuGraphicsSubSelection, GraphicsDisplayModeSubSelection)
             | downPressed                 -> (SettingsMenuGraphicsTabSelection, GraphicsNoSubSelection)
@@ -160,18 +171,21 @@ updateSelections selection graphicsTab = do
 
         SettingsMenuGraphicsSubSelection -> case _subSelection (graphicsTab :: SettingsGraphicsTab) of
             GraphicsResolutionSubSelection
-                | upPressed                   -> (SettingsMenuGraphicsTabSelection, GraphicsNoSubSelection)
-                | downPressed                 -> (SettingsMenuGraphicsSubSelection, GraphicsDisplayModeSubSelection)
+                | upPressed   -> (SettingsMenuGraphicsTabSelection, GraphicsNoSubSelection)
+                | downPressed -> (SettingsMenuGraphicsSubSelection, GraphicsDisplayModeSubSelection)
+
             GraphicsDisplayModeSubSelection
-                | upPressed                   -> if
+                | upPressed   -> if
                     | isResolutionDisabled -> (SettingsMenuGraphicsTabSelection, GraphicsNoSubSelection)
                     | otherwise            -> (SettingsMenuGraphicsSubSelection, GraphicsResolutionSubSelection)
-                | downPressed                 -> (SettingsMenuCloseSelection, GraphicsNoSubSelection)
+                | downPressed -> (SettingsMenuCloseSelection, GraphicsNoSubSelection)
+
             GraphicsRestoreDefaultsSubSelection
                 | upPressed                   -> (SettingsMenuGraphicsSubSelection, GraphicsDisplayModeSubSelection)
                 | downPressed                 -> (SettingsMenuGraphicsTabSelection, GraphicsNoSubSelection)
                 | leftPressed || rightPressed -> (SettingsMenuCloseSelection, GraphicsNoSubSelection)
-            subSelection                      -> (SettingsMenuGraphicsSubSelection, subSelection)
+
+            subSelection -> (SettingsMenuGraphicsSubSelection, subSelection)
 
         _ -> (selection, GraphicsNoSubSelection)
 
@@ -202,6 +216,10 @@ updateTabButtons settingsMenuData tabBtns
     | _isPressed (_audioButton tabBtns :: Button)    =
         ( AudioTabChoice
         , _buttons (_audioTab settingsMenuData :: SettingsAudioTab)
+        )
+    | _isPressed (_gameButton tabBtns :: Button)     =
+        ( GameTabChoice
+        , _buttons (_gameTab settingsMenuData :: SettingsGameTab)
         )
     | _isPressed (_creditsButton tabBtns :: Button)  =
         ( CreditsTabChoice

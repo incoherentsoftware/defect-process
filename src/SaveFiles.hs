@@ -20,12 +20,14 @@ import Configs.All.Progress
 import Configs.All.Settings
 import Configs.All.Settings.Audio
 import Configs.All.Settings.Controls
+import Configs.All.Settings.Debug
 import Configs.All.Settings.Render
+import Menu.SettingsMenu.Util
 import SaveFiles.Types
 import Util
 import Window.InputState.Alias
 
-saveFilesVersion = "0.9.1" :: T.Text
+saveFilesVersion = "0.9.2" :: T.Text
 
 saveFilesSettingsFilePath = "saves/settings.sav" :: FilePath
 saveFilesProgressFilePath = "saves/progress.sav" :: FilePath
@@ -66,11 +68,17 @@ readSaveFilesSettings cfgs = liftIO $
                         , _battleMusic      = _audioBattleMusic sfs
                         , _explorationMusic = _audioExplorationMusic sfs
                         }
+
+                    debugCfg = (_debug settingsCfg)
+                        { _enemiesDamageMultiplier = enemyHealthPercentToDamageMultiplier $ _gameEnemyHealthPercent sfs
+                        , _disablePauseMenuHints   = not $ _gamePauseMenuHints sfs
+                        }
                 in Right $ cfgs
                     { _settings = settingsCfg
                         { _controls = controlsCfg'
                         , _render   = renderCfg
                         , _audio    = audioCfg
+                        , _debug    = debugCfg
                         }
                     }
 
@@ -88,6 +96,7 @@ writeSaveFilesSettings cfgs =
         controlsCfg = _controls settingsCfg
         renderCfg   = _render settingsCfg
         audioCfg    = _audio settingsCfg
+        debugCfg    = _debug settingsCfg
 
         saveFilesSettings = SaveFilesSettings
             { _version                      = saveFilesVersion
@@ -100,6 +109,8 @@ writeSaveFilesSettings cfgs =
             , _audioMusicVolume             = _musicVolume audioCfg
             , _audioBattleMusic             = _battleMusic audioCfg
             , _audioExplorationMusic        = _explorationMusic audioCfg
+            , _gameEnemyHealthPercent       = enemyDamageMultiplierToHealthPercent $ _enemiesDamageMultiplier debugCfg
+            , _gamePauseMenuHints           = not $ _disablePauseMenuHints debugCfg
             }
     in do
         saveFilesSettingsFilePath' <- translateResourcePath saveFilesSettingsFilePath

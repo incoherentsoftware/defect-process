@@ -39,6 +39,7 @@ import Level.Room.Item.Types
 import Level.Room.SpringLauncher.Types
 import Level.Room.Trigger.Types
 import Level.Room.Types
+import Menu.SettingsMenu.Util
 import Particle.Types
 import Player.BufferedInputState.Types
 import Player.EquipmentInfo.Types
@@ -94,6 +95,8 @@ data ConsoleMsgPayload
     | ConsoleMsgSetMusicVolume Volume
     | ConsoleMsgSetBattleMusic LayeredMusicType
     | ConsoleMsgSetExplorationMusic LayeredMusicType
+    | ConsoleMsgSetEnemyHealth EnemyHealthPercent
+    | ConsoleMsgSetPauseMenuHints Bool
     | ConsoleMsgAddProgressTotalGold GoldValue
     | ConsoleMsgUnlockWeapon GoldValue WeaponType
     | ConsoleMsgUnlockGun GoldValue GunType
@@ -103,6 +106,7 @@ data ConsoleMsgPayload
     | ConsoleMsgRestoreDefaultSettingsControls
     | ConsoleMsgRestoreDefaultSettingsRender
     | ConsoleMsgRestoreDefaultSettingsAudio
+    | ConsoleMsgRestoreDefaultSettingsGame
     | ConsoleMsgSaveSettings
     | ConsoleMsgSaveProgress
 

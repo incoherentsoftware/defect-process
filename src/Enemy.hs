@@ -124,6 +124,7 @@ mkEnemyInternal enMsgId enData pos dir enDummyType = do
         , _updateSprite           = id
         , _updateDynamic          = updateDynamic
         , _draw                   = Nothing
+        , _drawOverlay            = const $ return ()
         , _setDebugBehavior       = const ("",)
         , _bodyZIndex             = enemyBodyZIndex
         , _debugText              = debugText
@@ -189,7 +190,7 @@ enemyLerpPos enemy = graphicsLerpPos pos (Vel2 velX' velY')
 
 drawEnemy :: Enemy d -> AppEnv DrawMsgsPhase ()
 drawEnemy enemy = case _draw enemy of
-    Just drawFn -> drawFn enemy
+    Just drawFn -> drawFn enemy >> drawEnemyOverlay
     Nothing     ->
         let
             dir       = E._dir enemy
@@ -205,6 +206,7 @@ drawEnemy enemy = case _draw enemy of
         in do
             pos <- enemyLerpPos enemy
             sequenceA_ $ drawSprite pos dir (_bodyZIndex enemy) <$> spr
+            drawEnemyOverlay
 
             whenM (readSettingsConfig _debug _drawEntityHitboxes) $ do
                 drawHitbox color debugHitboxZIndex hitbox
@@ -213,6 +215,8 @@ drawEnemy enemy = case _draw enemy of
             case _debugText enemy of
                 Nothing       -> return ()
                 Just debugTxt -> drawEnemyDebugText pos debugTxt
+
+    where drawEnemyOverlay = (_drawOverlay enemy) enemy
 
 lockOnReticleDataMsgs :: Enemy d -> [Msg ThinkEnemyMsgsPhase]
 lockOnReticleDataMsgs enemy

@@ -205,6 +205,10 @@ processMessages configs console = foldrM processMsg (configs, console) =<< readM
             ConsoleMsgSetBattleMusic musicType      -> return (setBattleMusicConsole musicType cfgs, cns)
             ConsoleMsgSetExplorationMusic musicType -> return (setExplorationMusicConsole musicType cfgs, cns)
 
+            ConsoleMsgSetEnemyHealth enemyHealthTxt      -> return (setEnemyHealthConsole enemyHealthTxt cfgs, cns)
+            ConsoleMsgSetPauseMenuHints isPauseMenuHints ->
+                return (setPauseMenuHintsConsole isPauseMenuHints cfgs, cns)
+
             ConsoleMsgAddProgressTotalGold gold -> return (addProgressTotalGoldConsole gold cfgs, cns)
 
             ConsoleMsgUnlockWeapon cost typ         -> return (unlockWeaponConsole cost typ cfgs, cns)
@@ -225,6 +229,20 @@ processMessages configs console = foldrM processMsg (configs, console) =<< readM
             ConsoleMsgRestoreDefaultSettingsAudio -> do
                 defaultAudioCfg <- (_audio :: SettingsConfig -> AudioConfig) <$> loadSettingsConfig
                 (,cns) <$> applyAudioConfigConsole defaultAudioCfg cfgs
+
+            ConsoleMsgRestoreDefaultSettingsGame -> do
+                defaultDebugCfg <- (_debug :: SettingsConfig -> DebugConfig) <$> loadSettingsConfig
+                let
+                    settingsCfg = _settings cfgs
+                    cfgs'       = cfgs
+                        { _settings = settingsCfg
+                            { _debug = (_debug settingsCfg)
+                                { _enemiesDamageMultiplier = _enemiesDamageMultiplier defaultDebugCfg
+                                , _disablePauseMenuHints   = _disablePauseMenuHints defaultDebugCfg
+                                }
+                            }
+                        }
+                return $ (cfgs', cns)
 
             ConsoleMsgSaveSettings -> writeSaveFilesSettings cfgs <&> \case
                 Left errText -> (cfgs, printConsole errText cns)

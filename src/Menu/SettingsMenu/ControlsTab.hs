@@ -35,14 +35,15 @@ settingsMenuPack             = \p -> PackResourceFilePath "data/menu/settings-me
 controlsBtnImgPath           = settingsMenuPack "controls-button.image"               :: PackResourceFilePath
 graphicsBtnImgPath           = settingsMenuPack "graphics-button-inactive.image"      :: PackResourceFilePath
 audioBtnImgPath              = settingsMenuPack "audio-button-inactive.image"         :: PackResourceFilePath
+gameBtnImgPath               = settingsMenuPack "game-button-inactive.image"          :: PackResourceFilePath
 creditsBtnImgPath            = settingsMenuPack "credits-button-inactive.image"       :: PackResourceFilePath
 backgroundImgPath            = settingsMenuPack "controls-background.image"           :: PackResourceFilePath
 showMouseKbButtonImgPath     = settingsMenuPack "controls-show-mouse-kb-button.image" :: PackResourceFilePath
 showGamepadButtonImgPath     = settingsMenuPack "controls-show-gamepad-button.image"  :: PackResourceFilePath
 restoreDefaultsButtonImgPath = settingsMenuPack "restore-default-controls.image"      :: PackResourceFilePath
 
-notificationTextColor     = Color 150 150 150 255 :: Color
-notificationTextPos       = Pos2 960.0 502.0      :: Pos2
+notificationTextColor = Color 150 150 150 255 :: Color
+notificationTextPos   = Pos2 960.0 493.0      :: Pos2
 
 rebindPromptCenterTextPos@(Pos2 rebindPromptCenterTextX rebindPromptCenterTextY) = Pos2 1336.0 810.0 :: Pos2
 rebindPromptSpacerWidth                                                          = 30.0              :: Float
@@ -53,7 +54,8 @@ cancelRebindText = "Cancel: {MenuAlias}"             :: T.Text
 
 mkSettingsControlsTab :: (ConfigsRead m, FileCache m, GraphicsRead m, InputRead m, MonadIO m) => m SettingsControlsTab
 mkSettingsControlsTab = do
-    tabBtns <- mkSettingsTabButtons controlsBtnImgPath graphicsBtnImgPath audioBtnImgPath creditsBtnImgPath
+    tabBtns <-
+        mkSettingsTabButtons controlsBtnImgPath graphicsBtnImgPath audioBtnImgPath gameBtnImgPath creditsBtnImgPath
 
     backgroundImg     <- loadPackImage backgroundImgPath
     mouseKbKeyButtons <- loadControlsKeyButtons MouseKbInputType
@@ -124,6 +126,9 @@ updateSelections selection controlsTab = do
         SettingsMenuAudioTabSelection
             | upPressed    -> (SettingsMenuCloseSelection, ControlsNoSubSelection)
             | downPressed  -> (SettingsMenuControlsSubSelection, topDefaultKeyBtnSubSelect)
+        SettingsMenuGameTabSelection
+            | upPressed    -> (SettingsMenuCloseSelection, ControlsNoSubSelection)
+            | downPressed  -> (SettingsMenuControlsSubSelection, topDefaultKeyBtnSubSelect)
         SettingsMenuCreditsTabSelection
             | upPressed    -> (SettingsMenuCloseSelection, ControlsNoSubSelection)
             | downPressed  -> (SettingsMenuControlsSubSelection, topDefaultKeyBtnSubSelect)
@@ -189,6 +194,10 @@ updateTabButtons settingsMenuData tabBtns
     | _isPressed (_audioButton tabBtns :: Button)    =
         ( AudioTabChoice
         , _buttons (_audioTab settingsMenuData :: SettingsAudioTab)
+        )
+    | _isPressed (_gameButton tabBtns :: Button)     =
+        ( GameTabChoice
+        , _buttons (_gameTab settingsMenuData :: SettingsGameTab)
         )
     | _isPressed (_creditsButton tabBtns :: Button)  =
         ( CreditsTabChoice

@@ -5,6 +5,8 @@ module Console.Util
     , updateRenderConfigWinDisplayIndexConsole
     , setSoundVolumeConsole
     , setMusicVolumeConsole
+    , setEnemyHealthConsole
+    , setPauseMenuHintsConsole
     , setBattleMusicConsole
     , setExplorationMusicConsole
     , addProgressTotalGoldConsole
@@ -33,7 +35,9 @@ import Configs.All.Progress
 import Configs.All.Settings
 import Configs.All.Settings.Audio
 import Configs.All.Settings.Controls
+import Configs.All.Settings.Debug
 import Configs.All.Settings.Render
+import Menu.SettingsMenu.Util
 import Player.Gun.Types
 import Player.MovementSkill.Types
 import Player.SecondarySkill.Types
@@ -171,6 +175,25 @@ setMusicVolumeConsole volume cfgs = do
                 audioCfg    = _audio (settingsCfg :: SettingsConfig)
             in settingsCfg {_audio = audioCfg {_musicVolume = volume}}
         }
+
+setEnemyHealthConsole :: EnemyHealthPercent -> Configs -> Configs
+setEnemyHealthConsole enemyHealthPercent cfgs = cfgs
+    { _settings =
+        let
+            settingsCfg  = _settings cfgs
+            debugCfg     = _debug (settingsCfg :: SettingsConfig)
+            enDamageMult = enemyHealthPercentToDamageMultiplier enemyHealthPercent
+        in settingsCfg {_debug = debugCfg {_enemiesDamageMultiplier = enDamageMult}}
+    }
+
+setPauseMenuHintsConsole :: Bool -> Configs -> Configs
+setPauseMenuHintsConsole isPauseMenuHints cfgs = cfgs
+    { _settings =
+        let
+            settingsCfg = _settings cfgs
+            debugCfg    = _debug (settingsCfg :: SettingsConfig)
+        in settingsCfg {_debug = debugCfg {_disablePauseMenuHints = not isPauseMenuHints}}
+    }
 
 setBattleMusicConsole :: LayeredMusicType -> Configs -> Configs
 setBattleMusicConsole layeredMusicType cfgs = cfgs

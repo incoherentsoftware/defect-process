@@ -15,6 +15,8 @@ data MainMenuSelection
     | MainMenuUnlocksSelection
     | MainMenuSettingsSelection
     | MainMenuQuitSelection
+    | MainMenuPromptQuitSelection
+    | MainMenuPromptCancelSelection
     deriving Eq
 
 data MainMenuData = MainMenuData
@@ -25,6 +27,9 @@ data MainMenuData = MainMenuData
     , _unlocksButton      :: Button
     , _settingsButton     :: Button
     , _quitButton         :: Button
+    , _promptImage        :: Image
+    , _promptQuitButton   :: Button
+    , _promptCancelButton :: Button
     , _settingsMenuData   :: SettingsMenuData
     , _selection          :: Maybe MainMenuSelection
     , _musicIndex         :: FmodMusicIndex

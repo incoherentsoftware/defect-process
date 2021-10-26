@@ -38,6 +38,7 @@ data DebugConfig = DebugConfig
     , _cameraDebugOffset            :: Pos2
     , _forceLastUsedInputType       :: Maybe InputType
     , _disableFileCache             :: Bool
+    , _disablePauseMenuHints        :: Bool
     }
     deriving Generic
 
@@ -71,5 +72,6 @@ instance FromJSON DebugConfig where
         v .:? "disableRoomBossTrigger" .!= False <*>
         v .:? "cameraDebugOffset" .!= zeroPos2 <*>
         v .:? "forceLastUsedInputType" <*>
-        v .:? "disableFileCache" .!= False
+        v .:? "disableFileCache" .!= False <*>
+        v .:? "disablePauseMenuHints" .!= False
     parseJSON value      = typeMismatch "DebugConfig" value
