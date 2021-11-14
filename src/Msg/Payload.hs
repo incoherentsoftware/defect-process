@@ -186,7 +186,7 @@ data PlayerMsgPayload where
     PlayerMsgUpdateGun                   :: Typeable d => (Gun d -> Gun d) -> PlayerMsgPayload
     PlayerMsgUpdateWeapon                :: Typeable d => (Weapon d -> Weapon d) -> PlayerMsgPayload
     PlayerMsgSetPhased                   :: PlayerMsgPayload
-    PlayerMsgTouchingGold                :: GoldValue -> PlayerMsgPayload
+    PlayerMsgUpdateGold                  :: (GoldValue -> GoldValue) -> PlayerMsgPayload
     PlayerMsgClearAttack                 :: PlayerMsgPayload
     PlayerMsgSetAttack                   :: Attack -> PlayerMsgPayload
     PlayerMsgSetAttackDesc               :: AttackDescription -> PlayerMsgPayload
@@ -230,11 +230,13 @@ data NewThinkProjectileMsgPayload where
 
 data NewUpdateProjectileMsgPayload where
     NewUpdateProjectileMsgAdd   :: Some Projectile -> NewUpdateProjectileMsgPayload
+    NewUpdateProjectileMsgAdds  :: [Some Projectile] -> NewUpdateProjectileMsgPayload
     NewUpdateProjectileMsgAddM  :: AppEnv UpdateProjectileMsgsPhase (Some Projectile) -> NewUpdateProjectileMsgPayload
     NewUpdateProjectileMsgAddsM :: AppEnv UpdateProjectileMsgsPhase [Some Projectile] -> NewUpdateProjectileMsgPayload
 
 data UiMsgPayload
     = UiMsgFullRefillMeter
+    | UiMsgGainedGold GoldValue
     | UiMsgInsufficientMeter MeterValue Bool
     | UiMsgInsufficientGold
     | UiMsgInvalidAction InputAlias

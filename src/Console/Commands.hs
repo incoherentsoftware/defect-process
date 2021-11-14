@@ -490,17 +490,15 @@ roomCmd args world = do
         _
             | isPrefixed "to-"   -> return $ ToTransitionRoomType (stripPrefix' "to-")
             | isPrefixed "from-" -> return $ FromTransitionRoomType (stripPrefix' "from-")
-            | otherwise          ->
-                let
-                    arenasPath     = "data/levels/arenas" </> T.unpack roomName
-                    challengesPath = "data/levels/challenges" </> T.unpack roomName
-                in do
-                    isArenasPath     <- liftIO $ doesDirectoryExist arenasPath
-                    isChallengesPath <- liftIO $ doesDirectoryExist challengesPath
-                    return $ if
-                        | isArenasPath     -> ArenaRoomType roomName
-                        | isChallengesPath -> ChallengeRoomType roomName
-                        | otherwise        -> SpecialRoomType roomName
+            | otherwise          -> liftIO $ do
+                arenasPath       <- translateResourcePath $ "data/levels/arenas" </> T.unpack roomName
+                challengesPath   <- translateResourcePath $ "data/levels/challenges" </> T.unpack roomName
+                isArenasPath     <- doesDirectoryExist arenasPath
+                isChallengesPath <- doesDirectoryExist challengesPath
+                return $ if
+                    | isArenasPath     -> ArenaRoomType roomName
+                    | isChallengesPath -> ChallengeRoomType roomName
+                    | otherwise        -> SpecialRoomType roomName
 
     let
         changeWorldRoom' = case roomType of
@@ -1086,6 +1084,7 @@ eventCmd args world =
                 eventType
                     | args0 args `elem` ["lightningStrike", "lightning"] = Just LightningStrikeEvent
                     | args0 args `elem` ["bouncingBall", "ball"]         = Just BouncingBallEvent
+                    | args0 args `elem` ["slotMachine", "slots", "slot"] = Just SlotMachineEvent
                     | otherwise                                          = Nothing
             in case eventType of
                 Nothing         -> return $ NoUpdateResult "invalid event type"

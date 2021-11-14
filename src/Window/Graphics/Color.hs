@@ -11,7 +11,9 @@ import Data.Word (Word8)
 import qualified SDL
 
 type Alpha = Word8
+
 data Color = Color Word8 Word8 Word8 Alpha
+    deriving Show
 
 blackColor = Color 0 0 0 255       :: Color
 whiteColor = Color 255 255 255 255 :: Color

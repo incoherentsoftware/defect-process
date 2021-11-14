@@ -10,5 +10,6 @@ import Util
 data RoomEventType
     = BouncingBallEvent
     | LightningStrikeEvent
+    | SlotMachineEvent
     deriving (Bounded, Enum, Eq, FromJSON, Generic, Show)
     deriving anyclass PrettyShow

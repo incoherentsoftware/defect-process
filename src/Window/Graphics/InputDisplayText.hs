@@ -18,7 +18,6 @@ import Data.Maybe             (mapMaybe)
 import Text.Printf            (printf)
 import qualified Data.HashMap.Lazy as HM
 import qualified Data.Text as T
-import qualified SDL
 import qualified SDL.Font
 import qualified SDL.Raw
 
@@ -30,7 +29,6 @@ import Window.Graphics.Fonts.Types
 import Window.Graphics.Image
 import Window.Graphics.Image.Parse
 import Window.Graphics.InputDisplayText.Types
-import Window.Graphics.Renderer
 import Window.Graphics.SymbolDisplayText
 import Window.Graphics.Texture
 import Window.Graphics.Types
@@ -173,14 +171,11 @@ mkFontTexture text font color =
         sdlFont       = _sdlFont font
         sdlFontStyles = _sdlFontStyles font
         text'         = if T.null text then " " else text  -- SDL.Font will crash if the text is 0 width
+        fakeFilePath  = show font ++  show color ++ T.unpack text'
     in do
         SDL.Font.setStyle sdlFont sdlFontStyles
-        surface         <- SDL.Font.blended sdlFont (colorToV4 color) text'
-        (width, height) <- surfaceWidthHeight surface
-        sdlRenderer     <- (_sdlRenderer . _renderer) <$> getGraphics
-        sdlTexture      <- SDL.createTextureFromSurface sdlRenderer surface
-        SDL.freeSurface surface
-        mkTexture sdlTexture width height
+        surface <- SDL.Font.blended sdlFont (colorToV4 color) text'
+        loadTextureEx fakeFilePath surface
 
 formatMouseKbInputAlias :: MonadIO m => Int -> [InputRawData] -> m T.Text
 formatMouseKbInputAlias entriesLimit inputRawDatas = case filterInputRawDataMouseKb inputRawDatas of
@@ -298,7 +293,7 @@ updateInputDisplayText inputDisplayTxt = do
         | isNoChange -> return inputDisplayTxt
         | otherwise  ->
             let
-                txt      = _text inputDisplayTxt
+                txt      = _text (inputDisplayTxt :: InputDisplayText)
                 fontType = _type (_font inputDisplayTxt :: Font)
                 color    = _color inputDisplayTxt
             in mkInputDisplayText txt fontType color
@@ -312,8 +307,10 @@ drawPrefixSymbolImage :: (GraphicsReadWrite m, MonadIO m) => Pos2 -> ZIndex -> I
 drawPrefixSymbolImage pos zIndex inputDisplayTxt = case _prefixSymbolImage inputDisplayTxt of
     Nothing  -> return ()
     Just img -> do
-        let sdlFont = _sdlFont $ _font inputDisplayTxt
-        txtHeight  <- fromIntegral . snd <$> SDL.Font.size sdlFont (_text inputDisplayTxt)
+        let
+            sdlFont = _sdlFont $ _font inputDisplayTxt
+            txt     = _text (inputDisplayTxt :: InputDisplayText)
+        txtHeight <- fromIntegral . snd <$> SDL.Font.size sdlFont txt
         let
             offset = Pos2 (imageWidth img / 2.0) (txtHeight / 2.0)
             pos'   = vecFloorXY $ pos `vecAdd` offset

@@ -1,9 +1,13 @@
 module Level.Room.JSON
-    ( RoomJSON(..)
+    ( RoomRandomOffsetsJSON(..)
+    , RoomJSON(..)
     ) where
 
 import Data.Aeson.Types (FromJSON, genericParseJSON, parseJSON)
 import GHC.Generics     (Generic)
+import qualified Data.List.NonEmpty as NE
+import qualified Data.Map as M
+import qualified Data.Text as T
 
 import Collision.Hitbox.Types
 import Level.Room.ArenaWalls.JSON
@@ -19,6 +23,17 @@ import Level.Room.Portal.JSON
 import Level.Room.SpeedRail.JSON
 import Level.Room.SpringLauncher.JSON
 import Util
+
+data RoomRandomOffsetsJSON = RoomRandomOffsetsJSON
+    { _platforms   :: Maybe (M.Map Int T.Text)
+    , _imageLayers :: Maybe (M.Map Int T.Text)
+    , _goldChunks  :: Maybe (M.Map Int T.Text)
+    , _vars        :: M.Map T.Text (NE.NonEmpty Pos2)
+    }
+    deriving Generic
+
+instance FromJSON RoomRandomOffsetsJSON where
+    parseJSON = genericParseJSON aesonFieldDropUnderscore
 
 data RoomJSON = RoomJSON
     { _playerSpawn           :: Pos2
@@ -41,6 +56,7 @@ data RoomJSON = RoomJSON
     , _minCameraY            :: Maybe PosY
     , _cameraBottomLocked    :: Maybe Bool
     , _cameraPlayerOffsetY   :: Maybe PosY
+    , _randomOffsets         :: Maybe RoomRandomOffsetsJSON
     }
     deriving Generic
 

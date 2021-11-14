@@ -8,10 +8,12 @@ import Data.Maybe             (fromMaybe)
 import qualified Data.Text as T
 
 import Collision.Hitbox
+import Configs
 import FileCache
 import Id
 import Level.Room.Event.BouncingBall
 import Level.Room.Event.LightningStrike
+import Level.Room.Event.SlotMachine
 import Level.Room.Event.Types
 import Level.Room.Item as RI
 import Level.Room.Item.EventActivator.Types
@@ -26,7 +28,7 @@ eventActivatorWidth  = 86.0  :: Float
 eventActivatorHeight = 315.0 :: Float
 
 interactText                      = "Begin: {InteractAlias}"              :: T.Text
-interactCurrentTrackTextColor     = Color 192 192 192 255                 :: Color
+instructionTextColor              = Color 192 192 192 255                 :: Color
 interactOverlayBackdropColor      = Color 0 0 0 200                       :: Color
 interactOverlayBackdropBorderSize = 20.0                                  :: Float
 interactOverlayBackdropOffsetY    = -245.0                                :: OffsetY
@@ -42,16 +44,18 @@ eventTypeToInstructionText :: RoomEventType -> T.Text
 eventTypeToInstructionText = \case
     BouncingBallEvent    -> "| Hit Bouncing Ball |"
     LightningStrikeEvent -> "| Dodge Lightning |"
+    SlotMachineEvent     -> ""
 
 eventTypeToImagePath :: RoomEventType -> PackResourceFilePath
 eventTypeToImagePath = packPath . \case
     BouncingBallEvent    -> "bouncing-ball-sign.image"
     LightningStrikeEvent -> "lightning-strike-sign.image"
+    SlotMachineEvent     -> ""
 
 mkEventActivatorData :: (FileCache m, GraphicsRead m, InputRead m, MonadIO m) => RoomEventType -> m EventActivatorData
 mkEventActivatorData eventType = do
     img             <- loadPackImage $ eventTypeToImagePath eventType
-    displayTxt      <- mkDisplayText (eventTypeToInstructionText eventType) Font22 interactCurrentTrackTextColor
+    displayTxt      <- mkDisplayText (eventTypeToInstructionText eventType) Font22 instructionTextColor
     inputDisplayTxt <- mkInputDisplayText interactText Font32 whiteColor
 
     return $ EventActivatorData
@@ -62,7 +66,12 @@ mkEventActivatorData eventType = do
         , _inputDisplayText = inputDisplayTxt
         }
 
-mkEventActivator :: (FileCache m, GraphicsRead m, InputRead m, MonadIO m) => RoomEventType -> Pos2 -> m (Some RoomItem)
+mkEventActivator
+    :: (ConfigsRead m, FileCache m, GraphicsRead m, InputRead m, MonadIO m)
+    => RoomEventType
+    -> Pos2
+    -> m (Some RoomItem)
+mkEventActivator SlotMachineEvent pos = mkRoomEventSlotMachine pos
 mkEventActivator eventType (Pos2 x y) =
     let
         pos = Pos2 (x - eventActivatorWidth / 2.0) (y - eventActivatorHeight)
@@ -102,6 +111,7 @@ thinkEventActivator eventActivator =
                         BouncingBallEvent    -> mkMsg $ EnemyMsgAddM (mkRoomEventBouncingBall hbxCenter)
                         LightningStrikeEvent ->
                             mkMsg $ NewThinkProjectileMsgAddM (mkRoomEventLightningStrike hbxCenter)
+                        SlotMachineEvent     -> mkMsg $ ConsoleMsgPrint "???"
                 in
                     [ eventMsg
                     , mkMsg $ AudioMsgPlaySound activateSoundPath hbxCenter
@@ -156,4 +166,4 @@ drawEventActivator eventActivator =
 
 eventActivatorPlayerCollision :: RoomItemPlayerCollision EventActivatorData
 eventActivatorPlayerCollision _ eventActivator = [mkMsgTo (RoomMsgUpdateItem updateTouching) (_msgId eventActivator)]
-    where updateTouching = \rs -> rs {_data = (_data rs) {_touchingPlayer = True}}
+    where updateTouching = \ea -> ea {_data = (_data ea) {_touchingPlayer = True}}

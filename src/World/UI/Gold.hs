@@ -23,7 +23,6 @@ import World.UI.Util
 import World.Util
 import World.ZIndex
 
-
 goldBackdropColor                 = Color 0 0 0 128 :: Color
 insufficientOverlayFadeMultiplier = 2.0             :: Float
 
@@ -42,12 +41,16 @@ data GoldFloatingText = GoldFloatingText
     , _opacity     :: Opacity
     }
 
-mkGoldFloatingText :: GoldValue -> DisplayText -> UiConfig -> GoldFloatingText
-mkGoldFloatingText goldValue displayText cfg = GoldFloatingText
-    { _displayText = updateDisplayText (formatGoldFloatingTextValue goldValue) displayText
+mkGoldFloatingText :: GoldValue -> GoldUI -> UiConfig -> GoldFloatingText
+mkGoldFloatingText goldValue goldUI cfg = GoldFloatingText
+    { _displayText = updateDisplayText txt (_goldDropDisplayText goldUI)
     , _offset      = _goldFloatingTextOffset cfg
     , _opacity     = FullOpacity
     }
+    where
+        txt
+            | goldValue > GoldValue 0 = formatGoldFloatingTextValue goldValue
+            | otherwise               = ""
 
 updateGoldFloatingText :: UiConfig -> GoldFloatingText -> GoldFloatingText
 updateGoldFloatingText cfg floatingText = floatingText
@@ -102,25 +105,23 @@ updateGoldUI player goldUI = do
     cfg <- readConfig _settings _ui
 
     let
-        processUiMsgs :: [UiMsgPayload] -> Opacity
-        processUiMsgs []     =
+        processOpacityMsgs :: [UiMsgPayload] -> Opacity
+        processOpacityMsgs []     =
             decreaseOpacity (insufficientOverlayFadeMultiplier * timeStep) (_insufficientOverlayOpacity goldUI)
-        processUiMsgs (p:ps) = case p of
+        processOpacityMsgs (p:ps) = case p of
             UiMsgInsufficientGold -> Opacity 1.0
-            _                     -> processUiMsgs ps
+            _                     -> processOpacityMsgs ps
 
-        processPlayerMsgs :: PlayerMsgPayload -> [GoldFloatingText] -> [GoldFloatingText]
-        processPlayerMsgs p floatingTexts = case p of
-            PlayerMsgTouchingGold goldValue ->
-                let floatingText = mkGoldFloatingText goldValue (_goldDropDisplayText goldUI) cfg
-                in floatingTexts ++ [floatingText]
-            _                               -> floatingTexts
+        processGainedGoldMsgs :: UiMsgPayload -> [GoldFloatingText] -> [GoldFloatingText]
+        processGainedGoldMsgs p floatingTexts = case p of
+            UiMsgGainedGold goldValue -> floatingTexts ++ [mkGoldFloatingText goldValue goldUI cfg]
+            _                         -> floatingTexts
 
     let txt           = formatGoldSymbolText (_gold player :: GoldValue)
     symbolDisplayTxt <- updateSymbolDisplayText txt (_symbolDisplayText goldUI)
 
-    insufficientOverlayOpacity <- processUiMsgs <$> readMsgs
-    goldFloatingTextsQueue     <- foldr processPlayerMsgs (_goldFloatingTextsQueue goldUI) <$> readMsgs
+    insufficientOverlayOpacity <- processOpacityMsgs <$> readMsgs
+    goldFloatingTextsQueue     <- foldr processGainedGoldMsgs (_goldFloatingTextsQueue goldUI) <$> readMsgs
 
     return . flip execState goldUI $ do
         modify $ \ui -> ui

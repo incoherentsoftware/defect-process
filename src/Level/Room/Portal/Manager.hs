@@ -26,7 +26,7 @@ import World.Surface
 import World.ZIndex
 
 barrierStrongDistanceX = 100.0 :: Distance
-barrierTimeoutSecs     = 0.5   :: Secs
+barrierTimeoutSecs     = 1.0   :: Secs
 
 packPath               = \f -> PackResourceFilePath "data/levels/level-items.pack" f
 barrierImagePath       = packPath "exit-barrier.image"        :: PackResourceFilePath

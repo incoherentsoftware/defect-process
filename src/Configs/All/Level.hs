@@ -8,6 +8,7 @@ import qualified Data.List.NonEmpty as NE
 
 import Level.Room.ArenaWalls.EnemySpawn.Types
 import Level.Room.ArenaWalls.JSON
+import Level.Room.Event.SlotMachine.Util
 import Util
 import World.Util
 import {-# SOURCE #-} Enemy.Util
@@ -45,8 +46,9 @@ data LevelConfig = LevelConfig
     , _springLauncherSurfaceWidth  :: Float
     , _springLauncherSurfaceHeight :: Float
 
-    , _eventLightningInitialRemainingWaves :: Int
-    , _eventLightningPerWaveGoldValue      :: GoldValue
+    , _eventLightningNumWaves               :: Int
+    , _eventLightningGoldValue              :: GoldValue
+    , _eventLightningPerHitPenaltyGoldValue :: GoldValue
 
     , _eventBouncingBallAliveSecs           :: Secs
     , _eventBouncingBallDropCooldownSecs    :: Secs
@@ -55,6 +57,14 @@ data LevelConfig = LevelConfig
     , _eventBouncingBallDropMeleeGoldValue  :: GoldValue
     , _eventBouncingBallDropRangedGoldValue :: GoldValue
     , _eventBouncingBallLockOnReticleData   :: EnemyLockOnReticleData
+
+    , _eventSlotMachineSelectionIntervalSecs               :: Secs
+    , _eventSlotMachineSelectionActivateIntervalSecs       :: Secs
+    , _eventSlotMachineSelectionActivateIntervalMultiplier :: Float
+    , _eventSlotMachineSelectionMinIntervalSecs            :: Secs
+    , _eventSlotMachineSelectionTextOffset                 :: Pos2
+    , _eventSlotMachineSelectionOffsets                    :: NE.NonEmpty Pos2
+    , _eventSlotMachineSlotsChoices                        :: NE.NonEmpty SlotsChoice
 
     , _enemySpawnWaves :: NE.NonEmpty EnemySpawnWaveJSON
     }

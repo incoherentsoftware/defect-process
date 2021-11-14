@@ -4,6 +4,7 @@ module Stats.Manager
     , updateStatsManager
     ) where
 
+import Control.Monad.State (execStateT, get, lift, modify)
 import qualified Data.List as L
 
 import Game.Mode
@@ -28,9 +29,14 @@ processMessages statsManager =
     let
         processPlayerMsg :: StatsManager -> PlayerMsgPayload -> StatsManager
         processPlayerMsg !sm p = case p of
-            PlayerMsgTouchingGold gold -> sm {_acquiredGold = _acquiredGold sm + gold}
-            PlayerMsgBuyHealth _       -> sm {_numBoughtHealth = _numBoughtHealth sm + 1}
-            _                          -> sm
+            PlayerMsgBuyHealth _ -> sm {_numBoughtHealth = _numBoughtHealth sm + 1}
+            _                    -> sm
+
+        processUiMsg :: StatsManager -> UiMsgPayload -> StatsManager
+        processUiMsg !sm p = case p of
+            UiMsgGainedGold goldValue
+                | goldValue > GoldValue 0 -> sm {_acquiredGold = goldValue + _acquiredGold sm}
+            _                             -> sm
 
         processWorldMsgs :: MsgsWrite UpdateStatsManagerMsgsPhase m => StatsManager -> [WorldMsgPayload] -> m ()
         processWorldMsgs _ []      = return ()
@@ -40,10 +46,15 @@ processMessages statsManager =
                 , mkMsg ConsoleMsgSaveProgress
                 ]
             _                  -> processWorldMsgs sm ps
-    in do
-        statsManager' <- L.foldl' processPlayerMsg statsManager <$> readMsgs
-        processWorldMsgs statsManager' =<< readMsgs
-        return statsManager'
+    in flip execStateT statsManager $ do
+        playerMsgs <- lift readMsgs
+        modify $ \sm -> L.foldl' processPlayerMsg sm playerMsgs
+
+        uiMsgs <- lift readMsgs
+        modify $ \sm -> L.foldl' processUiMsg sm uiMsgs
+
+        worldMsgs <- lift readMsgs
+        get >>= \sm -> lift $ processWorldMsgs sm worldMsgs
 
 updateStatsManager :: MsgsReadWrite UpdateStatsManagerMsgsPhase m => GameMode -> StatsManager -> m StatsManager
 updateStatsManager prevGameMode statsManager = do

@@ -39,6 +39,7 @@ data DebugConfig = DebugConfig
     , _forceLastUsedInputType       :: Maybe InputType
     , _disableFileCache             :: Bool
     , _disablePauseMenuHints        :: Bool
+    , _disableEnemyHurtSfx          :: Bool
     }
     deriving Generic
 
@@ -73,5 +74,6 @@ instance FromJSON DebugConfig where
         v .:? "cameraDebugOffset" .!= zeroPos2 <*>
         v .:? "forceLastUsedInputType" <*>
         v .:? "disableFileCache" .!= False <*>
-        v .:? "disablePauseMenuHints" .!= False
+        v .:? "disablePauseMenuHints" .!= False <*>
+        v .:? "disableEnemyHurtSfx" .!= False
     parseJSON value      = typeMismatch "DebugConfig" value

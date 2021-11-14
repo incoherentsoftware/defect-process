@@ -189,6 +189,7 @@ instance AllowMsgRead UpdateWorldMsgsPhase WorldMsgPayload where
 instance AllowMsgWrite UpdateWorldMsgsPhase ConsoleMsgPayload where
 
 instance AllowMsgRead UpdateStatsManagerMsgsPhase PlayerMsgPayload where
+instance AllowMsgRead UpdateStatsManagerMsgsPhase UiMsgPayload where
 instance AllowMsgRead UpdateStatsManagerMsgsPhase WorldMsgPayload where
 instance AllowMsgWrite UpdateStatsManagerMsgsPhase ConsoleMsgPayload where
 

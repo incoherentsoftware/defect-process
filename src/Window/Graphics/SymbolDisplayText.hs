@@ -1,11 +1,12 @@
 module Window.Graphics.SymbolDisplayText
-    ( SymbolDisplayText
+    ( SymbolDisplayText(_text)
     , imageReplacementSpacesText
     , parseLoadPrefixSymbolImage
     , mkSymbolDisplayText
     , updateSymbolDisplayText
     , drawSymbolDisplayText
     , drawSymbolDisplayTextCentered
+    , drawSymbolDisplayTextCenteredEx
     , drawSymbolDisplayTextRightAligned
     , drawSymbolDisplayTextRightAlignedEx
     , symbolDisplayTextWidth
@@ -35,6 +36,8 @@ uiPackPath                         = \f -> PackResourceFilePath "data/ui/ui.pack
 goldSymbolImagePath                = uiPackPath "symbol-gold.image"                  :: PackResourceFilePath
 unlocksCreditsSymbolImagePath      = uiPackPath "symbol-unlocks-credits.image"       :: PackResourceFilePath
 unlocksCreditsLargeSymbolImagePath = uiPackPath "symbol-unlocks-credits-large.image" :: PackResourceFilePath
+slotsPlusSymbolImagePath           = uiPackPath "symbol-slots-plus.image"            :: PackResourceFilePath
+slotsMinusSymbolImagePath          = uiPackPath "symbol-slots-minus.image"           :: PackResourceFilePath
 jumpSymbolImagePath                = uiPackPath "symbol-jump.image"                  :: PackResourceFilePath
 weaponSymbolImagePath              = uiPackPath "symbol-weapon.image"                :: PackResourceFilePath
 shootSymbolImagePath               = uiPackPath "symbol-shoot.image"                 :: PackResourceFilePath
@@ -59,6 +62,8 @@ parseLoadPrefixSymbolImage txt font = case specialTxt of
     "{GoldSymbol}"                       -> symbol goldSymbolImagePath
     "{UnlocksCreditsSymbol}"             -> symbol unlocksCreditsSymbolImagePath
     "{UnlocksCreditsLargeSymbol}"        -> symbol unlocksCreditsLargeSymbolImagePath
+    "{SlotsPlusSymbol}"                  -> symbol slotsPlusSymbolImagePath
+    "{SlotsMinusSymbol}"                 -> symbol slotsMinusSymbolImagePath
     "{JumpSymbol}"                       -> symbol jumpSymbolImagePath
     "{WeaponSymbol}"                     -> symbol weaponSymbolImagePath
     "{ShootSymbol}"                      -> symbol shootSymbolImagePath
@@ -103,27 +108,39 @@ updateSymbolDisplayText txt symbolDisplayTxt
             fontType   = _type $ _font displayTxt
         in mkSymbolDisplayText txt fontType (_color displayTxt)
 
-drawPrefixSymbolImage :: (GraphicsReadWrite m, MonadIO m) => Pos2 -> ZIndex -> SymbolDisplayText -> m ()
-drawPrefixSymbolImage pos zIndex symbolDisplayTxt = case _prefixSymbolImage symbolDisplayTxt of
+drawPrefixSymbolImage :: (GraphicsReadWrite m, MonadIO m) => Pos2 -> ZIndex -> Opacity -> SymbolDisplayText -> m ()
+drawPrefixSymbolImage pos zIndex opacity symbolDisplayTxt = case _prefixSymbolImage symbolDisplayTxt of
     Nothing  -> return ()
     Just img -> do
         txtHeight <- displayTextHeight $ _displayText symbolDisplayTxt
         let
             offset = Pos2 (imageWidth img / 2.0) (txtHeight / 2.0)
             pos'   = vecFloorXY $ pos `vecAdd` offset
-        drawImage pos' RightDir zIndex img
+        drawImageWithOpacity pos' RightDir zIndex opacity img
 
 drawSymbolDisplayText :: (GraphicsReadWrite m, MonadIO m) => Pos2 -> ZIndex -> SymbolDisplayText -> m ()
 drawSymbolDisplayText pos zIndex symbolDisplayTxt = do
     drawDisplayText pos zIndex (_displayText symbolDisplayTxt)
-    drawPrefixSymbolImage pos zIndex symbolDisplayTxt
+    drawPrefixSymbolImage pos zIndex FullOpacity symbolDisplayTxt
 
 drawSymbolDisplayTextCentered :: (GraphicsReadWrite m, MonadIO m) => Pos2 -> ZIndex -> SymbolDisplayText -> m ()
-drawSymbolDisplayTextCentered (Pos2 x y) zIndex symbolDisplayTxt = do
+drawSymbolDisplayTextCentered pos zIndex symbolDisplayTxt =
+    drawSymbolDisplayTextCenteredEx pos zIndex NonScaled FullOpacity symbolDisplayTxt
+
+drawSymbolDisplayTextCenteredEx
+    :: (GraphicsReadWrite m, MonadIO m)
+    => Pos2
+    -> ZIndex
+    -> DrawScale
+    -> Opacity
+    -> SymbolDisplayText
+    -> m ()
+drawSymbolDisplayTextCenteredEx (Pos2 x y) zIndex scale opacity symbolDisplayTxt = do
     width  <- symbolDisplayTextWidth symbolDisplayTxt
     height <- symbolDisplayTextHeight symbolDisplayTxt
     let pos = Pos2 (x - width / 2.0) (y - height / 2.0)
-    drawSymbolDisplayText pos zIndex symbolDisplayTxt
+    drawDisplayTextEx pos zIndex scale opacity (_displayText symbolDisplayTxt)
+    drawPrefixSymbolImage pos zIndex opacity symbolDisplayTxt
 
 drawSymbolDisplayTextRightAligned :: (GraphicsReadWrite m, MonadIO m) => Pos2 -> ZIndex -> SymbolDisplayText -> m ()
 drawSymbolDisplayTextRightAligned pos zIndex symbolDisplayTxt =
@@ -142,7 +159,7 @@ drawSymbolDisplayTextRightAlignedEx pos@(Pos2 x y) zIndex scale opacity symbolDi
 
     width       <- displayTextWidth $ _displayText symbolDisplayTxt
     let prefixPos = Pos2 (x - width) y
-    drawPrefixSymbolImage prefixPos zIndex symbolDisplayTxt
+    drawPrefixSymbolImage prefixPos zIndex opacity symbolDisplayTxt
 
 symbolDisplayTextWidth :: (GraphicsRead m, MonadIO m) => SymbolDisplayText -> m Float
 symbolDisplayTextWidth = displayTextWidth . _displayText

@@ -17,7 +17,6 @@ import Control.Monad          (when)
 import Control.Monad.IO.Class (MonadIO, liftIO)
 import Data.IORef             (newIORef, readIORef, writeIORef)
 import qualified Data.Text as T
-import qualified SDL
 import qualified SDL.Font
 
 import Util
@@ -26,7 +25,6 @@ import Window.Graphics.DisplayText.Types
 import Window.Graphics.Fonts
 import Window.Graphics.Fonts.Types
 import Window.Graphics.Opacity
-import Window.Graphics.Renderer
 import Window.Graphics.Texture
 import Window.Graphics.Types
 import Window.Graphics.Util
@@ -37,14 +35,11 @@ mkFontTexture text font color =
         sdlFont       = _sdlFont font
         sdlFontStyles = _sdlFontStyles font
         text'         = if T.null text then " " else text  -- SDL.Font will crash if the text is 0 width
+        fakeFilePath  = show font ++ show color ++ T.unpack text'
     in do
         SDL.Font.setStyle sdlFont sdlFontStyles
-        surface         <- SDL.Font.blended sdlFont (colorToV4 color) text'
-        (width, height) <- surfaceWidthHeight surface
-        sdlRenderer     <- (_sdlRenderer . _renderer) <$> getGraphics
-        sdlTexture      <- SDL.createTextureFromSurface sdlRenderer surface
-        SDL.freeSurface surface
-        mkTexture sdlTexture width height
+        surface <- SDL.Font.blended sdlFont (colorToV4 color) text'
+        loadTextureEx fakeFilePath surface
 
 mkDisplayText :: (GraphicsRead m, MonadIO m) => T.Text -> FontType -> Color -> m DisplayText
 mkDisplayText text fontType color = do
@@ -63,12 +58,12 @@ mkDisplayText text fontType color = do
 displayTextWidth :: (GraphicsRead m, MonadIO m) => DisplayText -> m Float
 displayTextWidth displayTxt = do
     updateDisplayTextTexture displayTxt
-    (fromIntegral . _width) <$> liftIO (readIORef $ _textureRef displayTxt)
+    fromIntegral . _width <$> liftIO (readIORef $ _textureRef displayTxt)
 
 displayTextHeight :: (GraphicsRead m, MonadIO m) => DisplayText -> m Float
 displayTextHeight displayTxt = do
     updateDisplayTextTexture displayTxt
-    (fromIntegral . _height) <$> liftIO (readIORef $ _textureRef displayTxt)
+    fromIntegral . _height <$> liftIO (readIORef $ _textureRef displayTxt)
 
 appendDisplayText :: T.Text -> DisplayText -> DisplayText
 appendDisplayText text displayTxt = displayTxt {_text = text'}

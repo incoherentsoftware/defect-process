@@ -2,59 +2,97 @@ module Level.Room.Event.LightningStrike
     ( mkRoomEventLightningStrike
     ) where
 
-import Control.Monad.IO.Class (MonadIO)
+import Control.Monad.IO.Class (MonadIO, liftIO)
+import System.Random.Shuffle  (shuffleM)
 import qualified Data.List as L
 import qualified Data.Set as S
 
-import Attack
+import AppEnv
 import Attack.Hit
-import Attack.Projectile
 import Collision
 import Configs
 import Configs.All.Level
 import Constants
-import FileCache
 import Id
 import InfoMsg.Util
+import Level.Room.Event.LightningStrike.Projectile
 import Msg
 import Projectile as P
 import Util
-import Window.Graphics
 import World.GoldDrop
 import World.Util
 
 initialWaveCooldownSecs = 0.75 :: Secs
 perWaveCooldownSecs     = 0.75 :: Secs
 
-lightningStrikeAtkDescPath =
-    PackResourceFilePath "data/levels/level-items.pack" "lightning-pre-strike.atk" :: PackResourceFilePath
+type MkWave = Pos2 -> AppEnv ThinkProjectileMsgsPhase [Some Projectile]
+
+outsideInMkWave =
+    [ \pos -> sequence [mkRelativeLightningProjectile pos 0.05, mkRelativeLightningProjectile pos 0.95]
+    , \pos -> sequence [mkRelativeLightningProjectile pos 0.15, mkRelativeLightningProjectile pos 0.85]
+    , \pos -> sequence [mkRelativeLightningProjectile pos 0.25, mkRelativeLightningProjectile pos 0.75]
+    , \pos -> sequence [mkRelativeLightningProjectile pos 0.35, mkRelativeLightningProjectile pos 0.65]
+    , \pos -> sequence [mkRelativeLightningProjectile pos 0.45, mkRelativeLightningProjectile pos 0.55]
+    ] :: [MkWave]
+
+inOutsideMkWave =
+    [ \pos -> sequence [mkRelativeLightningProjectile pos 0.5]
+    , \pos -> sequence [mkRelativeLightningProjectile pos 0.387, mkRelativeLightningProjectile pos 0.612]
+    , \pos -> sequence [mkRelativeLightningProjectile pos 0.275, mkRelativeLightningProjectile pos 0.725]
+    , \pos -> sequence [mkRelativeLightningProjectile pos 0.162, mkRelativeLightningProjectile pos 0.837]
+    , \pos -> sequence [mkRelativeLightningProjectile pos 0.050, mkRelativeLightningProjectile pos 0.950]
+    ] :: [MkWave]
+
+homingMkWave =
+    [ \pos -> sequence [mkExactLightningProjectile pos]
+    , \pos -> sequence [mkExactLightningProjectile pos]
+    , \pos -> sequence [mkExactLightningProjectile pos]
+    , \pos -> sequence [mkExactLightningProjectile pos]
+    , \pos -> sequence [mkExactLightningProjectile pos]
+    ] :: [MkWave]
+
+alternatingMkWave =
+    let
+        pattern    = \pos -> sequence
+            [ mkRelativeLightningProjectile pos 0.05
+            , mkRelativeLightningProjectile pos 0.25
+            , mkRelativeLightningProjectile pos 0.45
+            , mkRelativeLightningProjectile pos 0.65
+            , mkRelativeLightningProjectile pos 0.85
+            ]
+        patternAlt = \pos -> sequence
+            [ mkRelativeLightningProjectile pos 0.15
+            , mkRelativeLightningProjectile pos 0.35
+            , mkRelativeLightningProjectile pos 0.55
+            , mkRelativeLightningProjectile pos 0.75
+            , mkRelativeLightningProjectile pos 0.95
+            ]
+    in [pattern, patternAlt, pattern, patternAlt, pattern] :: [MkWave]
+
+allMkWaves = [outsideInMkWave, inOutsideMkWave, homingMkWave, alternatingMkWave] :: [[MkWave]]
 
 data LightningStrikeData = LightningStrikeData
     { _hitPlayerHashedIds :: S.Set HashedId
-    , _remainingWaves     :: Int
+    , _mkWaves            :: [MkWave]
     , _waveCooldownTtl    :: Secs
     , _waveMsgIds         :: S.Set MsgId
-    , _attackDesc         :: AttackDescription
-    , _config             :: LevelConfig
     }
 
-mkLightningStrikeData :: (ConfigsRead m, FileCache m, GraphicsRead m, MonadIO m) => Pos2 -> m LightningStrikeData
-mkLightningStrikeData _ = do
-    cfg     <- _level <$> readConfigs
-    atkDesc <- loadPackAttackDescription lightningStrikeAtkDescPath
+mkLightningStrikeData :: (ConfigsRead m, MonadIO m) => m LightningStrikeData
+mkLightningStrikeData = do
+    eventLightningNumWaves <- _eventLightningNumWaves . _level <$> readConfigs
+    mkWaves                <- concat . take eventLightningNumWaves <$> liftIO (shuffleM allMkWaves)
 
     return $ LightningStrikeData
         { _hitPlayerHashedIds = S.empty
-        , _remainingWaves     = _eventLightningInitialRemainingWaves cfg
+        , _mkWaves            = mkWaves
         , _waveCooldownTtl    = initialWaveCooldownSecs
         , _waveMsgIds         = S.empty
-        , _attackDesc         = atkDesc
-        , _config             = cfg
         }
 
-mkRoomEventLightningStrike :: (ConfigsRead m, FileCache m, GraphicsRead m, MonadIO m) => Pos2 -> m (Some Projectile)
+mkRoomEventLightningStrike :: (ConfigsRead m, MonadIO m) => Pos2 -> m (Some Projectile)
 mkRoomEventLightningStrike pos = do
-    lightningStrikeData <- mkLightningStrikeData pos
+    lightningStrikeData <- mkLightningStrikeData
     msgId               <- newId
     let dummyHbx         = dummyHitbox pos
 
@@ -72,40 +110,36 @@ readPlayerGroundPos lightningStrike = processMsgs <$> readMsgs
             InfoMsgPlayer playerInfo -> _groundBeneathPos playerInfo
             _                        -> processMsgs ps
 
-thinkLightningStrike
-    :: (ConfigsRead m, MonadIO m, MsgsRead ThinkProjectileMsgsPhase m)
-    => ProjectileThink LightningStrikeData m
+thinkLightningStrike :: ProjectileThink LightningStrikeData (AppEnv ThinkProjectileMsgsPhase)
 thinkLightningStrike lightningStrike
-    | null waveMsgIds && waveCooldownTtl <= 0.0 = if
-        | remainingWaves <= 0 -> do
+    | null waveMsgIds && waveCooldownTtl <= 0.0 = case _mkWaves lightningStrikeData of
+        [] -> do
             cfg <- _level <$> readConfigs
             let
-                dropGoldPos           = hitboxCenter $ projectileHitbox lightningStrike
-                playerHitCount        = S.size $ _hitPlayerHashedIds lightningStrikeData
-                perWaveGoldValue      = _eventLightningPerWaveGoldValue cfg
-                initialRemainingWaves = _eventLightningInitialRemainingWaves cfg
-                dropGoldValue         = perWaveGoldValue * GoldValue (initialRemainingWaves - playerHitCount)
+                dropGoldPos            = hitboxCenter $ projectileHitbox lightningStrike
+                playerHitCount         = S.size $ _hitPlayerHashedIds lightningStrikeData
+                perHitPenaltyGoldValue = _eventLightningPerHitPenaltyGoldValue cfg
+                dropGoldValue          =
+                    _eventLightningGoldValue cfg - (GoldValue playerHitCount) * perHitPenaltyGoldValue
 
             return
                 [ mkMsg $ NewUpdateProjectileMsgAddsM (mkArenaGoldDrops dropGoldPos dropGoldValue)
                 , mkMsgTo (ProjectileMsgSetTtl 0.0) msgId
                 ]
 
-        | otherwise -> do
-            pos           <- readPlayerGroundPos lightningStrike
-            Some waveProj <- mkEnemyAttackProjectile pos RightDir (_attackDesc lightningStrikeData)
-
+        (mkWave:mkWaves) -> do
+            waveProjs <- mkWave =<< readPlayerGroundPos lightningStrike
             let
-                update = \p -> p
+                update      = \p -> p
                     { _data = (P._data p)
-                        { _remainingWaves  = remainingWaves - 1
+                        { _mkWaves         = mkWaves
                         , _waveCooldownTtl = perWaveCooldownSecs
-                        , _waveMsgIds      = S.singleton $ P._msgId waveProj
+                        , _waveMsgIds      = S.fromList [P._msgId wp | Some wp <- waveProjs]
                         }
                     }
 
             return
-                [ mkMsg $ NewUpdateProjectileMsgAdd (Some waveProj)
+                [ mkMsg $ NewUpdateProjectileMsgAdds waveProjs
                 , mkMsgTo (ProjectileMsgUpdate update) msgId
                 , mkMsg RoomMsgKeepPortalBarrierAlive
                 ]
@@ -114,7 +148,6 @@ thinkLightningStrike lightningStrike
 
     where
         lightningStrikeData = _data lightningStrike
-        remainingWaves      = _remainingWaves lightningStrikeData
         waveMsgIds          = _waveMsgIds lightningStrikeData
         waveCooldownTtl     = _waveCooldownTtl lightningStrikeData
         msgId               = P._msgId lightningStrike

@@ -256,7 +256,7 @@ goldDropSurfaceCollision surfaceHbx goldDrop =
 
 goldDropPlayerCollision :: Projectile GoldDropData -> [Msg ThinkCollisionMsgsPhase]
 goldDropPlayerCollision goldDrop =
-    [ mkMsg $ PlayerMsgTouchingGold gold
+    [ mkMsg $ PlayerMsgUpdateGold (+ gold)
     , mkMsgTo (ProjectileMsgSetTtl 0.0) (_msgId goldDrop)
     , mkMsg $ AudioMsgPlaySound goldPickupSoundPath pos
     ]

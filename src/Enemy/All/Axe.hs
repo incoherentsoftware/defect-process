@@ -14,6 +14,8 @@ import Configs
 import Configs.All.Enemy
 import Configs.All.Enemy.Axe
 import Configs.All.EnemyLockOn
+import Configs.All.Settings
+import Configs.All.Settings.Debug
 import Enemy as E
 import Enemy.All.Axe.AI
 import Enemy.All.Axe.Behavior
@@ -27,8 +29,9 @@ import Window.Graphics
 
 allAxeEnemyPreloadPackFilePaths = ["data/enemies/axe-enemy.pack"] :: [FilePath]
 
-onlySlashDebugFlag = T.toLower "onlySlash" :: T.Text
-onlyLungeDebugFlag = T.toLower "onlyLunge" :: T.Text
+hurtSoundPath      = "event:/SFX Events/Enemy/Axe/hurt" :: FilePath
+onlySlashDebugFlag = T.toLower "onlySlash"              :: T.Text
+onlyLungeDebugFlag = T.toLower "onlyLunge"              :: T.Text
 
 mkAxeEnemy :: (ConfigsRead m, FileCache m, GraphicsRead m, MonadIO m) => Pos2 -> Direction -> m (Some Enemy)
 mkAxeEnemy pos dir = do
@@ -107,7 +110,7 @@ updateSpr enemy = case _behavior enemyData of
         enemyData     = _data enemy
         sprs          = _sprites enemyData
 
-updateHurtResponse :: MsgsWrite UpdateEnemyMsgsPhase m => EnemyUpdateHurtResponse AxeEnemyData m
+updateHurtResponse :: (ConfigsRead m, MsgsWrite UpdateEnemyMsgsPhase m) => EnemyUpdateHurtResponse AxeEnemyData m
 updateHurtResponse atkHit enemy
     | behavior == DeathBehavior = return enemy
 
@@ -155,9 +158,11 @@ updateHurtResponse atkHit enemy
                 | hurtType == LaunchUpHurt = False
                 | otherwise                = onGround
         in do
-            when (atkDmg > 0) $
+            when (atkDmg > 0) $ do
                 let mkEffectPart = mkEnemyHurtParticle enemy atkHit (_hurtEffectData cfg)
-                in writeMsgs [mkMsg $ ParticleMsgAddM mkEffectPart]
+                writeMsgs [mkMsg $ ParticleMsgAddM mkEffectPart]
+                unlessM (readSettingsConfig _debug _disableEnemyHurtSfx) $
+                    writeMsgs [mkMsg $ AudioMsgPlaySound hurtSoundPath atkPos]
 
             return $ enemy
                 { _data          = enemyData'

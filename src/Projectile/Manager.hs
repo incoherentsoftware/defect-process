@@ -62,6 +62,7 @@ mkNewUpdateProjectiles = foldlM processMsg [] =<< readMsgs
             -> AppEnv UpdateProjectileMsgsPhase [Some Projectile]
         processMsg !ps d = case d of
             NewUpdateProjectileMsgAdd proj    -> return $ proj:ps
+            NewUpdateProjectileMsgAdds projs  -> return $ projs ++ ps
             NewUpdateProjectileMsgAddM proj   -> (:ps) <$> proj
             NewUpdateProjectileMsgAddsM projs -> (++ ps) <$> projs
 

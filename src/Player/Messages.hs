@@ -177,6 +177,16 @@ pushbackPlayerOffset offsetX player
                 PlayerWallProximityNone                                            -> standardPushback
         in updatePlayerPos update player
 
+updatePlayerGold :: MsgsWrite UpdatePlayerMsgsPhase m => (GoldValue -> GoldValue) -> Player -> m Player
+updatePlayerGold updateGold player =
+    let
+        gold     = _gold player
+        gold'    = max (GoldValue 0) (updateGold gold)
+        goldDiff = gold' - gold
+    in do
+        writeMsgs [mkMsg $ UiMsgGainedGold goldDiff]
+        return $ player {_gold = gold'}
+
 resetPlayerAirStallDoubleJump :: Player -> Player
 resetPlayerAirStallDoubleJump player = player
     { _timersCounters = (_timersCounters player)
@@ -204,7 +214,7 @@ processPlayerMsgs player = foldlM processMsg player =<< readMsgs
             PlayerMsgCancelMovementSkill              -> return $ cancelPlayerMovementSkill p
             PlayerMsgUpdateSecondarySkill slot update -> return $ updatePlayerSecondarySkill slot update
             PlayerMsgSetPhased                        -> return $ p {_flags = flags {_phased = True}}
-            PlayerMsgTouchingGold gold                -> return $ p {_gold = _gold p + gold}
+            PlayerMsgUpdateGold update                -> updatePlayerGold update p
             PlayerMsgClearAttack                      -> return $ p {_attack = Nothing}
             PlayerMsgSetAttack atk                    -> return $ setPlayerAttack atk p
             PlayerMsgSetAttackDesc atkDesc            -> setPlayerAttackDesc atkDesc p

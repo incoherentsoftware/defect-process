@@ -7,6 +7,7 @@ import Control.Monad.IO.Class (MonadIO)
 import Data.Maybe             (fromMaybe)
 import Data.Yaml              (decodeEither')
 import System.FilePath        (takeDirectory)
+import qualified Data.Map as M
 import qualified Data.Set as S
 
 import AppEnv
@@ -31,7 +32,7 @@ import Level.Room.Item.Jukebox
 import Level.Room.Item.Jukebox.JSON
 import Level.Room.Item.Pickup.All
 import Level.Room.Item.RefreshStation
-import Level.Room.Item.Types
+import Level.Room.Item.Types as RI
 import Level.Room.JSON
 import Level.Room.MovingPlatform
 import Level.Room.Portal.Manager
@@ -89,7 +90,7 @@ loadRoom roomType playerInfo roomChooser currentDangerValue statsManager = do
             let
                 surfaces            = _surfaces (roomJSON :: RoomJSON)
                 surfaces'           = map (mkGeneralSurface . _fromJSON) surfaces
-                platforms           = fromMaybe [] (_platforms roomJSON)
+                platforms           = fromMaybe [] (_platforms (roomJSON :: RoomJSON))
                 platforms'          = map (mkPlatformSurface . _fromJSON) platforms
                 allSurfaces         = surfaces' ++ platforms'
                 playerSpawn         = _playerSpawn roomJSON
@@ -193,6 +194,58 @@ loadRoom roomType playerInfo roomChooser currentDangerValue statsManager = do
                         , _cameraBottomLocked    = cameraBotLocked
                         , _cameraPlayerOffsetY   = cameraPlayerOffsetY
                         }
+                newRoom' <- applyRandomOffsets (_randomOffsets roomJSON) newRoom
 
-                preloadRoomDeferredPackResources newRoom
-                return newRoom
+                preloadRoomDeferredPackResources newRoom'
+                return newRoom'
+
+applyRandomOffsets :: MonadIO m => Maybe RoomRandomOffsetsJSON -> Room -> m Room
+applyRandomOffsets Nothing room                  = return room
+applyRandomOffsets (Just randomOffsetsJSON) room = do
+    vars <- M.fromList <$> sequenceA
+        [ (name,) <$> randomChoice values
+        | (name, values) <- M.toList $ _vars randomOffsetsJSON
+        ]
+
+    let
+        nonPlatforms = [s | s <- _surfaces (room :: Room), _type (s :: Surface) /= PlatformSurface]
+        platforms    = [s | s <- _surfaces (room :: Room), _type (s :: Surface) == PlatformSurface]
+        platforms'   = case _platforms (randomOffsetsJSON :: RoomRandomOffsetsJSON) of
+            Nothing              -> platforms
+            Just platformOffsets ->
+                [ case i `M.lookup` platformOffsets >>= (`M.lookup` vars) of
+                    Nothing     -> platform
+                    Just offset ->
+                        let hbx = _hitbox (platform :: Surface)
+                        in platform {_hitbox = moveHitbox offset hbx} :: Surface
+                | (i, platform) <- zip [0..] platforms
+                ]
+
+        nonGoldChunks = [Some ri | Some ri <- _items (room :: Room), RI._type ri /= GoldChunkItemType]
+        goldChunks    = [Some ri | Some ri <- _items (room :: Room), RI._type ri == GoldChunkItemType]
+        goldChunks'   = case _goldChunks (randomOffsetsJSON :: RoomRandomOffsetsJSON) of
+            Nothing                -> goldChunks
+            Just goldChunkOffsets ->
+                [ case i `M.lookup` goldChunkOffsets >>= (`M.lookup` vars) of
+                    Nothing     -> Some goldChunk
+                    Just offset -> Some $ goldChunk {RI._hitbox = moveHitbox offset (RI._hitbox goldChunk)}
+                | (i, Some goldChunk) <- zip [0..] goldChunks
+                ]
+
+        imageLayers  = _imageLayers (room :: Room)
+        imageLayers' = case _imageLayers (randomOffsetsJSON :: RoomRandomOffsetsJSON) of
+            Nothing                -> imageLayers
+            Just imageLayerOffsets ->
+                [ case i `M.lookup` imageLayerOffsets >>= (`M.lookup` vars) of
+                    Nothing     -> imageLayer
+                    Just offset ->
+                        let pos = _pos (imageLayer :: RoomImageLayer)
+                        in imageLayer {_pos = pos `vecAdd` offset} :: RoomImageLayer
+                | (i, imageLayer) <- zip [0..] imageLayers
+                ]
+
+    return $ (room :: Room)
+        { _surfaces    = nonPlatforms ++ platforms'
+        , _items       = nonGoldChunks ++ goldChunks'
+        , _imageLayers = imageLayers'
+        }
