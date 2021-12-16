@@ -230,6 +230,8 @@ itemCmd args world = do
         "shardgun"        -> Just <$> mkRevolverItemPickup roomType pos
         "grenadelauncher" -> Just <$> mkRevolverItemPickup roomType pos
         "spikegun"        -> Just <$> mkRevolverItemPickup roomType pos
+        "ricochetgun"     -> Just <$> mkRevolverItemPickup roomType pos
+
 
         -- NOTE: this is modified from the full source since only dash is included in this repo
         "dash"     -> Just <$> mkDashItemPickup roomType pos
@@ -620,13 +622,14 @@ giveGunCmd :: ConsoleCommand (AppEnv ConsoleMsgsPhase)
 giveGunCmd args world = do
     let player = _player (world :: World)
 
-    gun <- case args0 args of
+    gun <- case T.toLower (args0 args) of
         -- NOTE: this is modified from the full source since only revolver is included in this repo
         "revolver"        -> Just <$> mkRevolverGun
         "shotgun"         -> Just <$> mkRevolverGun
-        "grenadeLauncher" -> Just <$> mkRevolverGun
-        "shardGun"        -> Just <$> mkRevolverGun
-        "spikeGun"        -> Just <$> mkRevolverGun
+        "grenadelauncher" -> Just <$> mkRevolverGun
+        "shardgun"        -> Just <$> mkRevolverGun
+        "spikegun"        -> Just <$> mkRevolverGun
+        "ricochetgun"     -> Just <$> mkRevolverGun
         "random"          -> case filter (`notElem` playerGunTypes player) allGunTypes of
             []     -> return Nothing
             (t:ts) ->
@@ -650,8 +653,8 @@ giveMovementSkillCmd :: ConsoleCommand (AppEnv ConsoleMsgsPhase)
 giveMovementSkillCmd args world = do
     let player = _player (world :: World)
 
-    -- NOTE: this is modified from the full source since only dash is included in this repo
     movementSkill <- case args0 args of
+        -- NOTE: this is modified from the full source since only stoneForm is included in this repo
         "dash"     -> Just <$> mkDashSkill
         "teleport" -> Just <$> mkDashSkill
         "grapple"  -> Just <$> mkDashSkill
@@ -681,8 +684,8 @@ giveMovementSkillCmd args world = do
 
 giveSecondarySkillCmd :: ConsoleCommand (AppEnv ConsoleMsgsPhase)
 giveSecondarySkillCmd args world = do
-    -- NOTE: this is modified from the full source since only stoneForm is included in this repo
     secondarySkill <- case args0 args of
+        -- NOTE: this is modified from the full source since only stoneForm is included in this repo
         "stoneForm"  -> Just <$> mkStoneFormSkill
         "flight"     -> Just <$> mkStoneFormSkill
         "fastFall"   -> Just <$> mkStoneFormSkill

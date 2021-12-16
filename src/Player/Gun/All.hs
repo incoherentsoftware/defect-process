@@ -19,3 +19,4 @@ mkGunFromType gunType = case gunType of
     ShardGun           -> mkRevolverGun
     GrenadeLauncherGun -> mkRevolverGun
     SpikeGun           -> mkRevolverGun
+    RicochetGun        -> mkRevolverGun

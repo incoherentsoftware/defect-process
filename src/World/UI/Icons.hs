@@ -82,6 +82,7 @@ data GunIcons = GunIcons
     , _grenadeLauncher :: IconImage
     , _shardGun        :: IconImage
     , _spikeGun        :: IconImage
+    , _ricochetGun     :: IconImage
     }
 
 mkGunIcons :: (FileCache m, GraphicsRead m, MonadIO m) => m GunIcons
@@ -91,7 +92,8 @@ mkGunIcons =
     loadIconImage "shotgun-icon.image" <*>
     loadIconImage "grenade-launcher-icon.image" <*>
     loadIconImage "shard-gun-icon.image" <*>
-    loadIconImage "spike-gun-icon.image"
+    loadIconImage "spike-gun-icon.image" <*>
+    loadIconImage "ricochet-gun-icon.image"
 
 data MovementSkillIcons = MovementSkillIcons
     { _dash      :: IconImage
@@ -202,6 +204,7 @@ iconsUiGunIconImages player iconsUI = (activeImg, inactiveImg)
             (GrenadeLauncherGun:_) -> _grenadeLauncher gunIcons
             (SpikeGun:_)           -> _spikeGun gunIcons
             (ShardGun:_)           -> _shardGun gunIcons
+            (RicochetGun:_)        -> _ricochetGun gunIcons
             where gunIcons = _gunIcons iconsUI
 
         gunTypes    = playerGunTypes player

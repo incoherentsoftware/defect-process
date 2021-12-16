@@ -18,6 +18,7 @@ data EnemySpawnWaveChoiceRule
     | MaxOneBombRule
     | MaxOneBubbleTurretRule
     | MaxOneFlyingRule
+    | MaxTwoFlyingRule
     | MaxOneHopRule
     | MaxOneSpearRule
     | MaxOneTurretRule

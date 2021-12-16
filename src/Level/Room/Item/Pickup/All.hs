@@ -66,6 +66,7 @@ allInitGunRoomItems =
     , (ShardGun, mkRevolverItemPickup)
     , (GrenadeLauncherGun, mkRevolverItemPickup)
     , (SpikeGun, mkRevolverItemPickup)
+    , (RicochetGun, mkRevolverItemPickup)
     ] :: [(GunType, RoomType -> RoomItemInit p)]
 
 -- NOTE: this is modified from the full source since only dash is included in this repo

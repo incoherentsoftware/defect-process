@@ -188,11 +188,11 @@ updateHurtResponse atkHit enemy
             }
 
     where
-        enemyData    = _data enemy
-        cfg          = _axe (_config enemyData :: EnemyConfig)
-        behavior     = _behavior enemyData
-        onGround     = enemyTouchingGround enemy
-        inAir        = not onGround
+        enemyData = _data enemy
+        cfg       = _axe (_config enemyData :: EnemyConfig)
+        behavior  = _behavior enemyData
+        onGround  = enemyTouchingGround enemy
+        inAir     = not onGround
 
         isWeakAtkHitVel = _isWeakVel atkHit
         velY            = vecY $ E._vel enemy

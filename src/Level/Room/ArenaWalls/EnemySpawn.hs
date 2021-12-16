@@ -54,6 +54,9 @@ mkEnemySpawnWave dangerVal enWaveChoice = EnemySpawnWave dangerVal <$> chooseEne
                     MaxOneFlyingRule
                         | enType == FlyingEnemy             -> countBy (== FlyingEnemy) < 1
                         | otherwise                         -> True
+                    MaxTwoFlyingRule
+                        | enType == FlyingEnemy             -> countBy (== FlyingEnemy) < 2
+                        | otherwise                         -> True
                     MaxOneHopRule
                         | enType == HopEnemy                -> countBy (== HopEnemy) < 1
                         | otherwise                         -> True

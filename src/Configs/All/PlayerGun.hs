@@ -7,6 +7,7 @@ import GHC.Generics     (Generic)
 
 import Configs.All.PlayerGun.GrenadeLauncher
 import Configs.All.PlayerGun.Revolver
+import Configs.All.PlayerGun.RicochetGun
 import Configs.All.PlayerGun.ShardGun
 import Configs.All.PlayerGun.Shotgun
 import Configs.All.PlayerGun.SpikeGun
@@ -18,6 +19,7 @@ data PlayerGunConfig = PlayerGunConfig
     , _shardGun        :: ShardGunConfig
     , _shotgun         :: ShotgunConfig
     , _spikeGun        :: SpikeGunConfig
+    , _ricochetGun     :: RicochetGunConfig
     }
     deriving Generic
 

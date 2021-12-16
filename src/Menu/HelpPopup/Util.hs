@@ -258,6 +258,14 @@ gunTypeToHelpPopupDescription = \case
             }
         }
 
+    RicochetGun -> HelpPopupDescription
+        { _iconButtonImagePath = buttonImagePath "ricochet-gun-icon-button.image"
+        , _popupDescription    = Left $ HelpPopupScreenDescription
+            { _imagePath               = variousHelpPackPath "ricochet-gun-help.image"
+            , _textOverlayDescriptions = [mkSymbolInputAliasPosTextDesc ShootAlias]
+            }
+        }
+
 movementSkillTypeToHelpPopupDescription :: MovementSkillType -> HelpPopupDescription
 movementSkillTypeToHelpPopupDescription = \case
     DashSkill -> HelpPopupDescription

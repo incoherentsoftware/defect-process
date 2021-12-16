@@ -1,5 +1,5 @@
-module Configs.All.PlayerGun.Shotgun
-    ( ShotgunConfig(..)
+module Configs.All.PlayerGun.RicochetGun
+    ( RicochetGunConfig(..)
     ) where
 
 import Data.Aeson.Types (FromJSON, genericParseJSON, parseJSON)
@@ -13,23 +13,22 @@ import Player.Gun.FireDrawState.LegsState.Types
 import Player.Meter
 import Util
 
-data ShotgunConfig = ShotgunConfig
-    { _fireAirVel        :: Vel2
-    , _shootRange        :: Distance
-    , _afterFireSecs     :: Secs
-    , _pumpSecs          :: Secs
+data RicochetGunConfig = RicochetGunConfig
+    { _shootRange        :: Distance
+    , _maxBullets        :: Int
+    , _fireAirVel        :: Vel2
+    , _betweenShotsCd    :: Secs
+    , _reloadCd          :: Secs
+    , _autoReloadCd      :: Secs
+    , _maxBounceRange    :: Distance
     , _muzzleFlashOffset :: Pos2
+    , _handsOffset       :: Pos2
 
-    , _shotgunSpreadDegrees :: [Degrees]
-
-    , _shotAliveSecs           :: Secs
-    , _shotDamage              :: Damage
-    , _shotStartShoulderOffset :: Pos2
-    , _shotMeterCost           :: MeterValue
-    , _shotHitlag              :: Secs
-
-    , _knockbackMagnitude     :: Float
-    , _knockbackDistThreshold :: Float
+    , _shotHitVel            :: Vel2
+    , _shotDamage            :: Damage
+    , _shotStagger           :: Stagger
+    , _shotHitstunMultiplier :: Float
+    , _shotMeterCost         :: MeterValue
 
     , _headAngleMultiplier     :: Float
     , _leadArmAngleMultiplier  :: Float
@@ -42,5 +41,5 @@ data ShotgunConfig = ShotgunConfig
     }
     deriving Generic
 
-instance FromJSON ShotgunConfig where
+instance FromJSON RicochetGunConfig where
     parseJSON = genericParseJSON aesonFieldDropUnderscore

@@ -25,6 +25,7 @@ data GunType
     | GrenadeLauncherGun
     | ShardGun
     | SpikeGun
+    | RicochetGun
     deriving (Bounded, Enum, Eq, FromJSON, Generic, Ord, Read, Show, ToJSON)
 
 instance PrettyShow GunType where
@@ -35,6 +36,7 @@ instance PrettyShow GunType where
         GrenadeLauncherGun -> "Grenade Launcher"
         ShardGun           -> "Shards"
         SpikeGun           -> "Spikes"
+        RicochetGun        -> "Ricochet Beam"
 
 type GunThink d m       = GunStatus -> Player -> Gun d -> m [Msg ThinkPlayerMsgsPhase]
 type GunDrawOverlay d m = Pos2 -> Direction -> Gun d -> m ()
