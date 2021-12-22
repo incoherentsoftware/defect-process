@@ -17,6 +17,7 @@
 1. Edit the lines at the bottom of `<project root>/package.yaml`:
    - In the `c-sources:` line change `wrapper-NOAUDIO.c` to `wrapper.c`
    - Uncomment the `extra-lib-dirs` and `extra-libraries` lines
+1. After building run the game with: `DYLD_LIBRARY_PATH=<project root>/lib ./defect-process`
 
 ## Build
 `stack build --local-bin-path . --copy-bins` (ignore any warnings about PATH)
