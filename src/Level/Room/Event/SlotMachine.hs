@@ -40,8 +40,10 @@ packPath           = \f -> PackResourceFilePath "data/levels/level-items.pack" f
 signImagePath      = packPath "slot-machine-sign.image"      :: PackResourceFilePath
 selectionImagePath = packPath "slot-machine-selection.image" :: PackResourceFilePath
 
-activateSoundPath = "event:/SFX Events/Level/event-activator" :: FilePath
-goldSoundPath     = "event:/SFX Events/Level/gold-pickup"     :: FilePath
+activateSoundPath   = "event:/SFX Events/Level/event-activator"    :: FilePath
+cursorMoveSoundPath = "event:/SFX Events/Level/gamble-cursor-move" :: FilePath
+goldGainSoundPath   = "event:/SFX Events/Level/gamble-gold-gain"   :: FilePath
+goldLossSoundPath   = "event:/SFX Events/Level/gamble-gold-loss"   :: FilePath
 
 data SlotMachineState
     = SlotMachineReady
@@ -172,11 +174,14 @@ thinkSlotMachine slotMachine =
                     let
                         setSlotMachineDone = \sm -> sm {_data = (_data sm) {_state = SlotMachineDone}}
                         selectionTxt       = _text (symbolDisplayTxt :: SymbolDisplayText)
+                        resultSoundPath    = if
+                            | isSlotsChoiceTextPlus selectionTxt -> goldGainSoundPath
+                            | otherwise                          -> goldLossSoundPath
                     in
                         [ mkMsgTo (RoomMsgUpdateItem setSlotMachineDone) (_msgId slotMachine)
                         , mkMsg $ PlayerMsgUpdateGold (parseFormattedSlotsChoice selectionTxt)
                         , mkMsg $ ParticleMsgAddM (mkSlotMachineTextParticle symbolDisplayTxt)
-                        , mkMsg $ AudioMsgPlaySound goldSoundPath pos
+                        , mkMsg $ AudioMsgPlaySound resultSoundPath pos
                         ]
 
             _ -> []
@@ -189,16 +194,17 @@ chooseRandomSelectionOffset slotMachineData = case NE.filter (not . pos2ApproxEq
         selectionOffset  = _selectionOffset slotMachineData
         selectionOffsets = _eventSlotMachineSelectionOffsets $ _config slotMachineData
 
-updateSlotMachine :: MonadIO m => RoomItemUpdate SlotMachineData m
+updateSlotMachine :: (MonadIO m, MsgsWrite UpdateLevelMsgsPhase m) => RoomItemUpdate SlotMachineData m
 updateSlotMachine slotMachine = do
     let
-        slotMachineData = _data slotMachine
-        selectionTtl    = _selectionTtl slotMachineData - timeStep
-        state           = _state slotMachineData
+        slotMachineData      = _data slotMachine
+        selectionTtl         = _selectionTtl slotMachineData - timeStep
+        state                = _state slotMachineData
+        isNewSelectionOffset = state /= SlotMachineDone && selectionTtl <= 0.0
 
     selectionOffset <- if
-        | state /= SlotMachineDone && selectionTtl <= 0.0 -> chooseRandomSelectionOffset slotMachineData
-        | otherwise                                       -> return $ _selectionOffset slotMachineData
+        | isNewSelectionOffset -> chooseRandomSelectionOffset slotMachineData
+        | otherwise            -> return $ _selectionOffset slotMachineData
 
     let
         isActivated                 = state == SlotMachineActivated
@@ -213,6 +219,10 @@ updateSlotMachine slotMachine = do
         selectionTtl'
             | selectionTtl <= 0.0 = selectionIntervalSecs'
             | otherwise           = selectionTtl
+
+    when (isActivated && isNewSelectionOffset) $
+        let pos = hitboxCenter $ RI._hitbox slotMachine
+        in writeMsgs [mkMsg $ AudioMsgPlaySound cursorMoveSoundPath pos]
 
     return $ slotMachine
         { _data = slotMachineData

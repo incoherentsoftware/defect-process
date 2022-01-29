@@ -54,6 +54,7 @@ warpOutSoundFilePath    = "event:/SFX Events/Player/warp-out"              :: Fi
 overrideMomentumFrameTagName      = "overrideMomentum"     :: FrameTagName
 overrideMomentumTempFrameTagName  = "overrideMomentumTemp" :: FrameTagName
 overrideMomentumVertFrameTagName  = "overrideMomentumVert" :: FrameTagName
+lockAttackDirFrameTagName         = "lockAttackDir"        :: FrameTagName
 airMomentumVelXThresholdOffset    = 5.0                    :: VelX
 airMomentumAtkSpeedThreshold      = 5.0                    :: Speed
 groundMomentumVelXThresholdOffset = 5.0                    :: VelX
@@ -126,16 +127,24 @@ updatePlayerMoveLeftRight inputState player
         cantMove       = isRestrictedByAtk || isRestrictedByMoveSkill || gettingHit || onSpeedRail
         Vel2 velX velY = _vel player
         moveSpeed      = _moveSpeed $ _config (player :: Player)
+        atk            = _attack player
 
         leftHeld  = LeftAlias `aliasHold` inputState
         rightHeld = RightAlias `aliasHold` inputState
 
-        updateFlags = \p -> if
-            | atkWalkCancelable && isJust (_attack player) -> p {_flags = flags {_walkCanceled = True}}
-            | otherwise                                    -> p
+        overrideDir = \p -> (p :: Player)
+            { _dir = case atk of
+                Just atk'
+                    | lockAttackDirFrameTagName `isAttackFrameTag` atk' -> _dir (atk' :: Attack)
+                _                                                       -> _dir (p :: Player)
+            }
 
-        moveLeft  = updateFlags $ movePlayerHorizontal LeftDir player
-        moveRight = updateFlags $ movePlayerHorizontal RightDir player
+        updateFlags = \p -> if
+            | atkWalkCancelable && isJust atk -> p {_flags = flags {_walkCanceled = True}}
+            | otherwise                       -> p
+
+        moveLeft  = overrideDir . updateFlags $ movePlayerHorizontal LeftDir player
+        moveRight = overrideDir . updateFlags $ movePlayerHorizontal RightDir player
 
 updatePlayerAimTarget
     :: (ConfigsRead m, InputRead m, MsgsRead UpdatePlayerMsgsPhase m)

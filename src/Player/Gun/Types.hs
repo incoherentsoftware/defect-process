@@ -39,7 +39,7 @@ instance PrettyShow GunType where
         RicochetGun        -> "Ricochet Beam"
 
 type GunThink d m       = GunStatus -> Player -> Gun d -> m [Msg ThinkPlayerMsgsPhase]
-type GunDrawOverlay d m = Pos2 -> Direction -> Gun d -> m ()
+type GunDrawOverlay d m = Player -> Gun d -> m ()
 type GunUpdate d m      = Gun d -> m (Gun d)
 type GunUpdateDynamic d = Dynamic -> Gun d -> Gun d
 

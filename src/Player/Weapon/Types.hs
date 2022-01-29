@@ -26,15 +26,17 @@ data WeaponType
     | GauntletsWeapon
     | ScytheWeapon
     | StaffWeapon
+    | SpiritBladeWeapon
     deriving (Bounded, Enum, Eq, FromJSON, Generic, Ord, Read, Show, ToJSON)
 
 instance PrettyShow WeaponType where
     prettyShow :: WeaponType -> T.Text
     prettyShow = \case
-        SwordWeapon     -> "Sword"
-        GauntletsWeapon -> "Explosive Fist"
-        ScytheWeapon    -> "Scythe"
-        StaffWeapon     -> "Staff"
+        SwordWeapon       -> "Sword"
+        GauntletsWeapon   -> "Explosive Fist"
+        ScytheWeapon      -> "Scythe"
+        StaffWeapon       -> "Staff"
+        SpiritBladeWeapon -> "Spirit Blade"
 
 data WeaponAttackStatus
     = WeaponAttackReady

@@ -1,6 +1,7 @@
 module Player.BufferedInputState
     ( PlayerInput(..)
     , PlayerBufferedInputState()
+    , allWeaponBufferedInputs
     , allShootBufferedInputs
     , mkPlayerBufferedInputState
     , inPlayerBufferedInputState

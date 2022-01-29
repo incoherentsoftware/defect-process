@@ -35,7 +35,6 @@ import Window.Graphics
 import Window.InputState
 import World.ZIndex
 
-drawStateUncancelableSecs  = 0.1                           :: Secs
 idleTransitionFrameTagName = FrameTagName "idleTransition" :: FrameTagName
 
 updateGunFireDrawSprites :: GunFireDrawSprites -> GunFireDrawSprites
@@ -222,70 +221,81 @@ gunFireDrawStateActive = (> 0.0) . _activeSecs
 
 gunFireDrawStateCancelable :: GunFireDrawState -> Bool
 gunFireDrawStateCancelable gunFireDrawState
-    | gunFireDrawStateActive gunFireDrawState = _activeSecs gunFireDrawState > drawStateUncancelableSecs
-    | otherwise                            = True
+    | gunFireDrawStateActive gunFireDrawState =
+        let
+            uncancelableSecs =
+                maybe defaultGunFireDrawStateUncancelableSecs _uncancelableSecs (_gunFireDrawData gunFireDrawState)
+        in _activeSecs gunFireDrawState > uncancelableSecs
+    | otherwise                               = True
 
-drawGunFireDrawState :: (ConfigsRead m, GraphicsReadWrite m, MonadIO m) => GunFireDrawState -> m ()
-drawGunFireDrawState gunFireDrawState = drawGunFireDrawStateEx FullOpacity gunFireDrawState
+drawGunFireDrawState :: (ConfigsRead m, GraphicsReadWrite m, MonadIO m) => Player -> GunFireDrawState -> m ()
+drawGunFireDrawState player gunFireDrawState = drawGunFireDrawStateEx player FullOpacity gunFireDrawState
 
-drawGunFireDrawStateEx :: (ConfigsRead m, GraphicsReadWrite m, MonadIO m) => Opacity -> GunFireDrawState -> m ()
-drawGunFireDrawStateEx opacity gunFireDrawState = sequenceA_ $ do
-    fireDrawSprs <- _gunFireDrawSprites gunFireDrawState
-    fireDrawData <- _gunFireDrawData gunFireDrawState
+drawGunFireDrawStateEx
+    :: (ConfigsRead m, GraphicsReadWrite m, MonadIO m)
+    => Player
+    -> Opacity
+    -> GunFireDrawState
+    -> m ()
+drawGunFireDrawStateEx player opacity gunFireDrawState = do
+    pos <- (_pos (gunFireDrawState :: GunFireDrawState) `vecAdd`) <$> playerLerpOffset player
 
-    let
-        pos           = _pos (gunFireDrawState :: GunFireDrawState)
-        aimAngle      = _aimAngle (gunFireDrawState :: GunFireDrawState)
-        aimDir        = calculateAimAngleDir aimAngle
-        fireDrawAngle = _fireDrawAngle fireDrawData
+    sequenceA_ $ do
+        fireDrawSprs <- _gunFireDrawSprites gunFireDrawState
+        fireDrawData <- _gunFireDrawData gunFireDrawState
 
-        playerDir
-            | isForwardsGunFireDrawAngle fireDrawAngle = aimDir
-            | otherwise                                = flipDirection aimDir
+        let
+            aimAngle      = _aimAngle (gunFireDrawState :: GunFireDrawState)
+            aimDir        = calculateAimAngleDir aimAngle
+            fireDrawAngle = _fireDrawAngle fireDrawData
 
-        legsState     = _legsState gunFireDrawState
-        playerAimBody = (_calculatePlayerAimBody fireDrawData) fireDrawAngle pos aimAngle playerDir legsState
+            playerDir
+                | isForwardsGunFireDrawAngle fireDrawAngle = aimDir
+                | otherwise                                = flipDirection aimDir
 
-        leadShoulderPos = _leadShoulderPos playerAimBody
-        rearShoulderPos = _rearShoulderPos playerAimBody
-        hipsPos         = _hipsPos playerAimBody
-        torsoAngle      = _torsoAngle playerAimBody
-        neckPos         = _neckPos playerAimBody
-        headAngle       = _headAngle playerAimBody
+            legsState     = _legsState gunFireDrawState
+            playerAimBody = (_calculatePlayerAimBody fireDrawData) fireDrawAngle pos aimAngle playerDir legsState
 
-        drawLeadArm =
-            let
-                leadArmAngle = _leadArmAngle playerAimBody
-                leadArmSpr   = _leadArm (fireDrawSprs :: GunFireDrawSprites)
-            in drawSpriteEx leadShoulderPos playerDir playerBodyZIndex leadArmAngle opacity NonScaled leadArmSpr
+            leadShoulderPos = _leadShoulderPos playerAimBody
+            rearShoulderPos = _rearShoulderPos playerAimBody
+            hipsPos         = _hipsPos playerAimBody
+            torsoAngle      = _torsoAngle playerAimBody
+            neckPos         = _neckPos playerAimBody
+            headAngle       = _headAngle playerAimBody
 
-        drawRearArm =
-            let
-                rearArmAngle = _rearArmAngle playerAimBody
-                rearArmSpr   = _rearArm (fireDrawSprs :: GunFireDrawSprites)
-            in drawSpriteEx rearShoulderPos playerDir playerBodyZIndex rearArmAngle opacity NonScaled rearArmSpr
+            drawLeadArm =
+                let
+                    leadArmAngle = _leadArmAngle playerAimBody
+                    leadArmSpr   = _leadArm (fireDrawSprs :: GunFireDrawSprites)
+                in drawSpriteEx leadShoulderPos playerDir playerBodyZIndex leadArmAngle opacity NonScaled leadArmSpr
 
-        drawLegsTorso =
-            let
-                legsSpr  = _sprite (legsState :: LegsState)
-                torsoSpr = _torso (fireDrawSprs :: GunFireDrawSprites)
-            in do
-                drawSprite pos playerDir playerSpecialLegsZIndex legsSpr
-                drawSpriteEx hipsPos playerDir playerBodyZIndex torsoAngle opacity NonScaled torsoSpr
+            drawRearArm =
+                let
+                    rearArmAngle = _rearArmAngle playerAimBody
+                    rearArmSpr   = _rearArm (fireDrawSprs :: GunFireDrawSprites)
+                in drawSpriteEx rearShoulderPos playerDir playerBodyZIndex rearArmAngle opacity NonScaled rearArmSpr
 
-        drawHead =
-            let headSpr = _head (fireDrawSprs :: GunFireDrawSprites)
-            in drawSpriteEx neckPos playerDir playerBodyZIndex headAngle opacity NonScaled headSpr
+            drawLegsTorso =
+                let
+                    legsSpr  = _sprite (legsState :: LegsState)
+                    torsoSpr = _torso (fireDrawSprs :: GunFireDrawSprites)
+                in do
+                    drawSprite pos playerDir playerSpecialLegsZIndex legsSpr
+                    drawSpriteEx hipsPos playerDir playerBodyZIndex torsoAngle opacity NonScaled torsoSpr
 
-    Just $ do
-        case fireDrawAngle `M.lookup` _armOrders fireDrawData of
-            Just DrawLeadArmInFront     -> drawRearArm >> drawLegsTorso >> drawHead >> drawLeadArm
-            Just DrawRearArmInFront     -> drawLeadArm >> drawLegsTorso >> drawHead >> drawRearArm
-            Just DrawRearArmHeadInFront -> drawLeadArm >> drawLegsTorso >> drawRearArm >> drawHead
-            Just DrawBothArmsInFront    -> drawLegsTorso >> drawHead >> drawRearArm >> drawLeadArm
-            Nothing                     -> return ()
+            drawHead =
+                let headSpr = _head (fireDrawSprs :: GunFireDrawSprites)
+                in drawSpriteEx neckPos playerDir playerBodyZIndex headAngle opacity NonScaled headSpr
 
-        drawMuzzleFlash aimAngle aimDir fireDrawSprs fireDrawData playerAimBody opacity
+        Just $ do
+            case fireDrawAngle `M.lookup` _armOrders fireDrawData of
+                Just DrawLeadArmInFront     -> drawRearArm >> drawLegsTorso >> drawHead >> drawLeadArm
+                Just DrawRearArmInFront     -> drawLeadArm >> drawLegsTorso >> drawHead >> drawRearArm
+                Just DrawRearArmHeadInFront -> drawLeadArm >> drawLegsTorso >> drawRearArm >> drawHead
+                Just DrawBothArmsInFront    -> drawLegsTorso >> drawHead >> drawRearArm >> drawLeadArm
+                Nothing                     -> return ()
+
+            drawMuzzleFlash aimAngle aimDir fireDrawSprs fireDrawData playerAimBody opacity
 
 drawMuzzleFlash
     :: (GraphicsReadWrite m, MonadIO m)

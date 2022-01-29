@@ -56,7 +56,7 @@ drawPlayer player
 
                 if
                     | playerAttackActive player   -> drawAtkSpr lerpOffset
-                    | gunManagerActive gunManager -> drawGunManager gunManager
+                    | gunManagerActive gunManager -> drawGunManager player gunManager
                     | otherwise                   -> case _movementSkill player of
                         Just (Some moveSkill)
                             | movementSkillActive moveSkill -> (MS._draw moveSkill) player moveSkill
@@ -68,7 +68,7 @@ drawPlayer player
                     in drawHitbox debugHitboxColor debugHitboxZIndex hbx
 
                 drawWeaponManager player weaponManager
-                drawGunManagerOverlay pos' dir gunManager
+                drawGunManagerOverlay player gunManager
 
                 case _overlay player of
                     Nothing             -> return ()

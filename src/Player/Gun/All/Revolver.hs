@@ -178,15 +178,16 @@ mkFireDrawData cfg =
         muzzleFlash <- loadMuzzleFlash cfg
 
         return $ GunFireDrawData
-            { _fireDrawAngle           = FireDraw0Degrees
-            , _armOrders               = armOrders
-            , _headSprites             = headSprs
-            , _torsoSprites            = torsoSprs
-            , _leadArmSprites          = leadArmSprs
-            , _rearArmSprites          = rearArmSprs
-            , _legsSprites             = Just legsSprs
-            , _muzzleFlash             = Just muzzleFlash
-            , _calculatePlayerAimBody  = calculatePlayerAimBody cfg
+            { _fireDrawAngle          = FireDraw0Degrees
+            , _armOrders              = armOrders
+            , _headSprites            = headSprs
+            , _torsoSprites           = torsoSprs
+            , _leadArmSprites         = leadArmSprs
+            , _rearArmSprites         = rearArmSprs
+            , _legsSprites            = Just legsSprs
+            , _muzzleFlash            = Just muzzleFlash
+            , _calculatePlayerAimBody = calculatePlayerAimBody cfg
+            , _uncancelableSecs       = defaultGunFireDrawStateUncancelableSecs
             }
 
 mkRevolverGun :: (ConfigsRead m, FileCache m, GraphicsRead m, MonadIO m) => m (Some Gun)

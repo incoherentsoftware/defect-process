@@ -27,6 +27,7 @@ module Player
     , playerUpgradeCount
     , playerWeaponTypes
     , playerGunTypes
+    , playerGunFireDrawSprites
     , playerSightPos
     , playerGravityVel
     , playerAntiGravityVel
@@ -235,6 +236,9 @@ playerWeaponTypes player = [W._type w | Some w <- _weapons (_weaponManager playe
 
 playerGunTypes :: Player -> [GunType]
 playerGunTypes player = [G._type g | Some g <- _guns (_gunManager player)]
+
+playerGunFireDrawSprites :: Player -> Maybe GunFireDrawSprites
+playerGunFireDrawSprites = _gunFireDrawSprites . _fireDrawState . _gunManager
 
 playerSightPos :: Player -> Pos2
 playerSightPos player = Pos2 (x + w / 2.0) y

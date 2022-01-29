@@ -26,7 +26,7 @@ data GunFireDrawAngle
     | BackFireDraw0Degrees
     | BackFireDrawNeg45Degrees
     | BackFireDrawNeg90Degrees
-    deriving (Eq, FromJSON, Generic, Ord, Show)
+    deriving (Bounded, Enum, Eq, FromJSON, Generic, Ord, Show)
 
 instance FromJSONKey GunFireDrawAngle where
     fromJSONKey = genericFromJSONKey defaultJSONKeyOptions

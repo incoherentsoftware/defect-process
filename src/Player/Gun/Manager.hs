@@ -131,10 +131,10 @@ giveGunManagerGun someGun@(Some gun) gunManager = case _guns gunManager of
 clearGunManagerGuns :: GunManager -> GunManager
 clearGunManagerGuns gunManager = gunManager {_guns = []}
 
-drawGunManager :: GunManager -> AppEnv DrawMsgsPhase ()
-drawGunManager gunManager = drawGunFireDrawState $ _fireDrawState gunManager
+drawGunManager :: Player -> GunManager -> AppEnv DrawMsgsPhase ()
+drawGunManager player gunManager = drawGunFireDrawState player (_fireDrawState gunManager)
 
-drawGunManagerOverlay :: Pos2 -> Direction -> GunManager -> AppEnv DrawMsgsPhase ()
-drawGunManagerOverlay pos dir gunManager = case _guns gunManager of
-    (Some gun:_) -> (_drawOverlay gun) pos dir gun
+drawGunManagerOverlay :: Player -> GunManager -> AppEnv DrawMsgsPhase ()
+drawGunManagerOverlay player gunManager = case _guns gunManager of
+    (Some gun:_) -> (_drawOverlay gun) player gun
     _            -> return ()

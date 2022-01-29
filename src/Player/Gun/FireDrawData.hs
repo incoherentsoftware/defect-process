@@ -1,5 +1,6 @@
 module Player.Gun.FireDrawData
-    ( GunFireDrawArmOrder(..)
+    ( defaultGunFireDrawStateUncancelableSecs
+    , GunFireDrawArmOrder(..)
     , GunFireDrawData(..)
     ) where
 
@@ -9,7 +10,10 @@ import Player.AimBody.Types
 import Player.Gun.FireDrawAngle
 import Player.Gun.FireDrawState.LegsState.Types
 import Player.Gun.MuzzleFlash
+import Util
 import Window.Graphics
+
+defaultGunFireDrawStateUncancelableSecs = 0.1 :: Secs
 
 data GunFireDrawArmOrder
     = DrawLeadArmInFront
@@ -27,4 +31,5 @@ data GunFireDrawData = GunFireDrawData
     , _legsSprites             :: Maybe LegsSprites
     , _muzzleFlash             :: Maybe MuzzleFlash
     , _calculatePlayerAimBody  :: CalculatePlayerAimBody
+    , _uncancelableSecs        :: Secs
     }

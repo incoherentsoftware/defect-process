@@ -62,10 +62,11 @@ iconImageOpacity cfg iconImg = case _type (iconImg :: IconImage) of
     EmptyIcon    -> _inactiveIconOpacity cfg
 
 data WeaponIcons = WeaponIcons
-    { _sword     :: IconImage
-    , _gauntlets :: IconImage
-    , _scythe    :: IconImage
-    , _staff     :: IconImage
+    { _sword       :: IconImage
+    , _gauntlets   :: IconImage
+    , _scythe      :: IconImage
+    , _staff       :: IconImage
+    , _spiritBlade :: IconImage
     }
 
 mkWeaponIcons :: (FileCache m, GraphicsRead m, MonadIO m) => m WeaponIcons
@@ -74,7 +75,8 @@ mkWeaponIcons =
     loadIconImage "sword-icon.image" <*>
     loadIconImage "gauntlets-icon.image" <*>
     loadIconImage "scythe-icon.image" <*>
-    loadIconImage "staff-icon.image"
+    loadIconImage "staff-icon.image" <*>
+    loadIconImage "spirit-blade-icon.image"
 
 data GunIcons = GunIcons
     { _revolver        :: IconImage
@@ -182,11 +184,12 @@ iconsUiWeaponIconImages player iconsUI = (activeImg, inactiveImg)
     where
         toIconImage :: [WeaponType] -> IconImage
         toIconImage = \case
-            []                  -> _emptyIconImage iconsUI
-            (SwordWeapon:_)     -> _sword weaponIcons
-            (GauntletsWeapon:_) -> _gauntlets weaponIcons
-            (ScytheWeapon:_)    -> _scythe weaponIcons
-            (StaffWeapon:_)     -> _staff weaponIcons
+            []                    -> _emptyIconImage iconsUI
+            (SwordWeapon:_)       -> _sword weaponIcons
+            (GauntletsWeapon:_)   -> _gauntlets weaponIcons
+            (ScytheWeapon:_)      -> _scythe weaponIcons
+            (StaffWeapon:_)       -> _staff weaponIcons
+            (SpiritBladeWeapon:_) -> _spiritBlade weaponIcons
             where weaponIcons = _weaponIcons iconsUI
 
         weaponTypes = playerWeaponTypes player

@@ -210,11 +210,20 @@ weaponTypeToHelpPopupDescription menuCfg wpnType = case wpnType of
             ]
         }
 
+    SpiritBladeWeapon -> HelpPopupDescription
+        { _iconButtonImagePath = buttonImagePath "spirit-blade-icon-button.image"
+        , _popupDescription    = Left $ HelpPopupScreenDescription
+            { _imagePath               = spiritBladeHelpImgPath "spirit-blade-basic-help.image"
+            , _textOverlayDescriptions = [mkSymbolInputAliasPosTextDesc WeaponAlias]
+            }
+        }
+
     where
-        swordHelpImgPath     = \fileName -> weaponImagePath "sword-help.pack" fileName
-        gauntletsHelpImgPath = \fileName -> weaponImagePath "gauntlets-help.pack" fileName
-        scytheHelpImgPath    = \fileName -> weaponImagePath "scythe-help.pack" fileName
-        staffHelpImgPath     = \fileName -> weaponImagePath "staff-help.pack" fileName
+        swordHelpImgPath       = \fileName -> weaponImagePath "sword-help.pack" fileName
+        gauntletsHelpImgPath   = \fileName -> weaponImagePath "gauntlets-help.pack" fileName
+        scytheHelpImgPath      = \fileName -> weaponImagePath "scythe-help.pack" fileName
+        staffHelpImgPath       = \fileName -> weaponImagePath "staff-help.pack" fileName
+        spiritBladeHelpImgPath = \fileName -> weaponImagePath "spirit-blade-help.pack" fileName
 
 gunTypeToHelpPopupDescription :: GunType -> HelpPopupDescription
 gunTypeToHelpPopupDescription = \case

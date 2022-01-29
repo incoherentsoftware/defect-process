@@ -2,6 +2,7 @@ module Level.Room.Event.SlotMachine.Util
     ( SlotsChoice(..)
     , formatSlotsChoice
     , parseFormattedSlotsChoice
+    , isSlotsChoiceTextPlus
     , slotsChoiceTextColor
     , isSlotsChoicesAllPlus
     , isSlotsChoicesAllMinus
@@ -69,10 +70,13 @@ parseFormattedSlotsChoice txt
             | otherwise               -> v - n
     | otherwise                                                                            = id
 
+isSlotsChoiceTextPlus :: T.Text -> Bool
+isSlotsChoiceTextPlus selectionTxt = "{SlotsPlusSymbol}" `T.isInfixOf` selectionTxt
+
 slotsChoiceTextColor :: T.Text -> Color
 slotsChoiceTextColor selectionTxt
-    | "{SlotsPlusSymbol}" `T.isInfixOf` selectionTxt = plusTextColor
-    | otherwise                                      = minusTextColor
+    | isSlotsChoiceTextPlus selectionTxt = plusTextColor
+    | otherwise                          = minusTextColor
 
 isSlotsChoicePlus :: SlotsChoice -> Bool
 isSlotsChoicePlus = \case

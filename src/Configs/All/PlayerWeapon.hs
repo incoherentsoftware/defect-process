@@ -7,15 +7,17 @@ import GHC.Generics     (Generic)
 
 import Configs.All.PlayerWeapon.Gauntlets
 import Configs.All.PlayerWeapon.Scythe
+import Configs.All.PlayerWeapon.SpiritBlade
 import Configs.All.PlayerWeapon.Staff
 import Configs.All.PlayerWeapon.Sword
 import Util
 
 data PlayerWeaponConfig = PlayerWeaponConfig
-    { _sword     :: SwordConfig
-    , _gauntlets :: GauntletsConfig
-    , _scythe    :: ScytheConfig
-    , _staff     :: StaffConfig
+    { _sword       :: SwordConfig
+    , _gauntlets   :: GauntletsConfig
+    , _scythe      :: ScytheConfig
+    , _staff       :: StaffConfig
+    , _spiritBlade :: SpiritBladeConfig
     }
     deriving Generic
 

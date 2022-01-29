@@ -14,15 +14,19 @@ import Player.Meter
 import Util
 
 data RicochetGunConfig = RicochetGunConfig
-    { _shootRange        :: Distance
-    , _maxBullets        :: Int
-    , _fireAirVel        :: Vel2
-    , _betweenShotsCd    :: Secs
-    , _reloadCd          :: Secs
-    , _autoReloadCd      :: Secs
-    , _maxBounceRange    :: Distance
-    , _muzzleFlashOffset :: Pos2
-    , _handsOffset       :: Pos2
+    { _shootRange         :: Distance
+    , _fireAirVel         :: Vel2
+    , _reloadCd           :: Secs
+    , _maxBounceRange     :: Distance
+    , _maxPowerLevel      :: Int
+    , _powerUpMeterCost   :: MeterValue
+    , _muzzleFlashOffset  :: Pos2
+    , _handsOffset        :: Pos2
+    , _fakeLegsHipsOffset :: Pos2
+
+    , _showUiOverlaySecs :: Secs
+    , _uiOverlayOffset   :: Pos2
+    , _uiSegmentOffsetX  :: PosX
 
     , _shotHitVel            :: Vel2
     , _shotDamage            :: Damage

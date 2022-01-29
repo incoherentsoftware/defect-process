@@ -219,10 +219,11 @@ itemCmd args world = do
 
     item <- case T.toLower name of
         -- NOTE: this is modified from the full source since only sword is included in this repo
-        "sword"     -> Just <$> mkSwordItemPickup roomType pos
-        "gauntlets" -> Just <$> mkSwordItemPickup roomType pos
-        "scythe"    -> Just <$> mkSwordItemPickup roomType pos
-        "staff"     -> Just <$> mkSwordItemPickup roomType pos
+        "sword"       -> Just <$> mkSwordItemPickup roomType pos
+        "gauntlets"   -> Just <$> mkSwordItemPickup roomType pos
+        "scythe"      -> Just <$> mkSwordItemPickup roomType pos
+        "staff"       -> Just <$> mkSwordItemPickup roomType pos
+        "spiritblade" -> Just <$> mkSwordItemPickup roomType pos
 
         -- NOTE: this is modified from the full source since only revolver is included in this repo
         "revolver"        -> Just <$> mkRevolverItemPickup roomType pos
@@ -593,13 +594,14 @@ giveWeaponCmd :: ConsoleCommand (AppEnv ConsoleMsgsPhase)
 giveWeaponCmd args world = do
     let player = _player (world :: World)
 
-    wpn <- case args0 args of
+    wpn <- case T.toLower (args0 args) of
         -- NOTE: this is modified from the full source since only sword is included in this repo
-        "sword"     -> Just <$> mkSwordWeapon
-        "gauntlets" -> Just <$> mkSwordWeapon
-        "staff"     -> Just <$> mkSwordWeapon
-        "scythe"    -> Just <$> mkSwordWeapon
-        "random"    -> case filter (`notElem` playerWeaponTypes player) allWeaponTypes of
+        "sword"       -> Just <$> mkSwordWeapon
+        "gauntlets"   -> Just <$> mkSwordWeapon
+        "staff"       -> Just <$> mkSwordWeapon
+        "scythe"      -> Just <$> mkSwordWeapon
+        "spiritblade" -> Just <$> mkSwordWeapon
+        "random"      -> case filter (`notElem` playerWeaponTypes player) allWeaponTypes of
             []     -> return Nothing
             (t:ts) ->
                 let wpnTypes = t NE.:| ts
