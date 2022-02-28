@@ -16,7 +16,8 @@ module Player.Util
     , isPlayerInDeathAnim
     , isPlayerInWarpOutAnim
     , inPlayerInputBuffer
-    , playerTapInputBuffer
+    , inPlayerTapInputBuffer
+    , isPlayerInputBufferQCF
     , cancelPlayerMovementSkill
     , resetPlayerOnChangeWorldRoom
     , setPlayerSecondarySkillManagerOrder
@@ -60,7 +61,7 @@ playerShoulderPos :: Player -> Pos2
 playerShoulderPos player = calculateShoulderPos playerCfg pos
     where
         pos       = _pos (player :: Player)
-        playerCfg = _config player
+        playerCfg = _config (player :: Player)
 
 playerRawAimTarget :: Player -> Float -> Pos2
 playerRawAimTarget player distance = playerRawAimTargetWithPos player distance aimPos
@@ -98,13 +99,13 @@ playerAimAngle player = playerAimAngleWithPos player aimPos
 playerAimAngleWithPos :: Player -> Pos2 -> Radians
 playerAimAngleWithPos player aimPos = calculateAimAngle playerCfg pos aimPos
     where
-        playerCfg = _config player
+        playerCfg = _config (player :: Player)
         pos       = _pos (player :: Player)
 
 playerAimVec :: Player -> Vec2
 playerAimVec player = calculateAimVec playerCfg pos aimPos
     where
-        playerCfg = _config player
+        playerCfg = _config (player :: Player)
         pos       = _pos (player :: Player)
         aimPos    = playerAimPos player
 
@@ -144,11 +145,13 @@ isPlayerInWarpOutAnim player = spr == _warpOut (_sprites player)
     where spr = _sprite (player :: Player)
 
 inPlayerInputBuffer :: PlayerInput -> Player -> Bool
-inPlayerInputBuffer input player = input `inPlayerBufferedInputState` bufferedInputState
-    where bufferedInputState = _bufferedInputState player
+inPlayerInputBuffer input player = input `inPlayerBufferedInputState` _bufferedInputState player
 
-playerTapInputBuffer :: Player -> [PlayerInput]
-playerTapInputBuffer = playerBufferedInputStateTapInputs . _bufferedInputState
+inPlayerTapInputBuffer :: [PlayerInput] -> Player -> Bool
+inPlayerTapInputBuffer inputs player = inPlayerBufferedInputStateTapInputs inputs (_bufferedInputState player)
+
+isPlayerInputBufferQCF :: Direction -> Player -> Bool
+isPlayerInputBufferQCF dir player = isPlayerBufferedInputStateQCF dir (_bufferedInputState player)
 
 cancelPlayerMovementSkill :: Player -> Player
 cancelPlayerMovementSkill player = player {_movementSkill = cancel <$> _movementSkill player}

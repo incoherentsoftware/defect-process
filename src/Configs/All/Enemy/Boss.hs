@@ -33,6 +33,8 @@ data BossEnemyConfig = BossEnemyConfig
     , _turretProjDamage      :: Damage
     , _turretProjMaxRange    :: Distance
 
+    , _hpThresholdBodyOffset :: Pos2
+
     , _groundImpactEffectDrawScale :: DrawScale
     , _wallImpactEffectDrawScale   :: DrawScale
 

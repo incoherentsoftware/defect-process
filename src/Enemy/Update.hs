@@ -165,6 +165,7 @@ processEnemyMessages enemy = foldlM processMsg enemy =<< readMsgsTo (_msgId enem
             EnemyMsgUpdateVelocity update    -> return $ e {E._vel = update $ E._vel e}
             EnemyMsgSetDirection dir'        -> return $ e {E._dir = dir'}
             EnemyMsgClearAttack              -> return $ e {_attack = Nothing}
+            EnemyMsgFinishAttack             -> return $ e {_attack = finishAttack <$> _attack e}
             EnemyMsgSetAttackDesc atkDesc    -> setAttackDesc e atkDesc
             EnemyMsgSetAttackDescM atkDesc   -> setAttackDesc e =<< atkDesc
             EnemyMsgSetDead                  -> return $ e {_flags = (_flags e) {_dead = True}}

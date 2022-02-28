@@ -120,6 +120,7 @@ data EnemyMsgPayload where
     EnemyMsgUpdateVelocity :: (Vel2 -> Vel2) -> EnemyMsgPayload
     EnemyMsgSetDirection   :: Direction -> EnemyMsgPayload
     EnemyMsgClearAttack    :: EnemyMsgPayload
+    EnemyMsgFinishAttack   :: EnemyMsgPayload
     EnemyMsgSetAttackDesc  :: AttackDescription -> EnemyMsgPayload
     EnemyMsgSetAttackDescM :: AppEnv UpdateEnemyMsgsPhase AttackDescription -> EnemyMsgPayload
     EnemyMsgSetDead        :: EnemyMsgPayload

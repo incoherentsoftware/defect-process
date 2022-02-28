@@ -5,13 +5,15 @@ module Player.BufferedInputState
     , allShootBufferedInputs
     , mkPlayerBufferedInputState
     , inPlayerBufferedInputState
-    , playerBufferedInputStateTapInputs
+    , inPlayerBufferedInputStateTapInputs
+    , isPlayerBufferedInputStateQCF
     , playerBufferedInputStateLastDir
     , updatePlayerBufferedInputState
     , updatePlayerBufferedInputStateInHitlag
     ) where
 
 import Control.Monad.State (State, get, execState, execStateT, lift, modify, put, when)
+import Data.Maybe          (fromMaybe)
 import qualified Data.List as L
 import qualified Data.Map as M
 import qualified Data.Set as S
@@ -65,20 +67,53 @@ mkPlayerBufferedInputState :: ConfigsRead m => m PlayerBufferedInputState
 mkPlayerBufferedInputState = do
     cfg <- readConfig _settings _input
     return $ PlayerBufferedInputState
-        { _inputMap  = M.empty
-        , _tapInputs = []
-        , _lastDir   = LeftDir
-        , _config    = cfg
+        { _inputMap                        = M.empty
+        , _tapInputs                       = []
+        , _lastDir                         = LeftDir
+        , _lastHeldStraightDownElapsedSecs = maxSecs
+        , _config                          = cfg
         }
 
 inPlayerBufferedInputState :: PlayerInput -> PlayerBufferedInputState -> Bool
 inPlayerBufferedInputState input bufferedInputState = input `M.member` _inputMap bufferedInputState
 
-playerBufferedInputStateTapInputs :: PlayerBufferedInputState -> [PlayerInput]
-playerBufferedInputStateTapInputs bufferedInputState = map fst (_tapInputs bufferedInputState)
+inPlayerBufferedInputStateTapInputs :: [PlayerInput] -> PlayerBufferedInputState -> Bool
+inPlayerBufferedInputStateTapInputs inputs bufferedInputState = inputs `L.isInfixOf` tapInputs'
+    where
+        tapInputs  = map fst (_tapInputs bufferedInputState)
+        tapInputs' = filter (`elem` inputs) tapInputs
 
 playerBufferedInputStateLastDir :: PlayerBufferedInputState -> Direction
 playerBufferedInputStateLastDir = _lastDir
+
+isPlayerBufferedInputStateQCF :: Direction -> PlayerBufferedInputState -> Bool
+isPlayerBufferedInputStateQCF dir bufferedInputState =
+    let
+        mostRecentInput :: PlayerInput -> PlayerInput -> Secs -> Maybe Secs -> Maybe Secs
+        mostRecentInput playerInput bufferPlayerInput bufferSecs maxBufferSecs
+            | bufferPlayerInput == playerInput = Just $ maybe bufferSecs (max bufferSecs) maxBufferSecs
+            | otherwise                        = maxBufferSecs
+
+        inTapInputs = \inputs -> inputs `inPlayerBufferedInputStateTapInputs` bufferedInputState
+    in case dir of
+        LeftDir
+            | inTapInputs [DownInput, DownLeftInput, LeftInput]   -> True
+        RightDir
+            | inTapInputs [DownInput, DownRightInput, RightInput] -> True
+        _                                                         -> fromMaybe False $ do
+            let inputMap        = _inputMap bufferedInputState
+            downSideBufferSecs <- case dir of
+                LeftDir  -> M.foldrWithKey (mostRecentInput DownLeftInput) Nothing inputMap
+                RightDir -> M.foldrWithKey (mostRecentInput DownRightInput) Nothing inputMap
+
+            let
+                downElapsedSecs     = _lastHeldStraightDownElapsedSecs bufferedInputState
+                cfg                 = _config (bufferedInputState :: PlayerBufferedInputState)
+                downSideElapsedSecs = _bufferSecs cfg - downSideBufferSecs
+
+            Just $ case dir of
+                LeftDir  -> inTapInputs [DownLeftInput, LeftInput] && downElapsedSecs > downSideElapsedSecs
+                RightDir -> inTapInputs [DownRightInput, RightInput] && downElapsedSecs > downSideElapsedSecs
 
 readInputs :: InputRead m => [PlayerInput] -> m [PlayerInput]
 readInputs prevTapInputs = do
@@ -141,6 +176,9 @@ readInputs prevTapInputs = do
         addInput (LockOnClearAlias `aliasPressed`) LockOnClearInput
         addInput (LockOnSwitchTargetAlias `aliasPressed`) LockOnSwitchTargetInput
 
+playerBufferedInputStateTapInputs :: PlayerBufferedInputState -> [PlayerInput]
+playerBufferedInputStateTapInputs bufferedInputState = map fst (_tapInputs bufferedInputState)
+
 concatTapInputs :: Secs -> [PlayerInput] -> [PlayerTapInput] -> [PlayerTapInput]
 concatTapInputs tapBufferSecs inputs tapInputs = tapInputs' ++ newTapInputs
     where
@@ -171,6 +209,17 @@ updateLastDir bufferedInputState = bufferedInputState {_lastDir = lastDir}
             (Nothing, Just _)    -> RightDir
             (Nothing, Nothing)   -> _lastDir bufferedInputState
 
+updateLastHeldStraightDownElapsedSecs :: InputRead m => PlayerBufferedInputState -> m PlayerBufferedInputState
+updateLastHeldStraightDownElapsedSecs bufferedInputState = do
+    inputState <- readInputState
+    let
+        leftRightHeld                   = LeftAlias `aliasHold` inputState || RightAlias `aliasHold` inputState
+        lastHeldStraightDownElapsedSecs = if
+            | DownAlias `aliasHold` inputState && not leftRightHeld -> 0.0
+            | otherwise                                             ->
+                _lastHeldStraightDownElapsedSecs bufferedInputState + timeStep
+    return $ bufferedInputState {_lastHeldStraightDownElapsedSecs = lastHeldStraightDownElapsedSecs}
+
 updatePlayerBufferedInputState
     :: (ConfigsRead m, InputRead m, MsgsRead UpdatePlayerMsgsPhase m)
     => Player
@@ -199,6 +248,7 @@ updatePlayerBufferedInputState player bufferedInputState =
                 , _tapInputs = tapInputs
                 }
             modify updateLastDir
+            get >>= lift . updateLastHeldStraightDownElapsedSecs >>= put
 
             get >>= lift . processClearInputsMsg >>= put
 

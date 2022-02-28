@@ -31,17 +31,19 @@ import Window
 import Window.Graphics.UiControls.Button
 import World
 
-mainMenuPack              = \p -> PackResourceFilePath "data/menu/main-menu.pack" p
-newGameButtonImgPath      = mainMenuPack "new-game-button.image"      :: PackResourceFilePath
-continueButtonImgPath     = mainMenuPack "continue-button.image"      :: PackResourceFilePath
-unlocksButtonImgPath      = mainMenuPack "unlocks-button.image"       :: PackResourceFilePath
-settingsButtonImgPath     = mainMenuPack "settings-button.image"      :: PackResourceFilePath
-quitButtonImgPath         = mainMenuPack "quit-button.image"          :: PackResourceFilePath
-promptImgPath             = mainMenuPack "prompt.image"               :: PackResourceFilePath
-promptQuitButtonImgPath   = mainMenuPack "prompt-quit-button.image"   :: PackResourceFilePath
-promptCancelButtonImgPath = mainMenuPack "prompt-cancel-button.image" :: PackResourceFilePath
-bgImagePath               = mainMenuPack "main-menu-background.image" :: PackResourceFilePath
-splashOverlayImgPath      = mainMenuPack "splash-overlay.image"       :: PackResourceFilePath
+mainMenuPack               = \p -> PackResourceFilePath "data/menu/main-menu.pack" p
+newGameButtonImgPath       = mainMenuPack "new-game-button.image"        :: PackResourceFilePath
+continueButtonImgPath      = mainMenuPack "continue-button.image"        :: PackResourceFilePath
+unlocksButtonImgPath       = mainMenuPack "unlocks-button.image"         :: PackResourceFilePath
+settingsButtonImgPath      = mainMenuPack "settings-button.image"        :: PackResourceFilePath
+quitButtonImgPath          = mainMenuPack "quit-button.image"            :: PackResourceFilePath
+quitPromptImgPath          = mainMenuPack "prompt.image"                 :: PackResourceFilePath
+newGamePromptImgPath       = mainMenuPack "new-game-prompt.image"        :: PackResourceFilePath
+promptQuitButtonImgPath    = mainMenuPack "prompt-quit-button.image"     :: PackResourceFilePath
+promptCancelButtonImgPath  = mainMenuPack "prompt-cancel-button.image"   :: PackResourceFilePath
+promptNewGameButtonImgPath = mainMenuPack "prompt-new-game-button.image" :: PackResourceFilePath
+bgImagePath                = mainMenuPack "main-menu-background.image"   :: PackResourceFilePath
+splashOverlayImgPath       = mainMenuPack "splash-overlay.image"         :: PackResourceFilePath
 
 mkMainMenuData :: (ConfigsRead m, FileCache m, GraphicsRead m, InputRead m, MonadIO m) => m MainMenuData
 mkMainMenuData = do
@@ -51,15 +53,16 @@ mkMainMenuData = do
         | otherwise                                          -> return Nothing
 
     let
-        buttonX            = virtualRenderWidth / 2.0
-        menuCfg            = _menu (settingsCfg :: SettingsConfig)
-        newGameBtnPos      = Pos2 buttonX (_mainNewGameButtonPosY menuCfg)
-        continueBtnPos     = _mainContinueButtonPos menuCfg
-        unlocksBtnPos      = Pos2 buttonX (_mainUnlocksButtonPosY menuCfg)
-        settingsBtnPos     = Pos2 buttonX (_mainSettingsButtonPosY menuCfg)
-        quitBtnPos         = Pos2 buttonX (_mainQuitButtonPosY menuCfg)
-        promptQuitBtnPos   = _mainPromptQuitButtonPos menuCfg
-        promptCancelBtnPos = _mainPromptCancelButtonPos menuCfg
+        buttonX             = virtualRenderWidth / 2.0
+        menuCfg             = _menu (settingsCfg :: SettingsConfig)
+        newGameBtnPos       = Pos2 buttonX (_mainNewGameButtonPosY menuCfg)
+        continueBtnPos      = _mainContinueButtonPos menuCfg
+        unlocksBtnPos       = Pos2 buttonX (_mainUnlocksButtonPosY menuCfg)
+        settingsBtnPos      = Pos2 buttonX (_mainSettingsButtonPosY menuCfg)
+        quitBtnPos          = Pos2 buttonX (_mainQuitButtonPosY menuCfg)
+        promptQuitBtnPos    = _mainPromptQuitButtonPos menuCfg
+        promptCancelBtnPos  = _mainPromptCancelButtonPos menuCfg
+        promptNewGameBtnPos = _mainPromptNewGameButtonPos menuCfg
 
     backgroundImg    <- loadPackImage bgImagePath
     newGameBtn       <- mkImageButtonCentered newGameBtnPos newGameButtonImgPath
@@ -67,28 +70,33 @@ mkMainMenuData = do
     unlocksBtn       <- mkImageButtonCentered unlocksBtnPos unlocksButtonImgPath
     settingsBtn      <- mkImageButtonCentered settingsBtnPos settingsButtonImgPath
     quitBtn          <- mkImageButtonCentered quitBtnPos quitButtonImgPath
-    promptImg        <- loadPackImage promptImgPath
+    quitPromptImg    <- loadPackImage quitPromptImgPath
+    newGamePromptImg <- loadPackImage newGamePromptImgPath
     promptQuitBtn    <- mkImageButtonCentered promptQuitBtnPos promptQuitButtonImgPath
     promptCancelBtn  <- mkImageButtonCentered promptCancelBtnPos promptCancelButtonImgPath
+    promptNewGameBtn <- mkImageButtonCentered promptNewGameBtnPos promptNewGameButtonImgPath
     settingsMenuData <- mkSettingsMenuData
     musicIndex       <- getFmodMusic menuMusicPath
     soundIndices     <- mkMenuSoundIndices
 
     return $ MainMenuData
-        { _backgroundImage    = backgroundImg
-        , _splashOverlayImage = splashOverlayImg
-        , _newGameButton      = newGameBtn
-        , _continueButton     = continueBtn
-        , _unlocksButton      = unlocksBtn
-        , _settingsButton     = settingsBtn
-        , _quitButton         = quitBtn
-        , _promptImage        = promptImg
-        , _promptQuitButton   = promptQuitBtn
-        , _promptCancelButton = promptCancelBtn
-        , _settingsMenuData   = settingsMenuData
-        , _selection          = Nothing
-        , _musicIndex         = musicIndex
-        , _soundIndices       = soundIndices
+        { _backgroundImage            = backgroundImg
+        , _splashOverlayImage         = splashOverlayImg
+        , _newGameButton              = newGameBtn
+        , _continueButton             = continueBtn
+        , _unlocksButton              = unlocksBtn
+        , _settingsButton             = settingsBtn
+        , _quitButton                 = quitBtn
+        , _quitPromptImage            = quitPromptImg
+        , _quitPromptQuitButton       = promptQuitBtn
+        , _quitPromptCancelButton     = promptCancelBtn
+        , _newGamePromptImage         = newGamePromptImg
+        , _newGamePromptNewGameButton = promptNewGameBtn
+        , _newGamePromptCancelButton  = promptCancelBtn
+        , _settingsMenuData           = settingsMenuData
+        , _selection                  = Nothing
+        , _musicIndex                 = musicIndex
+        , _soundIndices               = soundIndices
         }
 
 isShowContinueButton :: Game -> Bool
@@ -119,10 +127,14 @@ readSelection inputState game = case _selection (mainMenuData :: MainMenuData) o
         | upPressed                   -> MainMenuSettingsSelection
         | showContinue && downPressed -> MainMenuContinueSelection
         | downPressed                 -> MainMenuNewGameSelection
-    Just MainMenuPromptQuitSelection
-        | leftPressed || rightPressed -> MainMenuPromptCancelSelection
-    Just MainMenuPromptCancelSelection
-        | leftPressed || rightPressed -> MainMenuPromptQuitSelection
+    Just MainMenuQuitPromptQuitSelection
+        | leftPressed || rightPressed -> MainMenuQuitPromptCancelSelection
+    Just MainMenuQuitPromptCancelSelection
+        | leftPressed || rightPressed -> MainMenuQuitPromptQuitSelection
+    Just MainMenuNewGamePromptNewGameSelection
+        | leftPressed || rightPressed -> MainMenuNewGamePromptCancelSelection
+    Just MainMenuNewGamePromptCancelSelection
+        | leftPressed || rightPressed -> MainMenuNewGamePromptNewGameSelection
     Just selection                    -> selection
     where
         mainMenuData       = _mainMenuData $ _menu (game :: Game)
@@ -133,11 +145,20 @@ readSelection inputState game = case _selection (mainMenuData :: MainMenuData) o
         leftPressed        = MenuLeftAlias `aliasPressed` inputState
         rightPressed       = MenuRightAlias `aliasPressed` inputState
 
+isQuitPromptSelection :: MainMenuSelection -> Bool
+isQuitPromptSelection = \case
+    MainMenuQuitPromptQuitSelection   -> True
+    MainMenuQuitPromptCancelSelection -> True
+    _                                 -> False
+
+isNewGamePromptSelection :: MainMenuSelection -> Bool
+isNewGamePromptSelection = \case
+    MainMenuNewGamePromptNewGameSelection -> True
+    MainMenuNewGamePromptCancelSelection  -> True
+    _                                     -> False
+
 isPromptSelection :: MainMenuSelection -> Bool
-isPromptSelection = \case
-    MainMenuPromptQuitSelection   -> True
-    MainMenuPromptCancelSelection -> True
-    _                             -> False
+isPromptSelection selection = isQuitPromptSelection selection || isNewGamePromptSelection selection
 
 updateMainMenuData
     :: (ConfigsRead m, FileCache m, GraphicsRead m, InputRead m, MonadIO m, MsgsReadWrite MenuMsgsPhase m)
@@ -165,8 +186,9 @@ updateMainMenuData game = do
                 return $ if
                     | btnSelection == MainMenuContinueSelection && not (isShowContinueButton game) -> True
                     | otherwise                                                                    -> if
-                        | isPromptSelection selection -> not $ isPromptSelection btnSelection
-                        | otherwise                   -> isPromptSelection btnSelection
+                        | isQuitPromptSelection selection    -> not $ isQuitPromptSelection btnSelection
+                        | isNewGamePromptSelection selection -> not $ isNewGamePromptSelection btnSelection
+                        | otherwise                          -> isPromptSelection btnSelection
 
             updateButton' :: InputRead m => MainMenuSelection -> Button -> StateT MainMenuSelection m Button
             updateButton' btnSelection btn = do
@@ -181,24 +203,35 @@ updateMainMenuData game = do
                     put btnSelection
                 return btn'
         in do
-            newGameBtn      <- updateButton' MainMenuNewGameSelection (_newGameButton mainMenuData)
-            continueBtn     <- updateButton' MainMenuContinueSelection (_continueButton mainMenuData)
-            unlocksBtn      <- updateButton' MainMenuUnlocksSelection (_unlocksButton mainMenuData)
-            settingsBtn     <- updateButton' MainMenuSettingsSelection (_settingsButton mainMenuData)
-            quitBtn         <- updateButton' MainMenuQuitSelection (_quitButton mainMenuData)
-            promptQuitBtn   <- updateButton' MainMenuPromptQuitSelection (_promptQuitButton mainMenuData)
-            promptCancelBtn <- updateButton' MainMenuPromptCancelSelection (_promptCancelButton mainMenuData)
+            newGameBtn  <- updateButton' MainMenuNewGameSelection (_newGameButton mainMenuData)
+            continueBtn <- updateButton' MainMenuContinueSelection (_continueButton mainMenuData)
+            unlocksBtn  <- updateButton' MainMenuUnlocksSelection (_unlocksButton mainMenuData)
+            settingsBtn <- updateButton' MainMenuSettingsSelection (_settingsButton mainMenuData)
+            quitBtn     <- updateButton' MainMenuQuitSelection (_quitButton mainMenuData)
 
-            let
-                quitBtnPressed         = _isPressed $ _quitButton mainMenuData
-                promptCancelBtnPressed = _isPressed $ _promptCancelButton mainMenuData
-                menuOrBackPressed      = MenuAlias `aliasPressed` inputState || MenuBackAlias `aliasPressed` inputState
-            when (isShowContinueButton game && quitBtnPressed) $
-                put MainMenuPromptQuitSelection
-            when promptCancelBtnPressed $
+            quitPromptQuitBtn       <-
+                updateButton' MainMenuQuitPromptQuitSelection (_quitPromptQuitButton mainMenuData)
+            quitPromptCancelBtn     <-
+                updateButton' MainMenuQuitPromptCancelSelection (_quitPromptCancelButton mainMenuData)
+            newGamePromptNewGameBtn <-
+                updateButton' MainMenuNewGamePromptNewGameSelection (_newGamePromptNewGameButton mainMenuData)
+            newGamePromptCancelBtn  <-
+                updateButton' MainMenuNewGamePromptCancelSelection (_newGamePromptCancelButton mainMenuData)
+
+            when (isShowContinueButton game && _isPressed quitBtn) $
+                put MainMenuQuitPromptQuitSelection
+            when (isShowContinueButton game && _isPressed newGameBtn) $
+                put MainMenuNewGamePromptNewGameSelection
+            when (_isPressed quitPromptQuitBtn) $
                 put MainMenuQuitSelection
-            whenM (get <&> \selection -> isPromptSelection selection && menuOrBackPressed) $
+            when (_isPressed newGamePromptCancelBtn) $
+                put MainMenuNewGameSelection
+
+            let menuOrBackPressed = MenuAlias `aliasPressed` inputState || MenuBackAlias `aliasPressed` inputState
+            whenM (get <&> \selection -> isQuitPromptSelection selection && menuOrBackPressed) $
                 put MainMenuQuitSelection
+            whenM (get <&> \selection -> isNewGamePromptSelection selection && menuOrBackPressed) $
+                put MainMenuNewGameSelection
 
             let settingsMenuData = _settingsMenuData mainMenuData
             settingsMenuData'   <- if
@@ -207,24 +240,26 @@ updateMainMenuData game = do
                 | otherwise              -> return settingsMenuData
 
             get <&> \selection -> mainMenuData
-                { _splashOverlayImage = splashOverlayImg
-                , _newGameButton      = newGameBtn
-                , _continueButton     = continueBtn
-                , _unlocksButton      = unlocksBtn
-                , _settingsButton     = settingsBtn
-                , _quitButton         = quitBtn
-                , _promptQuitButton   = promptQuitBtn
-                , _promptCancelButton = promptCancelBtn
-                , _settingsMenuData   = settingsMenuData'
-                , _selection          = Just selection
+                { _splashOverlayImage         = splashOverlayImg
+                , _newGameButton              = newGameBtn
+                , _continueButton             = continueBtn
+                , _unlocksButton              = unlocksBtn
+                , _settingsButton             = settingsBtn
+                , _quitButton                 = quitBtn
+                , _quitPromptQuitButton       = quitPromptQuitBtn
+                , _quitPromptCancelButton     = quitPromptCancelBtn
+                , _newGamePromptNewGameButton = newGamePromptNewGameBtn
+                , _newGamePromptCancelButton  = newGamePromptCancelBtn
+                , _settingsMenuData           = settingsMenuData'
+                , _selection                  = Just selection
                 }
 
 drawMainMenu :: (ConfigsRead m, GraphicsReadWrite m, InputRead m, MonadIO m) => Game -> m ()
 drawMainMenu game =
     let
-        mainMenuData       = _mainMenuData $ _menu (game :: Game)
-        backgroundImg      = _backgroundImage (mainMenuData :: MainMenuData)
-        isPromptSelection' = maybe False isPromptSelection (_selection (mainMenuData :: MainMenuData))
+        mainMenuData  = _mainMenuData $ _menu (game :: Game)
+        backgroundImg = _backgroundImage (mainMenuData :: MainMenuData)
+        selection     = _selection (mainMenuData :: MainMenuData)
     in do
         cursorVisible <- (== MouseKbInputType) . _lastUsedInputType <$> readInputState
         showCursor cursorVisible
@@ -242,11 +277,18 @@ drawMainMenu game =
                 drawButton menuZIndex (_settingsButton mainMenuData)
                 drawButton menuZIndex (_quitButton mainMenuData)
 
-                when isPromptSelection' $ do
+                when (maybe False isQuitPromptSelection selection) $ do
                     mainPromptImagePos <- readSettingsConfig _menu _mainPromptImagePos
-                    drawImage mainPromptImagePos RightDir menuZIndex (_promptImage mainMenuData)
-                    drawButton menuZIndex (_promptQuitButton mainMenuData)
-                    drawButton menuZIndex (_promptCancelButton mainMenuData)
+                    drawImage mainPromptImagePos RightDir menuZIndex (_quitPromptImage mainMenuData)
+                    drawButton menuZIndex (_quitPromptQuitButton mainMenuData)
+                    drawButton menuZIndex (_quitPromptCancelButton mainMenuData)
+
+                when (maybe False isNewGamePromptSelection selection) $ do
+                    mainPromptImagePos <- readSettingsConfig _menu _mainPromptImagePos
+                    drawImage mainPromptImagePos RightDir menuZIndex (_quitPromptImage mainMenuData)
+                    drawImage mainPromptImagePos RightDir menuZIndex (_newGamePromptImage mainMenuData)
+                    drawButton menuZIndex (_newGamePromptNewGameButton mainMenuData)
+                    drawButton menuZIndex (_newGamePromptCancelButton mainMenuData)
 
         drawSettingsMenuData $ _settingsMenuData mainMenuData
 
@@ -255,8 +297,14 @@ mainMenuMain game = do
     mainMenuData <- withMsgsPhase @MenuMsgsPhase (updateMainMenuData game)
 
     let
-        shouldNewGame   = _isPressed $ _newGameButton mainMenuData
-        continuePressed = isShowContinueButton game && _isPressed (_continueButton mainMenuData)
+        selection                      =_selection (mainMenuData :: MainMenuData)
+        isShowContinueButton'          = isShowContinueButton game
+        newGamePressed                 = _isPressed $ _newGameButton mainMenuData
+        newGamePromptNewGameBtnPressed = _isPressed $ _newGamePromptNewGameButton mainMenuData
+        shouldNewGame                  =
+            (newGamePressed && not isShowContinueButton') || newGamePromptNewGameBtnPressed
+
+        continuePressed = isShowContinueButton' && _isPressed (_continueButton mainMenuData)
         unlocksPressed  = _isPressed $ _unlocksButton mainMenuData
         settingsPressed = _isPressed $ _settingsButton mainMenuData
 
@@ -272,12 +320,12 @@ mainMenuMain game = do
         | otherwise     -> return world
 
     let
-        selection
+        selection'
             | gameMode == UnlocksMenuMode = Just MainMenuUnlocksSelection
             | gameMode /= MainMenuMode    = Nothing
-            | otherwise                   = _selection (mainMenuData :: MainMenuData)
+            | otherwise                   = selection
 
-        mainMenuData' = mainMenuData {_selection = selection} :: MainMenuData
+        mainMenuData' = mainMenuData {_selection = selection'} :: MainMenuData
         menu          = _menu (game :: Game)
 
     let
@@ -292,16 +340,21 @@ mainMenuMain game = do
         | isSettingsMenuControlsTabWaitingForInput prevSettingsMenuData -> return False
         | otherwise                                                     -> isMenuQuitHotkeyPressed
     let
-        quitBtnPressed       = _isPressed $ _quitButton mainMenuData
-        promptQuitBtnPressed = _isPressed $ _promptQuitButton mainMenuData
-        promptPressed        = promptQuitBtnPressed || _isPressed (_promptCancelButton mainMenuData)
-    when (shouldNewGame || continuePressed || unlocksPressed || settingsPressed || quitBtnPressed || promptPressed) $
+        quitBtnPressed           = _isPressed $ _quitButton mainMenuData
+        quitPromptQuitBtnPressed = _isPressed $ _quitPromptQuitButton mainMenuData
+        promptPressed            = or
+            [ quitPromptQuitBtnPressed
+            , _isPressed $ _quitPromptCancelButton mainMenuData
+            , newGamePromptNewGameBtnPressed
+            , _isPressed $ _newGamePromptCancelButton mainMenuData
+            ]
+    when (newGamePressed || continuePressed || unlocksPressed || settingsPressed || quitBtnPressed || promptPressed) $
         void $ playFmodSound (_confirm soundIndices)
 
     void $ playOrResumeFmodMusicMenu (_musicIndex (mainMenuData' :: MainMenuData))
 
     let
-        isQuitFromButton = (quitBtnPressed && not (isShowContinueButton game)) || promptQuitBtnPressed
+        isQuitFromButton = (quitBtnPressed && not (isShowContinueButton game)) || quitPromptQuitBtnPressed
         shouldQuit       = quitHotkeyPressed || isQuitFromButton || _quit game
 
     return $ game

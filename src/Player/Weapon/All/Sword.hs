@@ -8,7 +8,6 @@ import Control.Monad.IO.Class (MonadIO)
 import Data.Functor           ((<&>))
 import Data.Maybe             (fromMaybe, isJust, listToMaybe)
 import System.FilePath        (takeBaseName)
-import qualified Data.List as L
 import qualified Data.Map as M
 
 import Attack
@@ -206,14 +205,12 @@ mkAttackFromInput swordData player attack = fromInput =<< readInputState
         fromInput :: (MonadIO m1, MsgsWrite ThinkPlayerMsgsPhase m1) => InputState -> m1 (Maybe Attack)
         fromInput inputState
             -- summon attack orb (left)
-            |
-                (inInputBuffer [LeftInput, LeftInput] || inInputBuffer [DownInput, DownLeftInput, LeftInput]) &&
-                weaponPressed && onGround && attackIsNot summonAtkOrb = mkSummonAtkOrbAttack LeftDir
+            | (inPlayerTapInputBuffer [LeftInput, LeftInput] player || isPlayerInputBufferQCF LeftDir player) &&
+              not rightHeld && weaponPressed && onGround && attackIsNot summonAtkOrb = mkSummonAtkOrbAttack LeftDir
 
             -- summon attack orb (right)
-            |
-                (inInputBuffer [RightInput, RightInput] || inInputBuffer [DownInput, DownRightInput, RightInput]) &&
-                weaponPressed && onGround && attackIsNot summonAtkOrb = mkSummonAtkOrbAttack RightDir
+            | (inPlayerTapInputBuffer [RightInput, RightInput] player || isPlayerInputBufferQCF RightDir player) &&
+              not leftHeld && weaponPressed && onGround && attackIsNot summonAtkOrb = mkSummonAtkOrbAttack RightDir
 
             -- flurry stab
             | onGround && weaponDownPressed && attackIsNot flurryStab = mkAttack' flurryStab
@@ -265,17 +262,18 @@ mkAttackFromInput swordData player attack = fromInput =<< readInputState
             | otherwise = return Nothing
 
             where
+                leftHeld        = LeftAlias `aliasHold` inputState
+                rightHeld       = RightAlias `aliasHold` inputState
                 dir
-                    | LeftAlias `aliasHold` inputState  = LeftDir
-                    | RightAlias `aliasHold` inputState = RightDir
-                    | otherwise                         = _dir (player :: Player)
+                    | leftHeld  = LeftDir
+                    | rightHeld = RightDir
+                    | otherwise = _dir (player :: Player)
 
-                attackIs'     = \atkDesc -> maybe False (`attackIs` atkDesc) attack
-                attackIsNot   = \atkDesc -> not $ attackIs' atkDesc
-                attackIn'     = \atkDescs -> maybe False (`attackIn` atkDescs) attack
-                attackNotIn   = \atkDescs -> and $ map (not . attackIs') atkDescs
-                mkAttack'     = \atkDesc -> Just <$> mkAttack pos dir atkDesc
-                inInputBuffer = \inputs -> inputs `L.isInfixOf` playerTapInputBuffer player
+                attackIs'   = \atkDesc -> maybe False (`attackIs` atkDesc) attack
+                attackIsNot = \atkDesc -> not $ attackIs' atkDesc
+                attackIn'   = \atkDescs -> maybe False (`attackIn` atkDescs) attack
+                attackNotIn = \atkDescs -> and $ map (not . attackIs') atkDescs
+                mkAttack'   = \atkDesc -> Just <$> mkAttack pos dir atkDesc
 
                 weaponPressed     = WeaponAlias `aliasPressed` inputState || WeaponInput `inPlayerInputBuffer` player
                 weaponUpPressed   =

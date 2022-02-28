@@ -47,8 +47,9 @@ data PlayerInput
     deriving (Eq, Ord, Show)
 
 data PlayerBufferedInputState = PlayerBufferedInputState
-    { _inputMap  :: PlayerInputMap
-    , _tapInputs :: [PlayerTapInput]
-    , _lastDir   :: Direction
-    , _config    :: InputConfig
+    { _inputMap                        :: PlayerInputMap
+    , _tapInputs                       :: [PlayerTapInput]
+    , _lastDir                         :: Direction
+    , _lastHeldStraightDownElapsedSecs :: Secs
+    , _config                          :: InputConfig
     }

@@ -1,9 +1,9 @@
 module Attack.Projectile
     ( mkPlayerAttackProjectile
     , mkEnemyAttackProjectile
+    , mkEnemyAttackProjectileWithMsgId
     , mkPlayerEnemyAttackProjectile
     , mkAttackProjectile
-    , mkAttackProjectileWithId
     , attackProjectileAttack
     ) where
 
@@ -32,6 +32,10 @@ mkPlayerAttackProjectile pos dir atkDesc = mkAttackProjectile pos dir atkDesc re
 mkEnemyAttackProjectile :: MonadIO m => Pos2 -> Direction -> AttackDescription -> m (Some Projectile)
 mkEnemyAttackProjectile pos dir atkDesc = mkAttackProjectile pos dir atkDesc [ProjRegisteredPlayerCollision]
 
+mkEnemyAttackProjectileWithMsgId :: MonadIO m => Pos2 -> Direction -> AttackDescription -> MsgId -> m (Some Projectile)
+mkEnemyAttackProjectileWithMsgId pos dir atkDesc msgId =
+    mkAttackProjectileWithMsgId pos dir atkDesc [ProjRegisteredPlayerCollision] msgId
+
 mkPlayerEnemyAttackProjectile :: MonadIO m => Pos2 -> Direction -> AttackDescription -> m (Some Projectile)
 mkPlayerEnemyAttackProjectile pos dir atkDesc = mkAttackProjectile pos dir atkDesc registeredCollisions
     where
@@ -48,19 +52,18 @@ mkAttackProjectile
     -> AttackDescription
     -> [ProjectileRegisteredCollision]
     -> m (Some Projectile)
-mkAttackProjectile pos dir atkDesc registeredCollisions = do
-    msgId <- newId
-    mkAttackProjectileWithId msgId pos dir atkDesc registeredCollisions
+mkAttackProjectile pos dir atkDesc registeredCollisions =
+    mkAttackProjectileWithMsgId pos dir atkDesc registeredCollisions =<< newId
 
-mkAttackProjectileWithId
+mkAttackProjectileWithMsgId
     :: MonadIO m
-    => MsgId
-    -> Pos2
+    => Pos2
     -> Direction
     -> AttackDescription
     -> [ProjectileRegisteredCollision]
+    -> MsgId
     -> m (Some Projectile)
-mkAttackProjectileWithId msgId pos dir atkDesc registeredCollisions = do
+mkAttackProjectileWithMsgId pos dir atkDesc registeredCollisions msgId = do
     atk <- mkAttack pos dir atkDesc
     let
         hbx         = attackProjectileHitbox' atk

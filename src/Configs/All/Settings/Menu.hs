@@ -15,15 +15,16 @@ import {-# SOURCE #-} Player.SecondarySkill.Types
 import {-# SOURCE #-} Player.Weapon.Types
 
 data MenuConfig = MenuConfig
-    { _menuCursorHotspotPos      :: Pos2
-    , _mainNewGameButtonPosY     :: PosY
-    , _mainContinueButtonPos     :: Pos2
-    , _mainUnlocksButtonPosY     :: PosY
-    , _mainSettingsButtonPosY    :: PosY
-    , _mainQuitButtonPosY        :: PosY
-    , _mainPromptImagePos        :: Pos2
-    , _mainPromptQuitButtonPos   :: Pos2
-    , _mainPromptCancelButtonPos :: Pos2
+    { _menuCursorHotspotPos       :: Pos2
+    , _mainNewGameButtonPosY      :: PosY
+    , _mainContinueButtonPos      :: Pos2
+    , _mainUnlocksButtonPosY      :: PosY
+    , _mainSettingsButtonPosY     :: PosY
+    , _mainQuitButtonPosY         :: PosY
+    , _mainPromptImagePos         :: Pos2
+    , _mainPromptQuitButtonPos    :: Pos2
+    , _mainPromptCancelButtonPos  :: Pos2
+    , _mainPromptNewGameButtonPos :: Pos2
 
     , _settingsControlsButtonPos :: Pos2
     , _settingsGraphicsButtonPos :: Pos2
