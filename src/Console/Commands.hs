@@ -686,11 +686,11 @@ giveMovementSkillCmd args world = do
 
 giveSecondarySkillCmd :: ConsoleCommand (AppEnv ConsoleMsgsPhase)
 giveSecondarySkillCmd args world = do
-    secondarySkill <- case args0 args of
+    secondarySkill <- case T.toLower (args0 args) of
         -- NOTE: this is modified from the full source since only stoneForm is included in this repo
-        "stoneForm"  -> Just <$> mkStoneFormSkill
+        "stoneform"  -> Just <$> mkStoneFormSkill
         "flight"     -> Just <$> mkStoneFormSkill
-        "fastFall"   -> Just <$> mkStoneFormSkill
+        "fastfall"   -> Just <$> mkStoneFormSkill
 
         name
             | Just t <- readMaybe' name -> Just <$> mkSecondarySkillFromType t
@@ -745,11 +745,11 @@ clearCmd args world = return $ UpdateWorldResult output world'
         clearPlayerUpgrades        = \p -> p {_upgradeManager = (_upgradeManager p) {_counts = M.empty}}
 
         player            = _player (world :: World)
-        (player', output) = case args0 args of
+        (player', output) = case T.toLower (args0 args) of
             "weapons"         -> (clearPlayerWeapons player, "cleared player weapons")
             "guns"            -> (clearPlayerGuns player, "cleared player guns")
-            "movementSkill"   -> (clearPlayerMovementSkill player, "cleared player movement skill")
-            "secondarySkills" -> (clearPlayerSecondarySkills player, "cleared player secondary skills")
+            "movementskill"   -> (clearPlayerMovementSkill player, "cleared player movement skill")
+            "secondaryskills" -> (clearPlayerSecondarySkills player, "cleared player secondary skills")
             "upgrades"        -> (clearPlayerUpgrades player, "cleared player upgrades")
             "all"             ->
                 ( clearPlayerWeapons .

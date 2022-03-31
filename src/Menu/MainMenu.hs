@@ -222,7 +222,7 @@ updateMainMenuData game = do
                 put MainMenuQuitPromptQuitSelection
             when (isShowContinueButton game && _isPressed newGameBtn) $
                 put MainMenuNewGamePromptNewGameSelection
-            when (_isPressed quitPromptQuitBtn) $
+            when (_isPressed quitPromptCancelBtn) $
                 put MainMenuQuitSelection
             when (_isPressed newGamePromptCancelBtn) $
                 put MainMenuNewGameSelection

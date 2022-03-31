@@ -6,6 +6,7 @@ import Data.Aeson.Types (FromJSON, genericParseJSON, parseJSON)
 import GHC.Generics     (Generic)
 
 import Configs.All.PlayerSkill.Dash
+import Configs.All.PlayerSkill.Flight
 import Configs.All.PlayerSkill.Grapple
 import Configs.All.PlayerSkill.StoneForm
 import Configs.All.PlayerSkill.Teleport
@@ -16,6 +17,7 @@ data PlayerSkillConfig = PlayerSkillConfig
     , _teleport  :: TeleportConfig
     , _grapple   :: GrappleConfig
     , _stoneForm :: StoneFormConfig
+    , _flight    :: FlightConfig
     }
     deriving Generic
 

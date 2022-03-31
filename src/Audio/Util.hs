@@ -43,6 +43,7 @@ translateFmodStudioPath = \case
     "event:/SFX Events/Enemy/giant/attack-smash" -> return "event:/SFX Events/Enemy/Giant/attack-smash"
     "event:/SFX Events/Enemy/giant/attack-punch" -> return "event:/SFX Events/Enemy/Giant/attack-punch"
     "event:/SFX Events/Enemy/giant/hurt"         -> return "event:/SFX Events/Enemy/Giant/hurt"
+    "event:/SFX Events/Enemy/Super-armor"        -> return "event:/SFX Events/Enemy/super-armor"
 
     path ->
         let

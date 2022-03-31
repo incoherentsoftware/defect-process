@@ -2,6 +2,7 @@ module Enemy.Util
     ( enemySpawnDummyBodyPath
     , enemyDeathEffectPath
     , enemyDeathSoundPath
+    , enemySuperArmorSoundPath
     , EnemyLockOnReticleData(..)
     , EnemyLockOnData(..)
     , EnemyHurtEffectData(..)
@@ -64,6 +65,7 @@ enemyWallImpactEffectPath   = particlesEnemyPath "enemy-wall-impact.spr"      ::
 enemySpawnSoundPath         = "event:/SFX Events/Enemy/spawn"                 :: FilePath
 enemyDeathSoundPath         = "event:/SFX Events/Enemy/death"                 :: FilePath
 enemyGroundImpactSoundPath  = "event:/SFX Events/Enemy/ground-impact"         :: FilePath
+enemySuperArmorSoundPath    = "event:/SFX Events/Enemy/super-armor"           :: FilePath
 
 data EnemyLockOnReticleData = EnemyLockOnReticleData
     { _scale     :: Float
