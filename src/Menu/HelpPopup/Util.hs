@@ -212,10 +212,23 @@ weaponTypeToHelpPopupDescription menuCfg wpnType = case wpnType of
 
     SpiritBladeWeapon -> HelpPopupDescription
         { _iconButtonImagePath = buttonImagePath "spirit-blade-icon-button.image"
-        , _popupDescription    = Left $ HelpPopupScreenDescription
-            { _imagePath               = spiritBladeHelpImgPath "spirit-blade-basic-help.image"
-            , _textOverlayDescriptions = [mkSymbolInputAliasPosTextDesc WeaponAlias]
-            }
+        , _popupDescription    = Right
+            [ HelpPopupTabDescription
+                { _imagePath               = spiritBladeHelpImgPath "spirit-blade-basic-help.image"
+                , _imageAltOverlayPath     = Nothing
+                , _tabButtonImagePath      = spiritBladeHelpImgPath "basic-attacks-button.image"
+                , _tabButtonPos            = _helpPopupSpiritBladeBasicTabButtonPos menuCfg
+                , _textOverlayDescriptions = [mkSymbolInputAliasPosTextDesc WeaponAlias]
+                } :: HelpPopupTabDescription
+            , HelpPopupTabDescription
+                { _imagePath               = spiritBladeHelpImgPath "spirit-blade-special-help.image"
+                , _imageAltOverlayPath     =
+                    Just $ spiritBladeHelpImgPath "spirit-blade-special-help-alt-overlay.image"
+                , _tabButtonImagePath      = spiritBladeHelpImgPath "special-attacks-button.image"
+                , _tabButtonPos            = _helpPopupSpiritBladeSpecialTabButtonPos menuCfg
+                , _textOverlayDescriptions = [mkSymbolInputAliasPosTextDesc WeaponAlias]
+                } :: HelpPopupTabDescription
+            ]
         }
 
     where
@@ -342,6 +355,39 @@ secondarySkillTypeToHelpPopupDescription secondarySkillType slot = case secondar
         { _iconButtonImagePath = buttonImagePath "fast-fall-icon-button.image"
         , _popupDescription    = Left $ HelpPopupScreenDescription
             { _imagePath               = variousHelpPackPath "fast-fall-help.image"
+            , _textOverlayDescriptions =
+                [ mkSymbolInputAliasPosTextDesc SecondarySkillAlias
+                , mkSecondarySkillSlotInputTextDesc fastFallSkillSlotTextPos slot
+                ]
+            }
+        }
+
+    StasisBlastSkill -> HelpPopupDescription
+        { _iconButtonImagePath = buttonImagePath "stasis-blast-icon-button.image"
+        , _popupDescription    = Left $ HelpPopupScreenDescription
+            { _imagePath               = variousHelpPackPath "stasis-blast-help.image"
+            , _textOverlayDescriptions =
+                [ mkSymbolInputAliasPosTextDesc SecondarySkillAlias
+                , mkSecondarySkillSlotInputTextDesc fastFallSkillSlotTextPos slot
+                ]
+            }
+        }
+
+    MarkRecallSkill -> HelpPopupDescription
+        { _iconButtonImagePath = buttonImagePath "mark-recall-icon-button.image"
+        , _popupDescription    = Left $ HelpPopupScreenDescription
+            { _imagePath               = variousHelpPackPath "mark-recall-help.image"
+            , _textOverlayDescriptions =
+                [ mkSymbolInputAliasPosTextDesc SecondarySkillAlias
+                , mkSecondarySkillSlotInputTextDesc fastFallSkillSlotTextPos slot
+                ]
+            }
+        }
+
+    SummonPlatformSkill -> HelpPopupDescription
+        { _iconButtonImagePath = buttonImagePath "summon-platform-icon-button.image"
+        , _popupDescription    = Left $ HelpPopupScreenDescription
+            { _imagePath               = variousHelpPackPath "summon-platform-help.image"
             , _textOverlayDescriptions =
                 [ mkSymbolInputAliasPosTextDesc SecondarySkillAlias
                 , mkSecondarySkillSlotInputTextDesc fastFallSkillSlotTextPos slot

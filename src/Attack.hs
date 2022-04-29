@@ -37,7 +37,7 @@ module Attack
     ) where
 
 import Control.Monad.IO.Class (MonadIO)
-import Data.Maybe             (fromMaybe, listToMaybe)
+import Data.Maybe             (fromMaybe, isNothing, listToMaybe)
 import qualified Data.List as L
 import qualified Data.Set as S
 
@@ -57,11 +57,16 @@ import World.Screenshake.Types
 import World.ZIndex
 import {-# SOURCE #-} Attack.Hit
 
+attackCancelableFrameTagName = FrameTagName "attackCancelable" :: FrameTagName
+
 mkAttack :: MonadIO m => Pos2 -> Direction -> AttackDescription -> m Attack
 mkAttack pos@(Pos2 _ y) dir atkDesc =
     let
         maxLoops           = _maxLoops =<< _loopData (_sprite (atkDesc :: AttackDescription))
-        atkRefreshIdsCount = maybe 0 (+ 1) maxLoops
+        atkRefreshIdsCount = case _refreshHitboxesType atkDesc of
+            RefreshHitboxesPerFrameCount count
+                | isNothing maxLoops -> (length (_hitboxes atkDesc) `div` count) + 1
+            _                        -> maybe 0 (+ 1) maxLoops
         launchTargetY      = (y -) <$> _launchTargetOffsetY atkDesc  -- relative from initial attack pos on create
     in do
         atkId         <- newId
@@ -132,10 +137,11 @@ attackHitbox attack = setHitboxTopLeftEx pos flipped <$> hitbox
         hitbox   = fromMaybe Nothing (listToMaybe hitboxes)
 
 attackCancelable :: Attack -> Bool
-attackCancelable attack = frameIndex >= cancelFrameIndex
+attackCancelable attack = frameIndex >= cancelFrameIndex || isAtkCancelableFrameTag
     where
-        cancelFrameIndex = _cancelFrameIndex $ _description attack
-        frameIndex       = attackFrameIndex attack
+        cancelFrameIndex        = _cancelFrameIndex $ _description attack
+        frameIndex              = attackFrameIndex attack
+        isAtkCancelableFrameTag = attackCancelableFrameTagName `isAttackFrameTag` attack
 
 attackWalkCancelable :: Attack -> Bool
 attackWalkCancelable attack = nextAtkFrameIndex >= walkCancelFrameIndex

@@ -384,8 +384,10 @@ updateSword WeaponUpdateForeground player _ sword = do
     return $ sword {_data = swordData'}
 
 drawSwordChargeOverlay :: (GraphicsReadWrite m, MonadIO m) => WeaponDrawOverlay SwordData m
-drawSwordChargeOverlay player _ sword = when (_chargeStatus swordData == SwordFullChargeStatus) $
-    drawSprite pos' dir playerWeaponOverlayZIndex chargeOverlaySpr
+drawSwordChargeOverlay WeaponDrawOverlayBackground _ _ _          = return ()
+drawSwordChargeOverlay WeaponDrawOverlayForeground player _ sword =
+    when (_chargeStatus swordData == SwordFullChargeStatus) $
+        drawSprite pos' dir playerWeaponOverlayZIndex chargeOverlaySpr
     where
         swordData        = _data sword
         dir              = _dir (player :: Player)

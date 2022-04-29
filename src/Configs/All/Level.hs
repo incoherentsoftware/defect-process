@@ -26,6 +26,9 @@ data LevelConfig = LevelConfig
     , _itemPickupStoneFormSkillGoldValue       :: GoldValue
     , _itemPickupFlightSkillGoldValue          :: GoldValue
     , _itemPickupFastFallSkillGoldValue        :: GoldValue
+    , _itemPickupStasisBlastSkillGoldValue     :: GoldValue
+    , _itemPickupMarkRecallSkillGoldValue      :: GoldValue
+    , _itemPickupSummonPlatformSkillGoldValue  :: GoldValue
     , _itemPickupMeterUpgradeGoldValue         :: GoldValue
     , _itemPickupDoubleJumpUpgradeGoldValue    :: GoldValue
     , _itemPickupMovementSkillUpgradeGoldValue :: GoldValue

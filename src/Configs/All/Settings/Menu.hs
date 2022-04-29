@@ -57,20 +57,22 @@ data MenuConfig = MenuConfig
     , _settingsGameTabPauseMenuHintsComboBoxValueOffset :: Pos2
     , _settingsGameTabRestoreDefaultsButtonPos          :: Pos2
 
-    , _helpPopupCloseButtonPos               :: Pos2
-    , _helpPopupControlsButtonPos            :: Pos2
-    , _helpPopupAltControlsButtonPos         :: Pos2
-    , _helpPopupTargetingTextPositions       :: (Pos2, Pos2, Pos2, Pos2, Pos2)
-    , _helpPopupSwordBasicTabButtonPos       :: Pos2
-    , _helpPopupSwordSpecialTabButtonPos     :: Pos2
-    , _helpPopupGauntletsBasicTabButtonPos   :: Pos2
-    , _helpPopupGauntletsSpecialTabButtonPos :: Pos2
-    , _helpPopupGauntletsChargedTabButtonPos :: Pos2
-    , _helpPopupScytheBasicTabButtonPos      :: Pos2
-    , _helpPopupScytheSpecialTabButtonPos    :: Pos2
-    , _helpPopupScytheFloatingTabButtonPos   :: Pos2
-    , _helpPopupStaffBasicTabButtonPos       :: Pos2
-    , _helpPopupStaffSpecialTabButtonPos     :: Pos2
+    , _helpPopupCloseButtonPos                 :: Pos2
+    , _helpPopupControlsButtonPos              :: Pos2
+    , _helpPopupAltControlsButtonPos           :: Pos2
+    , _helpPopupTargetingTextPositions         :: (Pos2, Pos2, Pos2, Pos2, Pos2)
+    , _helpPopupSwordBasicTabButtonPos         :: Pos2
+    , _helpPopupSwordSpecialTabButtonPos       :: Pos2
+    , _helpPopupGauntletsBasicTabButtonPos     :: Pos2
+    , _helpPopupGauntletsSpecialTabButtonPos   :: Pos2
+    , _helpPopupGauntletsChargedTabButtonPos   :: Pos2
+    , _helpPopupScytheBasicTabButtonPos        :: Pos2
+    , _helpPopupScytheSpecialTabButtonPos      :: Pos2
+    , _helpPopupScytheFloatingTabButtonPos     :: Pos2
+    , _helpPopupStaffBasicTabButtonPos         :: Pos2
+    , _helpPopupStaffSpecialTabButtonPos       :: Pos2
+    , _helpPopupSpiritBladeBasicTabButtonPos   :: Pos2
+    , _helpPopupSpiritBladeSpecialTabButtonPos :: Pos2
 
     , _pausedResumeButtonPos                   :: Pos2
     , _pausedMainMenuButtonPos                 :: Pos2

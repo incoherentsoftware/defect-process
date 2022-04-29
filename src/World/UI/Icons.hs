@@ -111,9 +111,12 @@ mkMovementSkillIcons =
     loadIconImage "grapple-icon.image"
 
 data SecondarySkillIcons = SecondarySkillIcons
-    { _stoneForm :: IconImage
-    , _flight    :: IconImage
-    , _fastFall  :: IconImage
+    { _stoneForm      :: IconImage
+    , _flight         :: IconImage
+    , _fastFall       :: IconImage
+    , _stasisBlast    :: IconImage
+    , _markRecall     :: IconImage
+    , _summonPlatform :: IconImage
     }
 
 mkSecondarySkillIcons :: (FileCache m, GraphicsRead m, MonadIO m) => m SecondarySkillIcons
@@ -121,7 +124,10 @@ mkSecondarySkillIcons =
     SecondarySkillIcons <$>
     loadIconImage "stone-form-icon.image" <*>
     loadIconImage "flight-icon.image" <*>
-    loadIconImage "fast-fall-icon.image"
+    loadIconImage "fast-fall-icon.image" <*>
+    loadIconImage "stasis-blast-icon.image" <*>
+    loadIconImage "mark-recall-icon.image" <*>
+    loadIconImage "summon-platform-icon.image"
 
 data InvalidActionOverlay = InvalidActionOverlay
     { _invalidActionOverlayImage    :: Image
@@ -231,10 +237,13 @@ iconsUiSecondarySkillIconImages player iconsUI =
     where
         toIconImage :: Maybe SecondarySkillType -> IconImage
         toIconImage = \case
-            Nothing             -> _emptyIconImage iconsUI
-            Just StoneFormSkill -> _stoneForm secondarySkillIcons
-            Just FlightSkill    -> _flight secondarySkillIcons
-            Just FastFallSkill  -> _fastFall secondarySkillIcons
+            Nothing                  -> _emptyIconImage iconsUI
+            Just StoneFormSkill      -> _stoneForm secondarySkillIcons
+            Just FlightSkill         -> _flight secondarySkillIcons
+            Just FastFallSkill       -> _fastFall secondarySkillIcons
+            Just StasisBlastSkill    -> _stasisBlast secondarySkillIcons
+            Just MarkRecallSkill     -> _markRecall secondarySkillIcons
+            Just SummonPlatformSkill -> _summonPlatform secondarySkillIcons
             where secondarySkillIcons = _secondarySkillIcons iconsUI
 
 updateIconsUI :: MsgsRead UpdateWorldUiMsgsPhase m => IconsUI -> m IconsUI

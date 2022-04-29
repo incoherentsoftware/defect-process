@@ -240,9 +240,12 @@ itemCmd args world = do
         "grapple"  -> Just <$> mkDashItemPickup roomType pos
 
         -- NOTE: this is modified from the full source since only stoneForm is included in this repo
-        "stoneform" -> Just <$> mkStoneFormItemPickup roomType pos
-        "flight"    -> Just <$> mkStoneFormItemPickup roomType pos
-        "fastfall"  -> Just <$> mkStoneFormItemPickup roomType pos
+        "stoneform"      -> Just <$> mkStoneFormItemPickup roomType pos
+        "flight"         -> Just <$> mkStoneFormItemPickup roomType pos
+        "fastfall"       -> Just <$> mkStoneFormItemPickup roomType pos
+        "stasisblast"    -> Just <$> mkStoneFormItemPickup roomType pos
+        "markrecall"     -> Just <$> mkStoneFormItemPickup roomType pos
+        "summonplatform" -> Just <$> mkStoneFormItemPickup roomType pos
 
         "doublejump"    -> Just <$> mkDoubleJumpUpgradeItemPickup roomType pos
         "movementskill" -> Just <$> mkMovementSkillUpgradeItemPickup roomType pos
@@ -688,9 +691,12 @@ giveSecondarySkillCmd :: ConsoleCommand (AppEnv ConsoleMsgsPhase)
 giveSecondarySkillCmd args world = do
     secondarySkill <- case T.toLower (args0 args) of
         -- NOTE: this is modified from the full source since only stoneForm is included in this repo
-        "stoneform"  -> Just <$> mkStoneFormSkill
-        "flight"     -> Just <$> mkStoneFormSkill
-        "fastfall"   -> Just <$> mkStoneFormSkill
+        "stoneform"      -> Just <$> mkStoneFormSkill
+        "flight"         -> Just <$> mkStoneFormSkill
+        "fastfall"       -> Just <$> mkStoneFormSkill
+        "stasisblast"    -> Just <$> mkStoneFormSkill
+        "markrecall"     -> Just <$> mkStoneFormSkill
+        "summonplatform" -> Just <$> mkStoneFormSkill
 
         name
             | Just t <- readMaybe' name -> Just <$> mkSecondarySkillFromType t

@@ -12,6 +12,7 @@ import qualified SDL
 import qualified SDL.Raw
 
 import Util
+import Window.Graphics.BlendMode
 import Window.Graphics.Cursors.Types
 import Window.Graphics.DrawCall.Types
 import Window.Graphics.Fonts.Types
@@ -30,6 +31,7 @@ data Graphics = Graphics
     , _cameraSpace       :: IORef CameraSpace
     , _lerpRef           :: IORef Lerp
     , _clipRectRef       :: IORef (Maybe SDL.Raw.Rect)
+    , _blendModeRef      :: IORef BlendMode
     , _textureManagerVar :: TVar TextureManager
     }
 

@@ -239,8 +239,6 @@ parseLoadAttackDescription filePath atkDescByteStr packFilePath =
         case refreshHitboxesType of
             RefreshHitboxesOnLoop
                 | noMaxLoops  -> error' "refreshHitboxesOnLoop set but no maxLoops specified"
-            RefreshHitboxesPerFrameCount _
-                | noMaxLoops  -> error' "refreshHitboxesPerFrameCount set but no maxLoops specified"
             _                 -> return ()
 
         let

@@ -28,14 +28,20 @@ data SecondarySkillType
     = StoneFormSkill
     | FlightSkill
     | FastFallSkill
+    | StasisBlastSkill
+    | MarkRecallSkill
+    | SummonPlatformSkill
     deriving (Bounded, Enum, Eq, FromJSON, Generic, Ord, Read, Show, ToJSON)
 
 instance PrettyShow SecondarySkillType where
     prettyShow :: SecondarySkillType -> T.Text
     prettyShow = \case
-        StoneFormSkill -> "Stone Form"
-        FlightSkill    -> "Flight"
-        FastFallSkill  -> "Fast Fall"
+        StoneFormSkill      -> "Stone Form"
+        FlightSkill         -> "Flight"
+        FastFallSkill       -> "Fast Fall"
+        StasisBlastSkill    -> "Stasis Blast"
+        MarkRecallSkill     -> "Mark/Recall"
+        SummonPlatformSkill -> "Summon Platform"
 
 type SecondarySkillUpdate d m      = Player -> SecondarySkill d -> m (SecondarySkill d)
 type SecondarySkillThink d m       =

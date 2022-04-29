@@ -7,9 +7,8 @@ module Player.Weapon.Manager
     , updateWeaponManager
     ) where
 
-import Data.Foldable    (sequenceA_)
+import Data.Foldable    (for_, sequenceA_)
 import Data.Functor     ((<&>))
-import Data.Maybe       (listToMaybe)
 import Data.Traversable (for)
 import qualified Data.Set as S
 
@@ -39,9 +38,6 @@ mkWeaponManager = WeaponManager
     { _weapons = []
     }
 
-weaponManagerActiveWeapon :: WeaponManager -> Maybe (Some Weapon)
-weaponManagerActiveWeapon = listToMaybe . _weapons
-
 giveWeaponManagerWeapon :: Some Weapon -> WeaponManager -> WeaponManager
 giveWeaponManagerWeapon wpn@(Some w) weaponManager = case _weapons weaponManager of
     []                        -> weaponManager {_weapons = [wpn]}
@@ -58,9 +54,12 @@ drawWeaponManager :: Player -> WeaponManager -> AppEnv DrawMsgsPhase ()
 drawWeaponManager player weaponManager = do
     let atk = _attack player
 
-    sequenceA_ $ do
-        Some wpn <- weaponManagerActiveWeapon weaponManager
-        Just $ (_drawOverlay wpn) player atk wpn
+    for_ (zip [0..] (_weapons weaponManager)) $ \(i, Some wpn) ->
+        let
+            drawOverlayStatus
+                | i == 0    = WeaponDrawOverlayForeground
+                | otherwise = WeaponDrawOverlayBackground
+        in (_drawOverlay wpn) drawOverlayStatus player atk wpn
 
     whenM (readSettingsConfig _debug _drawEntityHitboxes) $
         let

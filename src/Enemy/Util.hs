@@ -29,6 +29,7 @@ module Enemy.Util
     , enemyGroundImpactMessages
     , enemyWallImpactMessages
     , isEnemyFacingPlayer
+    , isEnemyInStasis
     ) where
 
 import Control.Monad.IO.Class (MonadIO)
@@ -46,6 +47,7 @@ import Configs.All.Enemy
 import Configs.All.Settings.Debug
 import Constants
 import Enemy.Flags
+import Enemy.Timers
 import Enemy.Types as E
 import FileCache
 import InfoMsg.Util
@@ -266,3 +268,6 @@ isEnemyFacingPlayer enemy = case vecX . playerInfoPos <$> _knownPlayerInfo enemy
             x   = vecX $ E._pos enemy
             dir = E._dir enemy
         in (dir == LeftDir && playerX <= x) || (dir == RightDir && playerX >= x)
+
+isEnemyInStasis :: Enemy d -> Bool
+isEnemyInStasis enemy = _stasisTtl (_timers enemy) > 0.0

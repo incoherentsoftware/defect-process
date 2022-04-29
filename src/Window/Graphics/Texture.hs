@@ -13,6 +13,7 @@ module Window.Graphics.Texture
 import Control.Concurrent.STM      (atomically)
 import Control.Concurrent.STM.TVar (readTVarIO, writeTVar)
 import Control.Monad.IO.Class      (MonadIO, liftIO)
+import Data.IORef                  (readIORef)
 import Data.StateVar               (($=))
 import Foreign.C.Types             (CDouble(CDouble))
 import qualified Data.Set as S
@@ -21,6 +22,7 @@ import qualified SDL.Image
 
 import Id
 import Util
+import Window.Graphics.BlendMode
 import Window.Graphics.Camera
 import Window.Graphics.DrawCall
 import Window.Graphics.Opacity
@@ -105,17 +107,27 @@ drawTextureSubRectEx srcSubRect originPos pos destWidth destHeight dir zIndex an
         destHeight' = realToFrac $ destHeight * scale
         destSize    = SDL.V2 destWidth' destHeight'
     in do
-        destRect <- cameraTransformPos pos >>= \(Pos2 x' y') ->
+        gfx       <- getGraphics
+        blendMode <- liftIO $ readIORef (_blendModeRef gfx)
+        destRect  <- cameraTransformPos pos >>= \(Pos2 x' y') ->
             let
                 destX     = realToFrac $ x' - originXOffset * scale
                 destY     = realToFrac $ y' - originYOffset * scale
                 destPoint = SDL.P $ SDL.V2 destX destY
             in return . Just $ SDL.Rectangle destPoint destSize
 
-        sdlRenderer <- (_sdlRenderer . _renderer) <$> getGraphics
         addGraphicsDrawCall zIndex $ do
+            case blendMode of
+                BlendModeAlpha    -> return ()
+                BlendModeAdditive -> SDL.textureBlendMode sdlTexture $= SDL.BlendAdditive
+
             SDL.textureAlphaMod sdlTexture $= alpha
+            let sdlRenderer = _sdlRenderer $ _renderer gfx
             SDL.copyExF sdlRenderer sdlTexture srcRect destRect angle' rotatePoint flipXY
+
+            case blendMode of
+                BlendModeAlpha    -> return ()
+                BlendModeAdditive -> SDL.textureBlendMode sdlTexture $= SDL.BlendAlphaBlend
 
 drawTexture :: (GraphicsReadWrite m, MonadIO m) => Pos2 -> Pos2 -> Direction -> ZIndex -> Texture -> m ()
 drawTexture originPos pos dir zIndex texture =

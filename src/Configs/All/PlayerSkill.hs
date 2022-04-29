@@ -8,16 +8,18 @@ import GHC.Generics     (Generic)
 import Configs.All.PlayerSkill.Dash
 import Configs.All.PlayerSkill.Flight
 import Configs.All.PlayerSkill.Grapple
+import Configs.All.PlayerSkill.StasisBlast
 import Configs.All.PlayerSkill.StoneForm
 import Configs.All.PlayerSkill.Teleport
 import Util
 
 data PlayerSkillConfig = PlayerSkillConfig
-    { _dash      :: DashConfig
-    , _teleport  :: TeleportConfig
-    , _grapple   :: GrappleConfig
-    , _stoneForm :: StoneFormConfig
-    , _flight    :: FlightConfig
+    { _dash        :: DashConfig
+    , _teleport    :: TeleportConfig
+    , _grapple     :: GrappleConfig
+    , _stoneForm   :: StoneFormConfig
+    , _flight      :: FlightConfig
+    , _stasisBlast :: StasisBlastConfig
     }
     deriving Generic
 

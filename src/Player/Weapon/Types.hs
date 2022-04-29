@@ -3,6 +3,7 @@ module Player.Weapon.Types
     , WeaponAttackStatus(..)
     , WeaponThinkStatus(..)
     , WeaponUpdateStatus(..)
+    , WeaponDrawOverlayStatus(..)
     , WeaponThink
     , WeaponUpdate
     , WeaponProcessDynamic
@@ -34,7 +35,7 @@ instance PrettyShow WeaponType where
     prettyShow = \case
         SwordWeapon       -> "Sword"
         GauntletsWeapon   -> "Explosive Fist"
-        ScytheWeapon      -> "Scythe"
+        ScytheWeapon      -> "Ethereal Scythe"
         StaffWeapon       -> "Staff"
         SpiritBladeWeapon -> "Spirit Blade"
 
@@ -53,10 +54,14 @@ data WeaponUpdateStatus
     | WeaponUpdateBackground
     deriving Eq
 
+data WeaponDrawOverlayStatus
+    = WeaponDrawOverlayForeground
+    | WeaponDrawOverlayBackground
+
 type WeaponThink d m        = WeaponThinkStatus -> Player -> Maybe Attack -> Weapon d -> m [Msg ThinkPlayerMsgsPhase]
 type WeaponUpdate d m       = WeaponUpdateStatus -> Player -> Maybe Attack -> Weapon d -> m (Weapon d)
 type WeaponProcessDynamic d = Dynamic -> Weapon d -> Weapon d
-type WeaponDrawOverlay d m  = Player -> Maybe Attack -> Weapon d -> m ()
+type WeaponDrawOverlay d m  = WeaponDrawOverlayStatus -> Player -> Maybe Attack -> Weapon d -> m ()
 
 data Weapon d = Weapon
     { _data             :: d

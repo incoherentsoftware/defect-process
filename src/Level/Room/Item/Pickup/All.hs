@@ -57,6 +57,7 @@ allInitWeaponRoomItems =
     , (GauntletsWeapon, mkSwordItemPickup)
     , (ScytheWeapon, mkSwordItemPickup)
     , (StaffWeapon, mkSwordItemPickup)
+    , (SpiritBladeWeapon, mkSwordItemPickup)
     ] :: [(WeaponType, RoomType -> RoomItemInit p)]
 
 -- NOTE: this is modified from the full source since only revolver is included in this repo

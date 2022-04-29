@@ -20,9 +20,12 @@ import Window.InputState
 
 isSecondarySkillTypeInAirOnly :: SecondarySkillType -> Bool
 isSecondarySkillTypeInAirOnly = \case
-    StoneFormSkill -> False
-    FlightSkill    -> True
-    FastFallSkill  -> True
+    StoneFormSkill      -> False
+    FlightSkill         -> True
+    FastFallSkill       -> True
+    StasisBlastSkill    -> False
+    MarkRecallSkill     -> False
+    SummonPlatformSkill -> True
 
 mkSecondarySkill :: Typeable d => d -> SecondarySkillType -> SecondarySkill d
 mkSecondarySkill dat secondarySkillType = SecondarySkill

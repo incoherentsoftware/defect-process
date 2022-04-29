@@ -1,5 +1,6 @@
 module Window.Graphics
-    ( module Window.Graphics.Camera
+    ( module Window.Graphics.BlendMode
+    , module Window.Graphics.Camera
     , module Window.Graphics.Color
     , module Window.Graphics.Cursors
     , module Window.Graphics.DisplayText
@@ -31,6 +32,8 @@ module Window.Graphics
     , graphicsLerpOffset
     , graphicsClipRect
     , setGraphicsClipRect
+    , graphicsBlendMode
+    , setGraphicsBlendMode
     , getGraphicsDesktopResolution
     , getGraphicsAvailableResolutions
     , getGraphicsResolution
@@ -73,6 +76,7 @@ import Configs.All.Settings.Render
 import Constants
 import Util
 import Util.Time
+import Window.Graphics.BlendMode
 import Window.Graphics.Camera
 import Window.Graphics.Color
 import Window.Graphics.Cursors
@@ -121,6 +125,7 @@ mkGraphics winWidth winHeight windowTitle settingsCfg =
         cameraSpaceRef  <- liftIO $ newIORef CameraWorldSpace
         lerpRef         <- liftIO $ newIORef 0.0
         clipRectRef     <- liftIO $ newIORef Nothing
+        blendModeRef    <- liftIO $ newIORef BlendModeAlpha
         textureMgrVar   <- liftIO $ newTVarIO mkTextureManager
 
         return $ Graphics
@@ -134,6 +139,7 @@ mkGraphics winWidth winHeight windowTitle settingsCfg =
             , _cameraSpace       = cameraSpaceRef
             , _lerpRef           = lerpRef
             , _clipRectRef       = clipRectRef
+            , _blendModeRef      = blendModeRef
             , _textureManagerVar = textureMgrVar
             }
 
@@ -219,6 +225,16 @@ setGraphicsClipRect :: (GraphicsRead m, MonadIO m) => Maybe SDL.Raw.Rect -> m ()
 setGraphicsClipRect clipRect = do
     clipRectRef <- _clipRectRef <$> getGraphics
     liftIO $ writeIORef clipRectRef clipRect
+
+graphicsBlendMode :: (GraphicsRead m, MonadIO m) => m BlendMode
+graphicsBlendMode = do
+    gfx <- getGraphics
+    liftIO $ readIORef (_blendModeRef gfx)
+
+setGraphicsBlendMode :: (GraphicsRead m, MonadIO m) => BlendMode -> m ()
+setGraphicsBlendMode blendMode = do
+    blendModeRef <- _blendModeRef <$> getGraphics
+    liftIO $ writeIORef blendModeRef blendMode
 
 getGraphicsDesktopResolution :: (GraphicsRead m, MonadIO m) => m (Maybe (Int, Int))
 getGraphicsDesktopResolution = do

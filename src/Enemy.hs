@@ -1,6 +1,7 @@
 module Enemy
     ( module E
     , module Enemy.Flags
+    , module Enemy.Timers
     , module Enemy.Util
     , mkEnemy
     , mkEnemyWithId
@@ -21,6 +22,7 @@ module Enemy
     ) where
 
 import Control.Applicative    ((<|>))
+import Control.Monad          (unless, when)
 import Control.Monad.IO.Class (MonadIO)
 import Data.Dynamic           (fromDynamic)
 import Data.Foldable          (sequenceA_)
@@ -39,6 +41,7 @@ import Configs.All.Settings
 import Configs.All.Settings.Debug
 import Enemy.DebugText
 import Enemy.Flags
+import Enemy.Timers
 import Enemy.Types as E
 import Enemy.Util
 import Id
@@ -49,6 +52,9 @@ import World.ZIndex
 
 spawnVel    = Vel2 0.0 0.1    :: Vel2
 dummyHealth = mkHealth 999999 :: Health
+
+debugHitboxColor       = Color 205 100 0 155  :: Color
+debugAttackHitboxColor = Color 183 65 222 155 :: Color
 
 dummyLockOnReticleData = EnemyLockOnReticleData
     { _scale     = 1.0
@@ -117,6 +123,7 @@ mkEnemyInternal enMsgId enData pos dir enDummyType = do
         , _spawnEffectData        = dummySpawnEffectData
         , _knownPlayerInfo        = Nothing
         , _flags                  = mkEnemyFlags
+        , _timers                 = mkEnemyTimers
         , _thinkAI                = const $ return []
         , _updateHurtResponse     = const return
         , _updateGroundResponse   = const return
@@ -185,33 +192,48 @@ enemyLerpPos enemy = graphicsLerpPos pos (Vel2 velX' velY')
     where
         pos            = E._pos enemy
         Vel2 velX velY = _vel enemy
-        velX'          = if enemyTouchingWall enemy then 0.0 else velX
-        velY'          = if enemyTouchingGround enemy then 0.0 else velY
+        inStasis       = isEnemyInStasis enemy
+
+        velX'
+            | enemyTouchingWall enemy || inStasis   = 0.0
+            | otherwise                             = velX
+        velY'
+            | enemyTouchingGround enemy || inStasis = 0.0
+            | otherwise                             = velY
+
+drawEnemyDebugHitboxes :: (ConfigsRead m, GraphicsReadWrite m, MonadIO m) => Enemy d -> m ()
+drawEnemyDebugHitboxes enemy =
+    let
+        hbx    = enemyHitbox enemy
+        atkHbx = enemyAttackHitbox enemy
+    in whenM (readSettingsConfig _debug _drawEntityHitboxes) $ do
+        drawHitbox debugHitboxColor debugHitboxZIndex hbx
+        sequenceA_ $ drawHitbox debugAttackHitboxColor debugHitboxZIndex <$> atkHbx
 
 drawEnemy :: Enemy d -> AppEnv DrawMsgsPhase ()
 drawEnemy enemy = case _draw enemy of
     Just drawFn -> drawFn enemy >> drawEnemyOverlay
     Nothing     ->
         let
-            dir       = E._dir enemy
-            hp        = E._health enemy
-            spr       = case _attack enemy of
+            isStasis = _stasisTtl (_timers enemy) > 0.0
+            dir      = E._dir enemy
+            hp       = E._health enemy
+            spr      = case _attack enemy of
                 Just attack
                     | not (isHealthZero hp) -> Just $ attackSprite attack
                 _                           -> E._sprite enemy
-            hitbox    = enemyHitbox enemy
-            atkHitbox = enemyAttackHitbox enemy
-            color     = Color 205 100 0 155
-            atkColor  = Color 183 65 222 155
         in do
             pos <- enemyLerpPos enemy
+
+            when isStasis $
+                setGraphicsBlendMode BlendModeAdditive
             sequenceA_ $ drawSprite pos dir (_bodyZIndex enemy) <$> spr
+            when isStasis $
+                setGraphicsBlendMode BlendModeAlpha
+
             drawEnemyOverlay
 
-            whenM (readSettingsConfig _debug _drawEntityHitboxes) $ do
-                drawHitbox color debugHitboxZIndex hitbox
-                sequenceA_ $ drawHitbox atkColor debugHitboxZIndex <$> atkHitbox
-
+            drawEnemyDebugHitboxes enemy
             case _debugText enemy of
                 Nothing       -> return ()
                 Just debugTxt -> drawEnemyDebugText pos debugTxt
@@ -244,7 +266,7 @@ lockOnReticleDataMsgs enemy
         in [mkMsg $ InfoMsgEnemyLockOnReticle lockOnData]
 
 thinkEnemy :: Enemy d -> AppEnv ThinkEnemyMsgsPhase ()
-thinkEnemy enemy = do
+thinkEnemy enemy = unless (isEnemyInStasis enemy) $ do
     writeMsgs =<< (_thinkAI enemy) enemy
     writeMsgs $ lockOnReticleDataMsgs enemy
     writeMsgs $ maybe [] thinkAttack (_attack enemy)

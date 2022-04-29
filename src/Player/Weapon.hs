@@ -15,7 +15,7 @@ mkWeapon wpnData wpnType = Weapon
     , _think            = \_ _ _ _ -> return []
     , _update           = \_ _ _ -> return . id
     , _processDynamic   = processDynamic
-    , _drawOverlay      = \_ _ _ -> return ()
+    , _drawOverlay      = \_ _ _ _ -> return ()
     , _hitSoundFilePath = ""
     }
 

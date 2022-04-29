@@ -125,6 +125,7 @@ data EnemyMsgPayload where
     EnemyMsgSetAttackDescM :: AppEnv UpdateEnemyMsgsPhase AttackDescription -> EnemyMsgPayload
     EnemyMsgSetDead        :: EnemyMsgPayload
     EnemyMsgSetHangtime    :: Secs -> EnemyMsgPayload
+    EnemyMsgSetStasis      :: Secs -> Attack -> EnemyMsgPayload
 
 data HurtMsgPayload
     = HurtMsgAttackHit AttackHit
