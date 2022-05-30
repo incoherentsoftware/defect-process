@@ -81,7 +81,7 @@ mkSettingsGameTab = do
     enemyHealthDisplayTxt    <- mkDisplayText enemyHealthText Font22 whiteColor
     pauseMenuHintsDisplayTxt <- mkDisplayText pauseMenuHintsText Font22 whiteColor
     restoreDefaultsBtnPos    <- readSettingsConfig _menu _settingsGameTabRestoreDefaultsButtonPos
-    restoreDefaultsBtn       <- mkImageButton restoreDefaultsBtnPos restoreDefaultsButtonImgPath
+    restoreDefaultsBtn       <- mkImageButtonCentered restoreDefaultsBtnPos restoreDefaultsButtonImgPath
     menuCfg                  <- readConfig _settings (_menu :: SettingsConfig -> MenuConfig)
 
     enemyHealthComboBox <- mkComboBox

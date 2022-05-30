@@ -9,6 +9,7 @@ module Window.Graphics.InputDisplayText
     , drawInputDisplayTextMouseKbCentered
     , drawInputDisplayTextGamepadCentered
     , inputDisplayTextWidth
+    , inputDisplayTextHeight
     ) where
 
 import Control.Monad.IO.Class (MonadIO)
@@ -313,19 +314,19 @@ drawPrefixSymbolImage pos zIndex inputDisplayTxt = case _prefixSymbolImage input
         txtHeight <- fromIntegral . snd <$> SDL.Font.size sdlFont txt
         let
             offset = Pos2 (imageWidth img / 2.0) (txtHeight / 2.0)
-            pos'   = vecFloorXY $ pos `vecAdd` offset
+            pos'   = vecRoundXY $ pos `vecAdd` offset
         drawImage pos' RightDir zIndex img
 
 drawInputDisplayTextMouseKb :: (GraphicsReadWrite m, MonadIO m) => Pos2 -> ZIndex -> InputDisplayText -> m ()
 drawInputDisplayTextMouseKb pos zIndex inputDisplayTxt = do
-    drawTexture zeroPos2 pos RightDir zIndex (_mouseKbTexture inputDisplayTxt)
+    drawTexture zeroPos2 (vecRoundXY pos) RightDir zIndex (_mouseKbTexture inputDisplayTxt)
     drawPrefixSymbolImage pos zIndex inputDisplayTxt
 
 drawInputDisplayTextGamepad :: (GraphicsReadWrite m, MonadIO m) => Pos2 -> ZIndex -> InputDisplayText -> m ()
 drawInputDisplayTextGamepad pos zIndex inputDisplayTxt = do
-    drawTexture zeroPos2 pos RightDir zIndex (_gamepadTexture inputDisplayTxt)
+    drawTexture zeroPos2 (vecRoundXY pos) RightDir zIndex (_gamepadTexture inputDisplayTxt)
     for_ (_gamepadImages inputDisplayTxt) $ \(offset, img) ->
-        drawImage (pos `vecAdd` offset) RightDir zIndex img
+        drawImage (vecRoundXY $ pos `vecAdd` offset) RightDir zIndex img
     drawPrefixSymbolImage pos zIndex inputDisplayTxt
 
 drawInputDisplayTextCentered
@@ -360,3 +361,8 @@ inputDisplayTextWidth :: InputRead m => InputDisplayText -> m Float
 inputDisplayTextWidth inputDisplayTxt = (_lastUsedInputType <$> readInputState) <&> \case
     GamepadInputType -> fromIntegral $ _width (_gamepadTexture inputDisplayTxt)
     MouseKbInputType -> fromIntegral $ _width (_mouseKbTexture inputDisplayTxt)
+
+inputDisplayTextHeight :: InputRead m => InputDisplayText -> m Float
+inputDisplayTextHeight inputDisplayTxt = (_lastUsedInputType <$> readInputState) <&> \case
+    GamepadInputType -> fromIntegral $ _height (_gamepadTexture inputDisplayTxt)
+    MouseKbInputType -> fromIntegral $ _height (_mouseKbTexture inputDisplayTxt)

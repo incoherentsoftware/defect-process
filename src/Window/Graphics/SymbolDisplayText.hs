@@ -115,7 +115,7 @@ drawPrefixSymbolImage pos zIndex opacity symbolDisplayTxt = case _prefixSymbolIm
         txtHeight <- displayTextHeight $ _displayText symbolDisplayTxt
         let
             offset = Pos2 (imageWidth img / 2.0) (txtHeight / 2.0)
-            pos'   = vecFloorXY $ pos `vecAdd` offset
+            pos'   = vecRoundXY $ pos `vecAdd` offset
         drawImageWithOpacity pos' RightDir zIndex opacity img
 
 drawSymbolDisplayText :: (GraphicsReadWrite m, MonadIO m) => Pos2 -> ZIndex -> SymbolDisplayText -> m ()

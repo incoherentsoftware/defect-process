@@ -2,10 +2,11 @@ module Enemy.Update
     ( updateEnemy
     ) where
 
+import Control.Monad          (unless)
 import Control.Monad.IO.Class (MonadIO)
-import Control.Monad.State    (get, execStateT, lift, modify, put)
+import Control.Monad.State    (get, gets, execStateT, lift, modify, put)
 import Data.Dynamic           (toDyn)
-import Data.Foldable          (foldlM)
+import Data.Foldable          (foldlM, for_)
 import qualified Data.List as L
 import qualified Data.Set as S
 
@@ -122,7 +123,10 @@ updateEnemyDebug enemy = do
 
 updateEnemyInStasis :: Enemy d -> AppEnv UpdateEnemyMsgsPhase (Enemy d)
 updateEnemyInStasis enemy = flip execStateT enemy $ do
-    modify $ \e -> e {_timers = updateEnemyTimers (_timers e)}
+    modify $ \e -> e
+        { _flags      = clearEnemyFlagsInStasis $ _flags e
+        , _stasisData = updateEnemyStasisData $ _stasisData e
+        }
     get >>= lift . updateEnemyMessages >>= put
     get >>= lift . updateEnemyDebug >>= put
 
@@ -131,8 +135,8 @@ updateEnemy enemy
     | isEnemyInStasis enemy = updateEnemyInStasis enemy
     | otherwise             = flip execStateT enemy $ do
         modify $ \e -> e
-            { _flags  = clearEnemyFlags (_flags e)
-            , _timers = updateEnemyTimers (_timers e)
+            { _flags      = clearEnemyFlags $ _flags e
+            , _stasisData = updateEnemyStasisData $ _stasisData e
             }
         get >>= lift . updateEnemyMessages >>= put
         modify updateEnemyAttack
@@ -186,17 +190,18 @@ setEnemyStasis stasisSecs stasisAtk enemy
     | atkHashedId `S.member` hitByHashedIds = return enemy
     | otherwise                             =
         let
-            efPos = hitboxCenter $ enemyHitbox enemy
-            efDir = _dir (stasisAtk :: Attack)
+            pos              = hitboxCenter $ enemyHitbox enemy
+            dir              = _dir (stasisAtk :: Attack)
+            mkEffectParticle = loadSimpleParticle pos dir enemyHurtParticleZIndex stasisHitEffectPath
+            hitSoundMsgs     = case attackHitSoundFilePath stasisAtk of
+                Just hitSoundFilePath -> [mkMsg $ AudioMsgPlaySound hitSoundFilePath pos]
+                Nothing               -> []
         in do
-            writeMsgs
-                [ mkMsg $ ParticleMsgAddM (loadSimpleParticle efPos efDir enemyHurtParticleZIndex stasisHitEffectPath)
-                , mkMsg $ WorldMsgHitlag (attackHitlag stasisAtk)
-                ]
+            writeMsgs $ mkMsg (ParticleMsgAddM mkEffectParticle):attackHitlagMessages stasisAtk ++ hitSoundMsgs
 
             return $ enemy
                 { _hitByHashedIds = atkHashedId `S.insert` hitByHashedIds
-                , _timers         = (_timers enemy) {_stasisTtl = stasisSecs}
+                , _stasisData     = (_stasisData enemy) {_stasisTtl = stasisSecs}
                 }
     where
         atkHashedId    = hashId $ _id stasisAtk
@@ -226,8 +231,8 @@ processEnemyMessages enemy = foldlM processMsg enemy =<< readMsgsTo (_msgId enem
                 updateDynamic          = \dyn -> (_updateDynamic e) dyn e
                 updateHangtimeResponse = _updateHangtimeResponse e
 
-hurtEnemy :: AttackHit -> Enemy d -> AppEnv UpdateEnemyMsgsPhase (Enemy d)
-hurtEnemy atkHit enemy = do
+hurtEnemy :: AttackHit -> Bool -> Enemy d -> AppEnv UpdateEnemyMsgsPhase (Enemy d)
+hurtEnemy atkHit allowDuplicateHit enemy = do
     damageMultiplier <- readSettingsConfig _debug _enemiesDamageMultiplier
 
     let
@@ -238,17 +243,38 @@ hurtEnemy atkHit enemy = do
         hitByHashedIds   = _hitByHashedIds enemy
 
     if
-        | atkHashedId `S.member` hitByHashedIds -> return enemy
-        | otherwise                             -> do
+        -- ignore id checking for deferred attack hits since they've technically already hit the enemy
+        | not allowDuplicateHit && atkHashedId `S.member` hitByHashedIds -> return enemy
+
+        | isEnemyInStasis enemy -> return $ enemy
+            { _hitByHashedIds     = atkHashedId `S.insert` hitByHashedIds
+            , _stasisData         = (_stasisData enemy)
+                { _stasisTtl          = 0.0
+                , _deferredAttackHits = atkHit:_deferredAttackHits (_stasisData enemy)
+                }
+            }
+
+        | otherwise -> do
             enemy' <- (_updateHurtResponse enemy) atkHit' enemy
             return $ enemy'
                 { _hitByHashedIds = atkHashedId `S.insert` hitByHashedIds
-                , _timers         = (_timers enemy') {_stasisTtl = 0.0}
+                , _stasisData     = (_stasisData enemy') {_stasisTtl = 0.0}
                 }
 
 processHurtMessages :: Enemy d -> AppEnv UpdateEnemyMsgsPhase (Enemy d)
-processHurtMessages enemy = foldlM processMsg enemy =<< readMsgsTo (_msgId enemy)
-    where
+processHurtMessages enemy =
+    let
         processMsg :: Enemy d -> HurtMsgPayload -> AppEnv UpdateEnemyMsgsPhase (Enemy d)
-        processMsg e d = case d of
-            HurtMsgAttackHit atkHit -> hurtEnemy atkHit e
+        processMsg e p = case p of
+            HurtMsgAttackHit atkHit -> hurtEnemy atkHit False e
+    in flip execStateT enemy $ do
+        msgs <- lift $ readMsgsTo (_msgId enemy)
+        get >>= \e -> lift (foldlM processMsg e msgs) >>= put
+
+        unless (isEnemyInStasis enemy) $ do
+            deferredAtkHits <- gets $ _deferredAttackHits . _stasisData
+            for_ deferredAtkHits $ \atkHit ->
+                get >>= lift . hurtEnemy atkHit True >>= put
+            modify $ \e -> e
+                { _stasisData = (_stasisData e) {_deferredAttackHits = []}
+                }

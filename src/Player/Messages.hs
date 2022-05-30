@@ -32,8 +32,8 @@ import Player.MovementSkill as MS
 import Player.SecondarySkill as SS
 import Player.SecondarySkill.Manager
 import Player.TimersCounters
-import Player.Upgrade.Manager
 import Player.Upgrade
+import Player.Upgrade.Manager
 import Player.Weapon as W
 import Player.Weapon.Manager
 import Util
@@ -119,6 +119,18 @@ buyPlayerHealth cost player = player
         health = _health player
         gold   = max 0 (_gold player - cost)
 
+clearPlayerWeapon :: WeaponType -> Player -> Player
+clearPlayerWeapon wpnType player = player {_weaponManager = weaponMgr}
+    where weaponMgr = clearWeaponManagerWeapon wpnType (_weaponManager player)
+
+clearPlayerGun :: GunType -> Player -> Player
+clearPlayerGun gunType player = player {_gunManager = gunMgr}
+    where gunMgr = clearGunManagerGun gunType (_gunManager player)
+
+clearPlayerSecondarySkillSlot :: SecondarySkillType -> Player -> Player
+clearPlayerSecondarySkillSlot secondarySkillType player = player {_secondarySkillManager = secondarySkillMgr}
+    where secondarySkillMgr = clearSecondarySkillManagerSkill secondarySkillType (_secondarySkillManager player)
+
 setPlayerAttack :: Attack -> Player -> Player
 setPlayerAttack atk player = player
     { _attack         = Just atk
@@ -200,44 +212,47 @@ processPlayerMsgs player = foldlM processMsg player =<< readMsgs
     where
         processMsg :: Player -> PlayerMsgPayload -> AppEnv UpdatePlayerMsgsPhase Player
         processMsg !p d = case d of
-            PlayerMsgSetVelocity vel                  -> return (p {_vel = vel} :: Player)
-            PlayerMsgUpdateVelocity update            -> return (p {_vel = update $ _vel (p :: Player)} :: Player)
-            PlayerMsgSetDirection dir                 -> return (p {_dir = dir} :: Player)
-            PlayerMsgSetPosition pos                  -> return (p {_pos = pos} :: Player)
-            PlayerMsgUpdatePosition update            -> return $ updatePlayerPos update p
-            PlayerMsgPushbackOffset offsetX           -> return $ pushbackPlayerOffset offsetX p
-            PlayerMsgFiredGun                         -> return $ p {_flags = flags {_firedGun = True}}
-            PlayerMsgGiveWeapon wpn                   -> return $ givePlayerWeapon wpn p
-            PlayerMsgUpdateWeapon wpnUpdate           -> return $ updatePlayerWeapon wpnUpdate p
-            PlayerMsgUpdateGun update                 -> return $ updatePlayerGun update p
-            PlayerMsgUpdateMovementSkill update       -> return $ updatePlayerMovementSkill update
-            PlayerMsgCancelMovementSkill              -> return $ cancelPlayerMovementSkill p
-            PlayerMsgUpdateSecondarySkill slot update -> return $ updatePlayerSecondarySkill slot update
-            PlayerMsgSetPhased                        -> return $ p {_flags = flags {_phased = True}}
-            PlayerMsgUpdateGold update                -> updatePlayerGold update p
-            PlayerMsgClearAttack                      -> return $ p {_attack = Nothing}
-            PlayerMsgSetAttack atk                    -> return $ setPlayerAttack atk p
-            PlayerMsgSetAttackDesc atkDesc            -> setPlayerAttackDesc atkDesc p
-            PlayerMsgSetAttackDescEx pos dir atkDesc  -> setPlayerAttackDescEx pos dir atkDesc p
-            PlayerMsgUpdateAttack update              -> return $ p {_attack = update <$> _attack p}
-            PlayerMsgUpdateAttackM update             -> updatePlayerAttackM update
-            PlayerMsgUsedMovementSkill                -> return $ p {_flags = flags {_movementSkilled = True}}
-            PlayerMsgBuyWeapon wpn cost               -> return $ buyPlayerWeapon wpn cost p
-            PlayerMsgBuyGun gun cost                  -> return $ buyPlayerGun gun cost p
-            PlayerMsgBuyMovementSkill moveSkill cost  -> return $ buyPlayerMovementSkill moveSkill cost p
-            PlayerMsgBuySecondarySkill secSkill cost  -> return $ buyPlayerSecondarySkill secSkill cost p
-            PlayerMsgBuyUpgrade upgrade cost          -> return $ buyPlayerUpgrade upgrade cost p
-            PlayerMsgBuyHealth cost                   -> return $ buyPlayerHealth cost p
-            PlayerMsgInteract _                       -> return p
-            PlayerMsgClearInputBuffer _               -> return p
-            PlayerMsgGainMeter meter                  -> return $ p {_meter = gainPlayerMeter meter (_meter p)}
-            PlayerMsgFillMeterFull                    -> return $ p {_meter = fillPlayerMeterFull (_meter p)}
-            PlayerMsgSpendMeter meter                 -> return $ p {_meter = spendPlayerMeter meter (_meter p)}
-            PlayerMsgResetDoubleJump                  -> return $ resetPlayerAirStallDoubleJump p
-            PlayerMsgResetAirStallAttacksCounter      -> return resetPlayerAirStall
-            PlayerMsgForceInAir                       -> return forcePlayerInAir
-            PlayerMsgWarpOut                          -> return $ p {_flags = flags {_warpingOut = True}}
-            PlayerMsgTouchingInfoSign                 -> return $ p {_flags = flags {_touchingInfoSign = True}}
+            PlayerMsgSetVelocity vel                    -> return (p {_vel = vel} :: Player)
+            PlayerMsgUpdateVelocity update              -> return (p {_vel = update $ _vel (p :: Player)} :: Player)
+            PlayerMsgSetDirection dir                   -> return (p {_dir = dir} :: Player)
+            PlayerMsgSetPosition pos                    -> return (p {_pos = pos} :: Player)
+            PlayerMsgUpdatePosition update              -> return $ updatePlayerPos update p
+            PlayerMsgPushbackOffset offsetX             -> return $ pushbackPlayerOffset offsetX p
+            PlayerMsgFiredGun                           -> return $ p {_flags = flags {_firedGun = True}}
+            PlayerMsgUpdateWeapon wpnUpdate             -> return $ updatePlayerWeapon wpnUpdate p
+            PlayerMsgUpdateGun update                   -> return $ updatePlayerGun update p
+            PlayerMsgUpdateMovementSkill update         -> return $ updatePlayerMovementSkill update
+            PlayerMsgCancelMovementSkill                -> return $ cancelPlayerMovementSkill p
+            PlayerMsgUpdateSecondarySkill slot update   -> return $ updatePlayerSecondarySkill slot update
+            PlayerMsgSetPhased                          -> return $ p {_flags = flags {_phased = True}}
+            PlayerMsgUpdateGold update                  -> updatePlayerGold update p
+            PlayerMsgClearAttack                        -> return $ p {_attack = Nothing}
+            PlayerMsgSetAttack atk                      -> return $ setPlayerAttack atk p
+            PlayerMsgSetAttackDesc atkDesc              -> setPlayerAttackDesc atkDesc p
+            PlayerMsgSetAttackDescEx pos dir atkDesc    -> setPlayerAttackDescEx pos dir atkDesc p
+            PlayerMsgUpdateAttack update                -> return $ p {_attack = update <$> _attack p}
+            PlayerMsgUpdateAttackM update               -> updatePlayerAttackM update
+            PlayerMsgUsedMovementSkill                  -> return $ p {_flags = flags {_movementSkilled = True}}
+            PlayerMsgBuyWeapon wpn cost                 -> return $ buyPlayerWeapon wpn cost p
+            PlayerMsgBuyGun gun cost                    -> return $ buyPlayerGun gun cost p
+            PlayerMsgBuyMovementSkill moveSkill cost    -> return $ buyPlayerMovementSkill moveSkill cost p
+            PlayerMsgBuySecondarySkill secSkill cost    -> return $ buyPlayerSecondarySkill secSkill cost p
+            PlayerMsgBuyUpgrade upgrade cost            -> return $ buyPlayerUpgrade upgrade cost p
+            PlayerMsgBuyHealth cost                     -> return $ buyPlayerHealth cost p
+            PlayerMsgInteract _                         -> return p
+            PlayerMsgClearWeapon wpnType                -> return $ clearPlayerWeapon wpnType p
+            PlayerMsgClearGun gunType                   -> return $ clearPlayerGun gunType p
+            PlayerMsgClearSecondarySkill ssType         -> return $ clearPlayerSecondarySkillSlot ssType p
+            PlayerMsgSetSecondarySkillSlots ntT upT dnT -> return $ setPlayerSecondarySkillManagerOrder ntT upT dnT p
+            PlayerMsgClearInputBuffer _                 -> return p
+            PlayerMsgGainMeter meter                    -> return $ p {_meter = gainPlayerMeter meter (_meter p)}
+            PlayerMsgFillMeterFull                      -> return $ p {_meter = fillPlayerMeterFull (_meter p)}
+            PlayerMsgSpendMeter meter                   -> return $ p {_meter = spendPlayerMeter meter (_meter p)}
+            PlayerMsgResetDoubleJump                    -> return $ resetPlayerAirStallDoubleJump p
+            PlayerMsgResetAirStallAttacksCounter        -> return resetPlayerAirStall
+            PlayerMsgForceInAir                         -> return forcePlayerInAir
+            PlayerMsgWarpOut                            -> return $ p {_flags = flags {_warpingOut = True}}
+            PlayerMsgTouchingInfoSign                   -> return $ p {_flags = flags {_touchingInfoSign = True}}
             where
                 updatePlayerMovementSkill :: Typeable d => (MovementSkill d -> MovementSkill d) -> Player
                 updatePlayerMovementSkill update = p {_movementSkill = update' <$> _movementSkill p}

@@ -2,6 +2,7 @@ module Enemy.Flags
     ( EnemyFlags(..)
     , mkEnemyFlags
     , clearEnemyFlags
+    , clearEnemyFlagsInStasis
     ) where
 
 import Util
@@ -33,4 +34,9 @@ clearEnemyFlags flags = flags
     , _touchingRightWall = False
     , _willFallOffGround = False
     , _justGotHit        = Nothing
+    }
+
+clearEnemyFlagsInStasis :: EnemyFlags -> EnemyFlags
+clearEnemyFlagsInStasis flags = flags
+    { _justGotHit = Nothing
     }

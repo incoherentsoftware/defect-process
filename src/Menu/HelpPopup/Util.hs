@@ -28,10 +28,14 @@ import Util
 import Window.Graphics
 import Window.InputState
 
-symbolInputAliasTextPos   = Pos2 1488.0 914.0 :: Pos2
-stoneFormSkillSlotTextPos = Pos2 960.0 617.0  :: Pos2
-flightSkillSlotTextPos    = Pos2 959.0 550.0  :: Pos2
-fastFallSkillSlotTextPos  = Pos2 959.0 550.0  :: Pos2
+symbolInputAliasTextPos        = Pos2 1488.0 914.0 :: Pos2
+stoneFormSkillSlotTextPos      = Pos2 960.0 587.0  :: Pos2
+flightSkillSlotTextPos         = Pos2 959.0 541.0  :: Pos2
+fastFallSkillSlotTextPos       = Pos2 959.0 541.0  :: Pos2
+stasisBlastSkillSlotTextPos    = Pos2 959.0 570.0  :: Pos2
+markRecallSkillSlotText0Pos    = Pos2 691.0 584.0  :: Pos2
+markRecallSkillSlotText1Pos    = Pos2 1229.0 584.0 :: Pos2
+summonPlatformSkillSlotTextPos = Pos2 959.0 513.0  :: Pos2
 
 variousHelpPackPath = \f -> PackResourceFilePath "data/menu/help/various-help.pack" f
 buttonImagePath     = \f -> PackResourceFilePath "data/menu/pause-menu.pack" f
@@ -368,7 +372,7 @@ secondarySkillTypeToHelpPopupDescription secondarySkillType slot = case secondar
             { _imagePath               = variousHelpPackPath "stasis-blast-help.image"
             , _textOverlayDescriptions =
                 [ mkSymbolInputAliasPosTextDesc SecondarySkillAlias
-                , mkSecondarySkillSlotInputTextDesc fastFallSkillSlotTextPos slot
+                , mkSecondarySkillSlotInputTextDesc stasisBlastSkillSlotTextPos slot
                 ]
             }
         }
@@ -379,7 +383,8 @@ secondarySkillTypeToHelpPopupDescription secondarySkillType slot = case secondar
             { _imagePath               = variousHelpPackPath "mark-recall-help.image"
             , _textOverlayDescriptions =
                 [ mkSymbolInputAliasPosTextDesc SecondarySkillAlias
-                , mkSecondarySkillSlotInputTextDesc fastFallSkillSlotTextPos slot
+                , mkSecondarySkillSlotInputTextDesc markRecallSkillSlotText0Pos slot
+                , mkSecondarySkillSlotInputTextDesc markRecallSkillSlotText1Pos slot
                 ]
             }
         }
@@ -390,7 +395,7 @@ secondarySkillTypeToHelpPopupDescription secondarySkillType slot = case secondar
             { _imagePath               = variousHelpPackPath "summon-platform-help.image"
             , _textOverlayDescriptions =
                 [ mkSymbolInputAliasPosTextDesc SecondarySkillAlias
-                , mkSecondarySkillSlotInputTextDesc fastFallSkillSlotTextPos slot
+                , mkSecondarySkillSlotInputTextDesc summonPlatformSkillSlotTextPos slot
                 ]
             }
         }

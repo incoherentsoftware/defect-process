@@ -38,7 +38,7 @@ commonBackgroundImgPath = settingsMenuPack "common-background.image" :: PackReso
 mkSettingsMenuData :: (ConfigsRead m, FileCache m, GraphicsRead m, InputRead m, MonadIO m) => m SettingsMenuData
 mkSettingsMenuData = do
     cfg         <- readConfig _settings (_menu :: SettingsConfig -> MenuConfig)
-    closeButton <- mkImageButton (_settingsCloseButtonPos cfg) closeButtonImgPath
+    closeButton <- mkImageButtonCentered (_settingsCloseButtonPos cfg) closeButtonImgPath
 
     controlsTab  <- mkSettingsControlsTab
     graphicsTab  <- mkSettingsGraphicsTab

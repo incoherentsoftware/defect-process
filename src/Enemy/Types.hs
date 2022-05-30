@@ -29,7 +29,7 @@ import Collision
 import Configs.All.Settings.Debug
 import Enemy.DebugText
 import Enemy.Flags
-import Enemy.Timers
+import Enemy.StasisData.Types
 import Id
 import InfoMsg.Util
 import Msg.Types
@@ -121,9 +121,9 @@ data Enemy d = Enemy
     , _lockOnReticleData      :: EnemyLockOnReticleData
     , _deathEffectData        :: EnemyDeathEffectData
     , _spawnEffectData        :: EnemySpawnEffectData
+    , _stasisData             :: EnemyStasisData
     , _knownPlayerInfo        :: Maybe PlayerInfo
     , _flags                  :: EnemyFlags
-    , _timers                 :: EnemyTimers
     , _thinkAI                :: EnemyUpdateAI d (AppEnv ThinkEnemyMsgsPhase)
     , _updateHurtResponse     :: EnemyUpdateHurtResponse d (AppEnv UpdateEnemyMsgsPhase)
     , _updateGroundResponse   :: EnemyUpdateGroundResponse d (AppEnv UpdateEnemyMsgsPhase)

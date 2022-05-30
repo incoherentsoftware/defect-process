@@ -8,22 +8,19 @@ import Control.Monad.IO.Class (MonadIO)
 import Control.Monad.State    (execStateT, get, lift, modify, put)
 import Data.Maybe             (fromMaybe)
 import qualified Data.List as L
-import qualified Data.Map as M
 import qualified Data.Text as T
 
+import AppEnv
 import Collision.Hitbox
 import Constants
 import FileCache
 import Id
-import InfoMsg.Util
 import Level.Room.Item as RI
 import Level.Room.Item.Pickup.Types
+import Level.Room.Item.Pickup.Util
 import Level.Room.Types
 import Level.Room.Util
 import Msg
-import Player.EquipmentInfo
-import Player.Upgrade
-import Player.Upgrade.Manager
 import Util
 import Window.Graphics
 import Window.InputState
@@ -31,7 +28,6 @@ import World.Util
 import World.ZIndex
 
 itemPickupGravity             = 2460.0 :: Float
-emptyReplaceText              = " "    :: T.Text
 startingShopAdditionalOffsetY = 40.0   :: OffsetY
 indicatorSpriteOffsetX        = 80.0   :: OffsetX
 
@@ -42,41 +38,91 @@ buyPromptOverlayBackdropHeight     = 100.0                                  :: F
 buyPromptOverlayText0OffsetY       = buyPromptOverlayBackdropOffsetY + 28.0 :: OffsetY
 buyPromptOverlayText1OffsetY       = buyPromptOverlayText0OffsetY + 44.0    :: OffsetY
 
-buyPromptReplaceOverlayBackdropHeight = 124.0                                      :: Float
-buyPromptReplaceOverlayText0OffsetY   = buyPromptOverlayBackdropOffsetY + 18.0     :: OffsetY
-buyPromptReplaceOverlayText1OffsetY   = buyPromptReplaceOverlayText0OffsetY + 34.0 :: OffsetY
-buyPromptReplaceOverlayText2OffsetY   = buyPromptReplaceOverlayText1OffsetY + 44.0 :: OffsetY
-buyPromptReplaceEquipmentTextColor    = Color 192 192 192 255                      :: Color
-
 costOverlayBackdropOffsetY = -127.0                            :: OffsetY
 costOverlayBackdropHeight  = 58.0                              :: Float
 costOverlayTextOffsetY     = costOverlayBackdropOffsetY + 29.0 :: OffsetY
 
-buySoundPath     = "event:/SFX Events/Level/pickup-item-buy"      :: FilePath
-cantBuySoundPath = "event:/SFX Events/Level/pickup-item-cant-buy" :: FilePath
+literalEmptyText      = "empty"               :: T.Text
+selectText            = "Select:"             :: T.Text
+confirmText           = "Confirm:"            :: T.Text
+literalEmptyTextColor = Color 100 100 100 255 :: Color
+textSelectedColor     = Color 255 235 79 255  :: Color
+replaceTextColor      = Color 192 192 192 255 :: Color
 
-packPath            = \f -> PackResourceFilePath "data/levels/level-items.pack" f
-indicatorSpritePath = packPath "item-pickup-indicator.spr" :: PackResourceFilePath
-reappearSpritePath  = packPath "item-pickup-appear.spr"    :: PackResourceFilePath
+uiPackPath                           = \f -> PackResourceFilePath "data/ui/ui.pack" f
+slotsOverlayNeutralSelectedImagePath =
+    uiPackPath "secondary-skill-view-info-overlay-neutral-selected.image" :: PackResourceFilePath
+slotsOverlayUpSelectedImagePath      =
+    uiPackPath "secondary-skill-view-info-overlay-up-selected.image"      :: PackResourceFilePath
+slotsOverlayDownSelectedImagePath    =
+    uiPackPath "secondary-skill-view-info-overlay-down-selected.image"    :: PackResourceFilePath
+
+lvlPackPath         = \f -> PackResourceFilePath "data/levels/level-items.pack" f
+indicatorSpritePath = lvlPackPath "item-pickup-indicator.spr" :: PackResourceFilePath
+reappearSpritePath  = lvlPackPath "item-pickup-appear.spr"    :: PackResourceFilePath
 
 mkBuyPromptItemNameInputDisplayText
     :: (FileCache m, GraphicsRead m, InputRead m, MonadIO m)
     => T.Text
     -> m InputDisplayText
-mkBuyPromptItemNameInputDisplayText name =
-    let txt = "Buy " <> name <> ": {InteractAlias}"
-    in mkInputDisplayText txt Font32 whiteColor
+mkBuyPromptItemNameInputDisplayText name = mkInputDisplayText txt Font32 whiteColor
+    where txt = "Buy " <> name <> ": {InteractAlias}"
 
 mkBuyPromptItemCostInputDisplayText
     :: (FileCache m, GraphicsRead m, InputRead m, MonadIO m)
     => GoldValue
     -> m InputDisplayText
-mkBuyPromptItemCostInputDisplayText goldValue =
-    let txt = "{GoldSymbol} " <> prettyShow goldValue
-    in mkInputDisplayText txt Font32 goldTextColor
+mkBuyPromptItemCostInputDisplayText goldValue = mkInputDisplayText txt Font32 goldTextColor
+    where txt = "{GoldSymbol} " <> prettyShow goldValue
 
-mkReplaceDisplayText :: (GraphicsRead m, MonadIO m) => T.Text -> m DisplayText
-mkReplaceDisplayText txt = mkDisplayText txt Font22 buyPromptReplaceEquipmentTextColor
+mkItemPickupBuyConfirmData :: (FileCache m, GraphicsRead m, InputRead m, MonadIO m) => m ItemPickupBuyConfirmData
+mkItemPickupBuyConfirmData = do
+    selectDisplayTxt             <- mkDisplayText selectText Font22 whiteColor
+    upAliasInputDisplayTxt       <- mkInputDisplayText " {UpAlias}" Font32 whiteColor
+    downAliasInputDisplayTxt     <- mkInputDisplayText " {DownAlias}" Font32 whiteColor
+    confirmDisplayTxt            <- mkDisplayText confirmText Font22 whiteColor
+    interactAliasInputDisplayTxt <- mkInputDisplayText " {InteractAlias}" Font32 whiteColor
+
+    replace0DisplayTxt      <- mkDisplayText "" Font22 replaceTextColor
+    replace1DisplayTxt      <- mkDisplayText "" Font22 replaceTextColor
+    replace2DisplayTxt      <- mkDisplayText "" Font22 replaceTextColor
+    line0DisplayTxt         <- mkDisplayText "" Font26 whiteColor
+    line1DisplayTxt         <- mkDisplayText "" Font26 whiteColor
+    line1SelectedDisplayTxt <- mkDisplayText "" Font26 textSelectedColor
+    line2DisplayTxt         <- mkDisplayText "" Font26 whiteColor
+    line2SelectedDisplayTxt <- mkDisplayText "" Font26 textSelectedColor
+    line3DisplayTxt         <- mkDisplayText "" Font26 whiteColor
+    line3SelectedDisplayTxt <- mkDisplayText "" Font26 textSelectedColor
+    line4DisplayTxt         <- mkDisplayText "" Font26 whiteColor
+
+    slotsOverlayNeutralSelectedImg <- loadPackImage slotsOverlayNeutralSelectedImagePath
+    slotsOverlayUpSelectedImg      <- loadPackImage slotsOverlayUpSelectedImagePath
+    slotsOverlayDownSelectedImg    <- loadPackImage slotsOverlayDownSelectedImagePath
+    literalEmptyDisplayTxt         <- mkDisplayText literalEmptyText Font26 literalEmptyTextColor
+
+    return $ ItemPickupBuyConfirmData
+        { _literalEmptyText                 = literalEmptyDisplayTxt
+        , _selectDisplayText                = selectDisplayTxt
+        , _upAliasInputDisplayText          = upAliasInputDisplayTxt
+        , _downAliasInputDisplayText        = downAliasInputDisplayTxt
+        , _confirmDisplayText               = confirmDisplayTxt
+        , _interactAliasInputDisplayText    = interactAliasInputDisplayTxt
+        , _selectedLineIndex                = 0
+        , _replace0DisplayText              = replace0DisplayTxt
+        , _replace1DisplayText              = replace1DisplayTxt
+        , _replace2DisplayText              = replace2DisplayTxt
+        , _line0DisplayText                 = line0DisplayTxt
+        , _line1DisplayText                 = line1DisplayTxt
+        , _line1SelectedDisplayText         = line1SelectedDisplayTxt
+        , _line2DisplayText                 = line2DisplayTxt
+        , _line2SelectedDisplayText         = line2SelectedDisplayTxt
+        , _line3DisplayText                 = line3DisplayTxt
+        , _line3SelectedDisplayText         = line3SelectedDisplayTxt
+        , _line4DisplayText                 = line4DisplayTxt
+        , _slotsOverlayNeutralSelectedImage = slotsOverlayNeutralSelectedImg
+        , _slotsOverlayUpSelectedImage      = slotsOverlayUpSelectedImg
+        , _slotsOverlayDownSelectedImage    = slotsOverlayDownSelectedImg
+        }
 
 mkItemPickupData
     :: (FileCache m, GraphicsRead m, InputRead m, MonadIO m, PrettyShow a)
@@ -89,10 +135,10 @@ mkItemPickupData
 mkItemPickupData typ buyMsgPayload cost imgFileName roomType = do
     let name = prettyShow typ
 
-    img                    <- loadPackImage $ packPath imgFileName
+    img                    <- loadPackImage $ lvlPackPath imgFileName
     costInputDisplayTxt    <- mkBuyPromptItemCostInputDisplayText cost
     buyInfoInputDisplayTxt <- mkBuyPromptItemNameInputDisplayText name
-    replaceDisplayTxt      <- mkReplaceDisplayText emptyReplaceText
+    buyConfirmData         <- mkItemPickupBuyConfirmData
 
     return $ ItemPickupData
         { _name                    = name
@@ -103,8 +149,13 @@ mkItemPickupData typ buyMsgPayload cost imgFileName roomType = do
         , _image                   = img
         , _costInputDisplayText    = costInputDisplayTxt
         , _buyInfoInputDisplayText = buyInfoInputDisplayTxt
-        , _replaceDisplayText      = replaceDisplayTxt
         , _status                  = ItemPickupNormalStatus
+        , _buyConfirmData          = buyConfirmData
+        , _isBuyConfirmOnInteract  = return False
+        , _buyConfirmStartMessages = const $ return []
+        , _thinkBuyConfirm         = const $ return []
+        , _updateBuyConfirm        = return . _buyConfirmData
+        , _drawBuyConfirmOverlay   = const $ return ()
         }
 
 mkItemPickup :: MonadIO m => Pos2 -> RoomItemType -> ItemPickupData -> m (Some RoomItem)
@@ -123,99 +174,65 @@ mkItemPickup (Pos2 x y) itemType itemData =
             , _playerCollision = itemPickupPlayerCollision
             }
 
-thinkItemPickup :: MsgsRead ThinkLevelMsgsPhase m => RoomItemThink ItemPickupData m
+itemPickupSetNormalStatusMessage :: RoomItem ItemPickupData -> Msg ThinkLevelMsgsPhase
+itemPickupSetNormalStatusMessage item = mkMsgTo (RoomMsgUpdateItem update) (RI._msgId item)
+    where update = \i -> i {RI._data = (RI._data i) {_status = ItemPickupNormalStatus}}
+
+thinkItemPickup :: RoomItemThink ItemPickupData (AppEnv ThinkLevelMsgsPhase)
 thinkItemPickup item = case _status itemData of
-    ItemPickupReappearStatus _           -> return []
+    ItemPickupReappearStatus _ -> return []
+
+    ItemPickupBuyConfirmStatus
+        | not touchingPlayer -> return [itemPickupSetNormalStatusMessage item]
+        | otherwise          -> (_thinkBuyConfirm itemData) item
+
     _
-        | not (_touchingPlayer itemData) -> return []
-        | otherwise                      ->
-            let
-                interactPressed :: [PlayerMsgPayload] -> Maybe GoldValue
-                interactPressed []     = Nothing
-                interactPressed (d:ds) = case d of
-                    PlayerMsgInteract gold -> Just gold
-                    _                      -> interactPressed ds
+        | not touchingPlayer -> return []
+        | otherwise          -> (interactPressed <$> readMsgs) >>= \case
+            Nothing -> return []
 
-                roomType      = _roomType itemData
-                itemId        = RI._msgId item
-                itemRemoveMsg = mkMsg $ RoomMsgRemoveItem itemId
-                itemBuyMsg    = mkMsg $ _buyMsgPayload itemData
-                itemCost      = _cost itemData
-                itemPos       = hitboxCenter $ RI._hitbox item
-            in interactPressed <$> readMsgs >>= \case
-                Nothing -> return []
+            Just playerGoldValue
+                | playerGoldValue < _cost itemData -> return
+                    [ itemPickupCantBuySoundMessage item
+                    , mkMsg UiMsgInsufficientGold
+                    ]
 
-                Just playerGoldValue
-                    | playerGoldValue >= itemCost -> do
-                        playerEquipment <- readPlayerEquipmentInfo
+                | otherwise -> _isBuyConfirmOnInteract itemData >>= \case
+                    True -> do
+                        buyConfirmStartMsgs <- (_buyConfirmStartMessages itemData) item
+                        return $ buyConfirmStartMsgs ++
+                            [ itemPickupBuyConfirmSoundMessage item
+                            , mkMsg UiMsgHideEquipmentInfo
+                            ]
 
+                    False -> do
+                        itemBuyMsgs <- itemPickupBuyMessages item
                         let
-                            commonMsgs =
-                                [ itemBuyMsg
-                                , mkMsg $ AudioMsgPlaySound buySoundPath itemPos
-                                ]
+                            itemRoomSpecificMsgs
+                                | _roomType itemData == startingShopRoomType = [itemPickupRemoveMessage item]
+                                | otherwise                                  = []
+                        return $ itemBuyMsgs ++ itemRoomSpecificMsgs
+    where
+        interactPressed :: [PlayerMsgPayload] -> Maybe GoldValue
+        interactPressed []     = Nothing
+        interactPressed (d:ds) = case d of
+            PlayerMsgInteract gold -> Just gold
+            _                      -> interactPressed ds
 
-                        return . (commonMsgs ++) $ if
-                                | roomType == startingShopRoomType -> [itemRemoveMsg]
-                                | otherwise                        -> case _buyMsgPayload itemData of
-                                    PlayerMsgBuyWeapon _ _ ->
-                                        let weaponCount = length (_weaponTypes playerEquipment) + 1
-                                        in
-                                            [ mkMsg $ UiMsgShowWeaponEquipmentInfo weaponCount
-                                            , itemRemoveMsg
-                                            ]
+        itemData       = RI._data item
+        touchingPlayer = _touchingPlayer itemData
 
-                                    PlayerMsgBuyGun _ _ ->
-                                        let gunCount = length (_gunTypes playerEquipment) + 1
-                                        in
-                                            [ mkMsg $ UiMsgShowGunEquipmentInfo gunCount
-                                            , itemRemoveMsg
-                                            ]
-
-                                    PlayerMsgBuyMovementSkill _ _ ->
-                                        [ mkMsg UiMsgShowGeneralEquipmentInfo
-                                        , itemRemoveMsg
-                                        ]
-
-                                    PlayerMsgBuySecondarySkill _ _ ->
-                                        [ mkMsg $ UiMsgShowSecondarySkillEquipmentInfo playerEquipment
-                                        , itemRemoveMsg
-                                        ]
-
-                                    PlayerMsgBuyUpgrade upgradeType _ ->
-                                        let
-                                            isMeterUpgrade    = upgradeType == MeterUpgradeType
-                                            upgradeCounts     = _upgradeCounts playerEquipment
-                                            meterUpgradeCount = M.findWithDefault 0 MeterUpgradeType upgradeCounts
-                                        in if
-                                            | isMeterUpgrade && meterUpgradeCount + 1 >= maxMeterUpgradeCount ->
-                                                [ mkMsg UiMsgShowGeneralEquipmentInfo
-                                                , itemRemoveMsg
-                                                ]
-                                            | otherwise                                                       ->
-                                                [ mkMsg UiMsgShowGeneralEquipmentInfo
-                                                , mkMsg $ RoomMsgReappearItem itemId
-                                                ]
-
-                                    PlayerMsgBuyHealth _ -> [itemRemoveMsg]
-
-                                    _ -> []
-
-                    | otherwise -> return
-                        [ mkMsg $ AudioMsgPlaySound cantBuySoundPath itemPos
-                        , mkMsg UiMsgInsufficientGold
-                        ]
-
-    where itemData = _data item
-
-updateItemPickup
-    :: (FileCache m, GraphicsRead m, InputRead m, MonadIO m, MsgsRead UpdateLevelMsgsPhase m)
-    => RoomItemUpdate ItemPickupData m
+updateItemPickup :: RoomItemUpdate ItemPickupData (AppEnv UpdateLevelMsgsPhase)
 updateItemPickup item = flip execStateT item $ do
     modify updateItemPickupGravity
     get >>= lift . updateItemPickupCollision >>= put
     get >>= lift . updateItemPickupDisplayText >>= put
     get >>= lift . updateItemPickupStatus >>= put
+
+    get >>= \i -> do
+        let iData       = RI._data i
+        buyConfirmData <- lift $ (_updateBuyConfirm iData) iData
+        put $ i {RI._data = (RI._data i) {_buyConfirmData = buyConfirmData}}
 
 updateItemPickupStatus
     :: forall m. (FileCache m, GraphicsRead m, MonadIO m, MsgsRead UpdateLevelMsgsPhase m)
@@ -229,19 +246,19 @@ updateItemPickupStatus item = case _status itemData of
             processMsgs (d:ds) = case d of
                 RoomMsgShowPickupItemIndicator -> do
                     indicatorSpr <- loadPackSprite indicatorSpritePath
-                    return $ item {_data = itemData {_status = ItemPickupIndicatorStatus indicatorSpr}}
+                    return $ item {RI._data = itemData {_status = ItemPickupIndicatorStatus indicatorSpr}}
 
                 RoomMsgReappearItem msgId
                     | RI._msgId item == msgId -> do
                         reappearSpr <- loadPackSprite reappearSpritePath
-                        return $ item {_data = itemData {_status = ItemPickupReappearStatus reappearSpr}}
+                        return $ item {RI._data = itemData {_status = ItemPickupReappearStatus reappearSpr}}
 
                 _ -> processMsgs ds
 
         in processMsgs =<< readMsgs
 
     ItemPickupIndicatorStatus indicatorSpr -> return $ item
-        { _data = itemData {_status = ItemPickupIndicatorStatus $ updateSprite indicatorSpr}
+        { RI._data = itemData {_status = ItemPickupIndicatorStatus $ updateSprite indicatorSpr}
         }
 
     ItemPickupReappearStatus reappearSpr ->
@@ -249,57 +266,20 @@ updateItemPickupStatus item = case _status itemData of
             status
                 | spriteFinished reappearSpr = ItemPickupNormalStatus
                 | otherwise                  = ItemPickupReappearStatus $ updateSprite reappearSpr
-        in return $ item {_data = itemData {_status = status}}
+        in return $ item {RI._data = itemData {_status = status}}
 
-    where itemData = _data item
+    ItemPickupBuyConfirmStatus -> return item
 
-readPlayerEquipmentInfo :: (AllowMsgRead p InfoMsgPayload, MsgsRead p m) => m PlayerEquipmentInfo
-readPlayerEquipmentInfo = processMsg <$> readMsgs
-    where
-        processMsg :: [InfoMsgPayload] -> PlayerEquipmentInfo
-        processMsg []     = mkEmptyPlayerEquipmentInfo
-        processMsg (d:ds) = case d of
-            InfoMsgPlayer playerInfo -> _equipment playerInfo
-            _                        -> processMsg ds
-
-readReplaceText :: MsgsRead UpdateLevelMsgsPhase m => ItemPickupData -> m (Maybe T.Text)
-readReplaceText itemData = do
-    playerEquipment <- readPlayerEquipmentInfo
-    let
-        weaponTypes        = _weaponTypes playerEquipment
-        gunTypes           = _gunTypes playerEquipment
-        movementSkillTypes = _movementSkillTypes playerEquipment
-
-        formatText :: T.Text -> T.Text
-        formatText name = "(Replace " <> name <> ")"
-
-    return $ case _buyMsgPayload itemData of
-        PlayerMsgBuyWeapon _ _
-            | (wpnType:_) <- weaponTypes, length weaponTypes >= maxEquipWeapons ->
-                Just $ formatText (prettyShow wpnType)
-
-        PlayerMsgBuyGun _ _
-            | (gunType:_) <- gunTypes, length gunTypes >= maxEquipGuns -> Just $ formatText (prettyShow gunType)
-
-        PlayerMsgBuyMovementSkill _ _
-            | (moveSkillType:_) <- movementSkillTypes -> Just $ formatText (prettyShow moveSkillType)
-
-        _ -> Nothing
+    where itemData = RI._data item
 
 updateItemPickupDisplayText
-    :: (FileCache m, GraphicsRead m, InputRead m, MonadIO m, MsgsRead UpdateLevelMsgsPhase m)
+    :: (FileCache m, GraphicsRead m, InputRead m, MonadIO m)
     => RoomItem ItemPickupData
     -> m (RoomItem ItemPickupData)
 updateItemPickupDisplayText item = do
-    let itemData            = _data item
-    buyInfoInputDisplayTxt <- updateInputDisplayText $ _buyInfoInputDisplayText itemData
-    replaceTxt             <- fromMaybe emptyReplaceText <$> readReplaceText itemData
-
+    buyInfoInputDisplayTxt <- updateInputDisplayText $ _buyInfoInputDisplayText (RI._data item)
     return $ item
-        { _data = itemData
-            { _buyInfoInputDisplayText = buyInfoInputDisplayTxt
-            , _replaceDisplayText      = updateDisplayText replaceTxt (_replaceDisplayText itemData)
-            }
+        { RI._data = (RI._data item) {_buyInfoInputDisplayText = buyInfoInputDisplayTxt}
         }
 
 updateItemPickupCollision :: MsgsRead UpdateLevelMsgsPhase m => RoomItem ItemPickupData -> m (RoomItem ItemPickupData)
@@ -322,7 +302,7 @@ updateItemPickupCollision item =
             where (Vel2 velX velY) = _vel i
     in flip execStateT item $ do
         modify $ \i -> i
-            { _data = (_data i) {_touchingPlayer = False}
+            { RI._data = (RI._data i) {_touchingPlayer = False}
             }
         get >>= \i ->
             L.foldl' processCollisionMsg i <$> lift (readMsgsTo $ RI._msgId i) >>=
@@ -344,15 +324,15 @@ itemPickupPlayerCollision :: RoomItemPlayerCollision ItemPickupData
 itemPickupPlayerCollision _ item = [mkMsgTo (RoomMsgUpdateItem updateTouching) (RI._msgId item)]
     where
         updateTouching = \i -> i
-            { _data = (_data i) {_touchingPlayer = True}
+            { RI._data = (RI._data i) {_touchingPlayer = True}
             }
 
-drawItemPickup :: (GraphicsReadWrite m, InputRead m, MonadIO m) => RoomItemDraw ItemPickupData m
+drawItemPickup :: RoomItemDraw ItemPickupData (AppEnv DrawMsgsPhase)
 drawItemPickup item =
     let
         hbx      = RI._hitbox item
         imgPos   = hitboxTopLeft hbx
-        itemData = _data item
+        itemData = RI._data item
         img      = _image itemData
 
         drawNormal = do
@@ -374,18 +354,19 @@ drawItemPickup item =
 
         ItemPickupReappearStatus indicatorSpr -> drawSprite imgPos RightDir levelItemZIndex indicatorSpr
 
+        ItemPickupBuyConfirmStatus -> do
+            drawImage imgPos RightDir levelItemZIndex img
+            (_drawBuyConfirmOverlay itemData) item
+
 drawBuyPromptOverlay :: (GraphicsReadWrite m, InputRead m, MonadIO m) => RoomItem ItemPickupData -> m ()
 drawBuyPromptOverlay item = do
     let
-        itemData               = _data item
+        itemData               = RI._data item
         costInputDisplayTxt    = _costInputDisplayText itemData
         buyInfoInputDisplayTxt = _buyInfoInputDisplayText itemData
-        replaceDisplayTxt      = _replaceDisplayText itemData
-        isReplaceTextEmpty     = _text (replaceDisplayTxt :: DisplayText) == emptyReplaceText
 
     widths <- sequenceA
-        [ displayTextWidth replaceDisplayTxt
-        , inputDisplayTextWidth buyInfoInputDisplayTxt
+        [ inputDisplayTextWidth buyInfoInputDisplayTxt
         , inputDisplayTextWidth costInputDisplayTxt
         ]
 
@@ -394,41 +375,23 @@ drawBuyPromptOverlay item = do
             | _roomType itemData == startingShopRoomType = startingShopAdditionalOffsetY
             | otherwise                                  = 0.0
 
-        Pos2 x y                 = hitboxCenter $ RI._hitbox item
-        (y', rectHeight)
-            | isReplaceTextEmpty = (y + roomTypeOffsetY, buyPromptOverlayBackdropHeight)
-            | otherwise          =
-                ( y - (buyPromptReplaceOverlayBackdropHeight - buyPromptOverlayBackdropHeight) + roomTypeOffsetY
-                , buyPromptReplaceOverlayBackdropHeight
-                )
+        Pos2 x y         = hitboxCenter $ RI._hitbox item
+        (y', rectHeight) = (y + roomTypeOffsetY, buyPromptOverlayBackdropHeight)
 
         rectWidth = fromMaybe 0.0 (maybeMaximum widths) + buyPromptOverlayBackdropBorderSize * 2.0
         rectX     = x - rectWidth / 2.0
         rectPos   = Pos2 rectX (y' + buyPromptOverlayBackdropOffsetY)
     drawRect rectPos rectWidth rectHeight buyPromptOverlayBackdropColor uiInfoTextZIndex
 
-    if
-        | isReplaceTextEmpty ->
-            let
-                textPos0 = Pos2 x (y' + buyPromptOverlayText0OffsetY)
-                textPos1 = Pos2 x (y' + buyPromptOverlayText1OffsetY)
-            in do
-                drawInputDisplayTextCentered textPos0 uiInfoTextZIndex buyInfoInputDisplayTxt
-                drawInputDisplayTextCentered textPos1 uiInfoTextZIndex costInputDisplayTxt
-
-        | otherwise ->
-            let
-                textPos0 = Pos2 x (y' + buyPromptReplaceOverlayText0OffsetY)
-                textPos1 = Pos2 x (y' + buyPromptReplaceOverlayText1OffsetY)
-                textPos2 = Pos2 x (y' + buyPromptReplaceOverlayText2OffsetY)
-            in do
-                drawDisplayTextCentered textPos0 uiInfoTextZIndex replaceDisplayTxt
-                drawInputDisplayTextCentered textPos1 uiInfoTextZIndex buyInfoInputDisplayTxt
-                drawInputDisplayTextCentered textPos2 uiInfoTextZIndex costInputDisplayTxt
+    let
+        textPos0 = Pos2 x (y' + buyPromptOverlayText0OffsetY)
+        textPos1 = Pos2 x (y' + buyPromptOverlayText1OffsetY)
+    drawInputDisplayTextCentered textPos0 uiInfoTextZIndex buyInfoInputDisplayTxt
+    drawInputDisplayTextCentered textPos1 uiInfoTextZIndex costInputDisplayTxt
 
 drawCostOverlay :: (GraphicsReadWrite m, InputRead m, MonadIO m) => RoomItem ItemPickupData -> m ()
 drawCostOverlay item = do
-    let costInputDisplayTxt   = _costInputDisplayText $ _data item
+    let costInputDisplayTxt   = _costInputDisplayText $ RI._data item
     costInputDisplayTxtWidth <- inputDisplayTextWidth costInputDisplayTxt
 
     let

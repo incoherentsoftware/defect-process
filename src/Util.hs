@@ -38,7 +38,7 @@ module Util
     , vecDist
     , vecFlip
     , vecRotate
-    , vecFloorXY
+    , vecRoundXY
     , vecFlipRotate
     , Vec2(..)
     , toVec2
@@ -220,12 +220,12 @@ vecRotate v angle = mkVec (x', y')
 vecFlipRotate :: Vec v => v -> Direction -> Radians -> v
 vecFlipRotate v dir angle = vecRotate (vecFlip v dir) angle
 
-vecFloorXY :: Vec v => v -> v
-vecFloorXY v = mkVec (x', y')
+vecRoundXY :: Vec v => v -> v
+vecRoundXY v = mkVec (x', y')
     where
         (x, y) = vecToTuple v
-        x'     = fromIntegral $ floor x
-        y'     = fromIntegral $ floor y
+        x'     = fromIntegral $ round x
+        y'     = fromIntegral $ round y
 
 data Vec2 = Vec2 VecX VecY
 

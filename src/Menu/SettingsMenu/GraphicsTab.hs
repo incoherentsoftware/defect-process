@@ -106,7 +106,7 @@ mkSettingsGraphicsTab = do
     displayModeComboBox        <- mkDisplayModeComboBox
     windowDisplayIndex         <- readSettingsConfig _render _winDisplayIndex
     restoreDefaultsBtnPos      <- readSettingsConfig _menu _settingsGraphicsTabRestoreDefaultsButtonPos
-    restoreDefaultsBtn         <- mkImageButton restoreDefaultsBtnPos restoreDefaultsButtonImgPath
+    restoreDefaultsBtn         <- mkImageButtonCentered restoreDefaultsBtnPos restoreDefaultsButtonImgPath
     disabledComboBoxOverlayImg <- loadPackImage disabledComboBoxOverlayImgPath
 
     return $ SettingsGraphicsTab

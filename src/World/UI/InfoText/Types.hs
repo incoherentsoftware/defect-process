@@ -20,14 +20,15 @@ data InfoTextType
     | SecondarySkillInfoTextType Secs InputDisplayText SecondarySkillInfoTexts
 
 data InfoTextUI = InfoTextUI
-    { _infoTextType                      :: InfoTextType
-    , _moveControlsLeftInputDisplayText  :: InputDisplayText
-    , _moveControlsRightInputDisplayText :: InputDisplayText
-    , _equipmentInfoInputDisplayText     :: InputDisplayText
-    , _switchWeaponInputDisplayText      :: InputDisplayText
-    , _switchGunInputDisplayText         :: InputDisplayText
-    , _secondarySkillLiteralEmptyText    :: DisplayText
-    , _secondarySkillSymbolDisplayText   :: SymbolDisplayText
-    , _secondarySkillInputDisplayText    :: InputDisplayText
-    , _secondarySkillOverlayImage        :: Image
+    { _infoTextType                                :: InfoTextType
+    , _moveControlsLeftInputDisplayText            :: InputDisplayText
+    , _moveControlsRightInputDisplayText           :: InputDisplayText
+    , _equipmentInfoInputDisplayText               :: InputDisplayText
+    , _equipmentInfoSmallInputDisplayText          :: InputDisplayText
+    , _switchWeaponInputDisplayText                :: InputDisplayText
+    , _switchGunInputDisplayText                   :: InputDisplayText
+    , _secondarySkillInputDisplayText              :: InputDisplayText
+    , _secondarySkillNeutralInputSymbolDisplayText :: SymbolDisplayText
+    , _secondarySkillUpInputSymbolDisplayText      :: SymbolDisplayText
+    , _secondarySkillDownInputSymbolDisplayText    :: SymbolDisplayText
     }

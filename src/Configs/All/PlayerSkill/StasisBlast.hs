@@ -5,11 +5,13 @@ module Configs.All.PlayerSkill.StasisBlast
 import Data.Aeson.Types (FromJSON, genericParseJSON, parseJSON)
 import GHC.Generics     (Generic)
 
+import Player.Meter
 import Util
 
 data StasisBlastConfig = StasisBlastConfig
     { _blastCooldown   :: Secs
     , _blastStasisSecs :: Secs
+    , _blastMeterCost  :: MeterValue
     }
     deriving Generic
 

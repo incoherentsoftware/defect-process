@@ -126,8 +126,11 @@ mkImageButtonInternal pos img selectedImgPath = do
 
 mkImageButtonCentered :: (FileCache m, GraphicsRead m, MonadIO m) => Pos2 -> PackResourceFilePath -> m Button
 mkImageButtonCentered (Pos2 x y) imgPath = do
-    img    <- loadPackImage imgPath
-    let pos = Pos2 (x - imageWidth img / 2.0) (y - imageHeight img / 2.0)
+    img <- loadPackImage imgPath
+    let
+        x'  = fromIntegral $ round (x - imageWidth img / 2.0)
+        y'  = fromIntegral $ round (y - imageHeight img / 2.0)
+        pos = Pos2 x' y'
     mkImageButtonInternal pos img (toSelectedImagePackPath imgPath)
 
 mkImageButtonTopCentered :: (FileCache m, GraphicsRead m, MonadIO m) => Pos2 -> PackResourceFilePath -> m Button

@@ -72,7 +72,7 @@ mkHelpPopupAltOverlay
 mkHelpPopupAltOverlay imageOverlayPath = do
     popupImg           <- loadPackImage imageOverlayPath
     btnPos             <- readSettingsConfig _menu _helpPopupAltControlsButtonPos
-    showHideOverlayBtn <- mkImageButton btnPos showAlternateInputButtonImgPath
+    showHideOverlayBtn <- mkImageButtonCentered btnPos showAlternateInputButtonImgPath
 
     return $ HelpPopupImageAltOverlay
         { _overlayActive     = False
@@ -133,7 +133,7 @@ mkHelpPopup helpPopupDesc = do
             return $ Right tabs
 
     menuCfg      <- readConfig _settings (_menu :: SettingsConfig -> MenuConfig)
-    closeBtn     <- mkImageButton (_helpPopupCloseButtonPos menuCfg) closeButtonImgPath
+    closeBtn     <- mkImageButtonCentered (_helpPopupCloseButtonPos menuCfg) closeButtonImgPath
     soundIndices <- mkMenuSoundIndices
 
     return $ HelpPopup

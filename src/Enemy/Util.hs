@@ -47,7 +47,7 @@ import Configs.All.Enemy
 import Configs.All.Settings.Debug
 import Constants
 import Enemy.Flags
-import Enemy.Timers
+import Enemy.StasisData
 import Enemy.Types as E
 import FileCache
 import InfoMsg.Util
@@ -270,4 +270,4 @@ isEnemyFacingPlayer enemy = case vecX . playerInfoPos <$> _knownPlayerInfo enemy
         in (dir == LeftDir && playerX <= x) || (dir == RightDir && playerX >= x)
 
 isEnemyInStasis :: Enemy d -> Bool
-isEnemyInStasis enemy = _stasisTtl (_timers enemy) > 0.0
+isEnemyInStasis = isEnemyStasisDataInStasis . _stasisData

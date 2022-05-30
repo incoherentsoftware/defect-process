@@ -21,6 +21,7 @@ module Attack
     , attackStagger
     , attackScreenshakeType
     , attackHitbox
+    , attackHitlagMessages
     , attackHitSoundFilePath
     , attackSoundMessages
     , attackCollisionEntityHitMessages
@@ -173,14 +174,14 @@ attackHitEffectMessages collisionEntityHbx attack = case _hitEffectPath (_descri
             dir             = _dir (attack :: Attack)
             mkEffect        = loadSimpleParticle atkIntersectPos dir playerAttackEffectZIndex hitEffectPath
 
-attackHitlagMsgs :: Attack -> [Msg ThinkCollisionMsgsPhase]
-attackHitlagMsgs attack
+attackHitlagMessages :: AllowMsgWrite p WorldMsgPayload => Attack -> [Msg p]
+attackHitlagMessages attack
     | hitlagSecs > 0.0 = [mkMsg $ WorldMsgHitlag hitlagSecs]
     | otherwise        = []
     where hitlagSecs = attackHitlag attack
 
-attackScreenshakeMsgs :: Attack -> [Msg ThinkCollisionMsgsPhase]
-attackScreenshakeMsgs attack = case attackScreenshakeType attack of
+attackScreenshakeMessages :: Attack -> [Msg ThinkCollisionMsgsPhase]
+attackScreenshakeMessages attack = case attackScreenshakeType attack of
     ScreenshakeOnHit magnitude -> [mkMsg $ WorldMsgScreenshake magnitude]
     _                          -> []
 
@@ -237,7 +238,7 @@ attackCollisionEntityHitMessages collisionEntity attack = case attackOnHitType a
         hurtMsg         = mkMsgTo (HurtMsgAttackHit atkHit) entityId
 
         worldMsgs
-            | isNewAtk  = attackHitlagMsgs attack ++ attackScreenshakeMsgs attack
+            | isNewAtk  = attackHitlagMessages attack ++ attackScreenshakeMessages attack
             | otherwise = []
 
         audioMsgs

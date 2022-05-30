@@ -2,6 +2,7 @@ module Player.Weapon.Manager
     ( module Player.Weapon.Manager.Types
     , mkWeaponManager
     , giveWeaponManagerWeapon
+    , clearWeaponManagerWeapon
     , drawWeaponManager
     , thinkWeaponManager
     , updateWeaponManager
@@ -49,6 +50,11 @@ giveWeaponManagerWeapon wpn@(Some w) weaponManager = case _weapons weaponManager
     [_, wpn2]                 -> weaponManager {_weapons = [wpn, wpn2]}
     _                         -> weaponManager
     where wpnType = _type w
+
+clearWeaponManagerWeapon :: WeaponType -> WeaponManager -> WeaponManager
+clearWeaponManagerWeapon wpnType weaponManager = weaponManager
+    { _weapons = filter (\(Some wpn) -> _type wpn /= wpnType) (_weapons weaponManager)
+    }
 
 drawWeaponManager :: Player -> WeaponManager -> AppEnv DrawMsgsPhase ()
 drawWeaponManager player weaponManager = do

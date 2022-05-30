@@ -4,8 +4,8 @@ module Player.SecondarySkill.Manager.Util
 
 import Control.Monad.State (execState, modify)
 
-import Player.SecondarySkill.Types
 import Player.SecondarySkill.Manager.Types
+import Player.SecondarySkill.Types
 import Util
 
 setSecondarySkillManagerOrder

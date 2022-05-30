@@ -82,6 +82,7 @@ allInitSecondarySkillRoomItems =
     [ (StoneFormSkill, mkStoneFormItemPickup)
     , (FlightSkill, mkStoneFormItemPickup)
     , (FastFallSkill, mkStoneFormItemPickup)
+    , (StasisBlastSkill, mkStoneFormItemPickup)
     ] :: [(SecondarySkillType, RoomType -> RoomItemInit p)]
 
 allInitUpgradeRoomItems =
@@ -116,9 +117,9 @@ takeAnyRoomItemChoices
     -> m (Maybe (RoomType -> RoomItemInit p), RoomItemChoices p)
 takeAnyRoomItemChoices equipmentInfo chosenItems roomItemChoices =
     let
-        isMaxEquipWeapons       = length (_weaponTypes equipmentInfo) >= maxEquipWeapons
-        isMaxEquipGuns          = length (_gunTypes equipmentInfo) >= maxEquipGuns
-        isMaxEquipMovementSkill = length (_movementSkillTypes equipmentInfo) >= maxEquipMovementSkills
+        isMaxEquipWeapons       = isPlayerEquipmentInfoWeaponsFull equipmentInfo
+        isMaxEquipGuns          = isPlayerEquipmentInfoGunsFull equipmentInfo
+        isMaxEquipMovementSkill = isPlayerEquipmentInfoMovementSkillFull equipmentInfo
 
         weaponChoices         = _weapons roomItemChoices
         gunChoices            = _guns roomItemChoices

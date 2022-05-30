@@ -6,17 +6,16 @@ module World.UI.InfoText
     , resetInfoTextUIOnChangeWorldRoom
     ) where
 
-import Control.Monad          (when)
 import Control.Monad.IO.Class (MonadIO)
 import Data.Maybe             (fromMaybe)
+import Data.Foldable          (for_)
 import Data.Functor           ((<&>))
 import qualified Data.Text as T
 
 import Constants
 import FileCache
-import InfoMsg.Util
 import Msg
-import Player.EquipmentInfo.Types
+import Player.EquipmentInfo
 import Player.SecondarySkill
 import Util
 import Window.Graphics
@@ -29,11 +28,7 @@ moveControlsRightText           = "Move right: {RightAlias}"                 :: 
 equipmentInfoText               = "View equipment: {MenuAlias}"              :: T.Text
 switchWeaponText                = "Switch melee weapon: {SwitchWeaponAlias}" :: T.Text
 switchGunText                   = "Switch ranged weapon: {SwitchGunAlias}"   :: T.Text
-secondarySkillSymbolText        = "{SecondarySkillSymbol}"                   :: T.Text
 secondarySkillInputText         = " : {SecondarySkillAlias}"                 :: T.Text
-secondarySkillColonText         = " :"                                       :: T.Text
-secondarySkillLiteralEmptyText  = "empty"                                    :: T.Text
-textLiteralEmptyColor           = Color 100 100 100 255                      :: Color
 textBackdropColor               = Color 0 0 0 200                            :: Color
 textBackdropBorderSize          = 20.0                                       :: Float
 equipmentInfoTextAliveSecs      = 10.0                                       :: Secs
@@ -50,60 +45,42 @@ equipmentInfoBackdropHeightDouble = 110.0 :: Float
 equipmentInfoText0PosY            = 280.0 :: PosY
 equipmentInfoText1PosY            = 330.0 :: PosY
 
-secondarySkillInfoBackdropPosY   = 150.0         :: PosY
-secondarySkillInfoImagePosY      = 166.0         :: PosY
-secondarySkillInfoText0PosY      = 173.0         :: PosY
-secondarySkillInfoText1PosY      = 229.0         :: PosY
-secondarySkillInfoText2PosY      = 285.0         :: PosY
-secondarySkillInfoText3PosY      = 363.0         :: PosY
-secondarySkillEmptyTextOffset    = Pos2 20.0 0.0 :: Pos2
-secondarySkillInfoBackdropHeight = 243.0         :: Float
-secondarySkillTextSpacerWidth    = 0.0           :: Float
+secondarySkillInfoBackdropPosY       = 150.0 :: PosY
+secondarySkillInfoText0PosY          = 173.0 :: PosY
+secondarySkillInfoTextOffsetY        = 56.0  :: OffsetY
+secondarySkillInfoText3OffsetY       = 20.0  :: OffsetY
+secondarySkillInfoBackdropBaseHeight = 75.0 :: Float
+secondarySkillTextSpacerWidth        = 0.0   :: Float
 
-secondarySkillSymbolBackdropPosY   = 214.0 :: PosY
-secondarySkillSymbolText0PosY      = 227.0 :: PosY
-secondarySkillSymbolBackdropHeight = 65.0  :: PosY
+secondarySkillSymbolBackdropPosY   = 150.0 :: PosY
+secondarySkillSymbolText0PosY      = 173.0 :: PosY
+secondarySkillSymbolBackdropHeight = 85.0  :: PosY
 secondarySkillSymbolSpacerWidth    = 30.0  :: Float
-
-secondarySkillOverlayImagePath =
-    PackResourceFilePath "data/ui/ui.pack" "secondary-skill-view-info-overlay.image" :: PackResourceFilePath
 
 formatSecondarySkillText :: Maybe SecondarySkillType -> T.Text
 formatSecondarySkillText = \case
     Just t
         | isSecondarySkillTypeInAirOnly t -> " : " <> prettyShow t <> " (in air)"
         | otherwise                       -> " : " <> prettyShow t
-    Nothing                               -> secondarySkillColonText
+    Nothing                               -> ""
 
 updateSecondarySkillInfoTexts
     :: forall m. MsgsRead UpdateWorldUiMsgsPhase m
     => SecondarySkillInfoTexts
     -> m SecondarySkillInfoTexts
-updateSecondarySkillInfoTexts secondarySkillInfoTxts =
+updateSecondarySkillInfoTexts secondarySkillInfoTxts = readPlayerEquipmentInfo <&> \playerEquipment ->
     let
-        readPlayerEquipmentInfo :: m (Maybe PlayerEquipmentInfo)
-        readPlayerEquipmentInfo = processMsgs <$> readMsgs
-            where
-                processMsgs :: [InfoMsgPayload] -> Maybe PlayerEquipmentInfo
-                processMsgs []     = Nothing
-                processMsgs (p:ps) = case p of
-                    InfoMsgPlayer playerInfo -> Just $ _equipment playerInfo
-                    _                        -> processMsgs ps
-    in readPlayerEquipmentInfo <&> \case
-        Nothing              -> secondarySkillInfoTxts
-        Just playerEquipment ->
-            let
-                neutralText             = formatSecondarySkillText $ _secondarySkillNeutralType playerEquipment
-                upText                  = formatSecondarySkillText $ _secondarySkillUpType playerEquipment
-                downText                = formatSecondarySkillText $ _secondarySkillDownType playerEquipment
-                neutralSymbolDisplayTxt = updateDisplayText neutralText (_neutral secondarySkillInfoTxts)
-                upSymbolDisplayTxt      = updateDisplayText upText (_up secondarySkillInfoTxts)
-                downSymbolDisplayTxt    = updateDisplayText downText (_down secondarySkillInfoTxts)
-            in secondarySkillInfoTxts
-                { _neutral = neutralSymbolDisplayTxt
-                , _up      = upSymbolDisplayTxt
-                , _down    = downSymbolDisplayTxt
-                }
+        neutralText             = formatSecondarySkillText $ _secondarySkillNeutralType playerEquipment
+        upText                  = formatSecondarySkillText $ _secondarySkillUpType playerEquipment
+        downText                = formatSecondarySkillText $ _secondarySkillDownType playerEquipment
+        neutralSymbolDisplayTxt = updateDisplayText neutralText (_neutral secondarySkillInfoTxts)
+        upSymbolDisplayTxt      = updateDisplayText upText (_up secondarySkillInfoTxts)
+        downSymbolDisplayTxt    = updateDisplayText downText (_down secondarySkillInfoTxts)
+    in secondarySkillInfoTxts
+        { _neutral = neutralSymbolDisplayTxt
+        , _up      = upSymbolDisplayTxt
+        , _down    = downSymbolDisplayTxt
+        }
 
 updateInfoTextType
     :: (FileCache m, GraphicsRead m, InputRead m, MonadIO m, MsgsRead UpdateWorldUiMsgsPhase m)
@@ -139,31 +116,35 @@ updateInfoTextType = \case
             return $ SecondarySkillInfoTextType ttl' text3InputDisplayTxt' secondarySkillInfoTxts'
 
 mkInfoTextUI :: (FileCache m, GraphicsRead m, InputRead m, MonadIO m) => m InfoTextUI
-mkInfoTextUI = do
-    let mkInputDisplayText' = \txt -> mkInputDisplayText txt Font32 whiteColor
+mkInfoTextUI =
+    let
+        mkInputDisplayText'  = \txt -> mkInputDisplayText txt Font32 whiteColor
+        mkSymbolDisplayText' = \txt -> mkSymbolDisplayText txt Font32 whiteColor
+    in do
+        moveControlsLeftDisplayTxt                 <- mkInputDisplayText' moveControlsLeftText
+        moveControlsRightDisplayTxt                <- mkInputDisplayText' moveControlsRightText
+        equipmentInfoInputDisplayTxt               <- mkInputDisplayText' equipmentInfoText
+        equipmentInfoSmallInputDisplayTxt          <- mkInputDisplayText equipmentInfoText Font22 whiteColor
+        switchWeaponInputDisplayTxt                <- mkInputDisplayText' switchWeaponText
+        switchGunInputDisplayTxt                   <- mkInputDisplayText' switchGunText
+        secondarySkillInputDisplayTxt              <- mkInputDisplayText secondarySkillInputText Font26 whiteColor
+        secondarySkillNeutralInputSymbolDisplayTxt <- mkSymbolDisplayText' "{SecondarySkillNeutralInputSymbol}"
+        secondarySkillUpInputSymbolDisplayTxt      <- mkSymbolDisplayText' "{SecondarySkillUpInputSymbol}"
+        secondarySkillDownInputSymbolDisplayTxt    <- mkSymbolDisplayText' "{SecondarySkillDownInputSymbol}"
 
-    moveControlsLeftDisplayTxt           <- mkInputDisplayText' moveControlsLeftText
-    moveControlsRightDisplayTxt          <- mkInputDisplayText' moveControlsRightText
-    equipmentInfoInputDisplayTxt         <- mkInputDisplayText' equipmentInfoText
-    switchWeaponInputDisplayTxt          <- mkInputDisplayText' switchWeaponText
-    switchGunInputDisplayTxt             <- mkInputDisplayText' switchGunText
-    secondarySkillLiteralEmptyDisplayTxt <- mkDisplayText secondarySkillLiteralEmptyText Font26 textLiteralEmptyColor
-    secondarySkillSymbolDisplayTxt       <- mkSymbolDisplayText secondarySkillSymbolText Font32 whiteColor
-    secondarySkillInputDisplayTxt        <- mkInputDisplayText' secondarySkillInputText
-    secondarySkillOverlayImg             <- loadPackImage secondarySkillOverlayImagePath
-
-    return $ InfoTextUI
-        { _infoTextType                      = NoInfoTextType
-        , _moveControlsLeftInputDisplayText  = moveControlsLeftDisplayTxt
-        , _moveControlsRightInputDisplayText = moveControlsRightDisplayTxt
-        , _equipmentInfoInputDisplayText     = equipmentInfoInputDisplayTxt
-        , _switchWeaponInputDisplayText      = switchWeaponInputDisplayTxt
-        , _switchGunInputDisplayText         = switchGunInputDisplayTxt
-        , _secondarySkillLiteralEmptyText    = secondarySkillLiteralEmptyDisplayTxt
-        , _secondarySkillSymbolDisplayText   = secondarySkillSymbolDisplayTxt
-        , _secondarySkillInputDisplayText    = secondarySkillInputDisplayTxt
-        , _secondarySkillOverlayImage        = secondarySkillOverlayImg
-        }
+        return $ InfoTextUI
+            { _infoTextType                                = NoInfoTextType
+            , _moveControlsLeftInputDisplayText            = moveControlsLeftDisplayTxt
+            , _moveControlsRightInputDisplayText           = moveControlsRightDisplayTxt
+            , _equipmentInfoInputDisplayText               = equipmentInfoInputDisplayTxt
+            , _equipmentInfoSmallInputDisplayText          = equipmentInfoSmallInputDisplayTxt
+            , _switchWeaponInputDisplayText                = switchWeaponInputDisplayTxt
+            , _switchGunInputDisplayText                   = switchGunInputDisplayTxt
+            , _secondarySkillInputDisplayText              = secondarySkillInputDisplayTxt
+            , _secondarySkillNeutralInputSymbolDisplayText = secondarySkillNeutralInputSymbolDisplayTxt
+            , _secondarySkillUpInputSymbolDisplayText      = secondarySkillUpInputSymbolDisplayTxt
+            , _secondarySkillDownInputSymbolDisplayText    = secondarySkillDownInputSymbolDisplayTxt
+            }
 
 processUiMsgs
     :: (FileCache m, GraphicsRead m, InputRead m, MonadIO m, MsgsRead UpdateWorldUiMsgsPhase m)
@@ -204,15 +185,18 @@ processUiMsgs infoTextUI (p:ps) = case p of
         downDisplayTxt    <- mkDisplayText downText Font26 whiteColor
 
         let
-            ssInfoTexts = SecondarySkillInfoTexts
+            equipmentInfoSmlInputDisplayTxt = _equipmentInfoSmallInputDisplayText infoTextUI
+            ssInfoTexts                     = SecondarySkillInfoTexts
                 { _neutral = neutralDisplayTxt
                 , _up      = upDisplayTxt
                 , _down    = downDisplayTxt
                 }
-        return $ SecondarySkillInfoTextType secondarySkillInfoTextAliveSecs equipmentInfoInputDisplayTxt ssInfoTexts
+        return $ SecondarySkillInfoTextType secondarySkillInfoTextAliveSecs equipmentInfoSmlInputDisplayTxt ssInfoTexts
 
     UiMsgShowGeneralEquipmentInfo -> return $
         EquipmentInfoTextType equipmentInfoTextAliveSecs equipmentInfoInputDisplayTxt Nothing
+
+    UiMsgHideEquipmentInfo -> return NoInfoTextType
 
     _ -> processUiMsgs infoTextUI ps
 
@@ -226,21 +210,23 @@ updateInfoTextUI infoTextUI = do
     infoTextType  <- processUiMsgs infoTextUI =<< readMsgs
     infoTextType' <- updateInfoTextType infoTextType
 
-    moveControlsLeftInputDisplayTxt  <- updateInputDisplayText $ _moveControlsLeftInputDisplayText infoTextUI
-    moveControlsRightInputDisplayTxt <- updateInputDisplayText $ _moveControlsRightInputDisplayText infoTextUI
-    equipmentInfoInputDisplayTxt     <- updateInputDisplayText $ _equipmentInfoInputDisplayText infoTextUI
-    switchWeaponInputDisplayTxt      <- updateInputDisplayText $ _switchWeaponInputDisplayText infoTextUI
-    switchGunInputDisplayTxt         <- updateInputDisplayText $ _switchGunInputDisplayText infoTextUI
-    secondarySkillInputDisplayTxt    <- updateInputDisplayText $ _secondarySkillInputDisplayText infoTextUI
+    moveControlsLeftInputDisplayTxt   <- updateInputDisplayText $ _moveControlsLeftInputDisplayText infoTextUI
+    moveControlsRightInputDisplayTxt  <- updateInputDisplayText $ _moveControlsRightInputDisplayText infoTextUI
+    equipmentInfoInputDisplayTxt      <- updateInputDisplayText $ _equipmentInfoInputDisplayText infoTextUI
+    equipmentInfoSmallInputDisplayTxt <- updateInputDisplayText $ _equipmentInfoSmallInputDisplayText infoTextUI
+    switchWeaponInputDisplayTxt       <- updateInputDisplayText $ _switchWeaponInputDisplayText infoTextUI
+    switchGunInputDisplayTxt          <- updateInputDisplayText $ _switchGunInputDisplayText infoTextUI
+    secondarySkillInputDisplayTxt     <- updateInputDisplayText $ _secondarySkillInputDisplayText infoTextUI
 
     return $ infoTextUI
-        { _infoTextType                      = infoTextType'
-        , _moveControlsLeftInputDisplayText  = moveControlsLeftInputDisplayTxt
-        , _moveControlsRightInputDisplayText = moveControlsRightInputDisplayTxt
-        , _equipmentInfoInputDisplayText     = equipmentInfoInputDisplayTxt
-        , _switchWeaponInputDisplayText      = switchWeaponInputDisplayTxt
-        , _switchGunInputDisplayText         = switchGunInputDisplayTxt
-        , _secondarySkillInputDisplayText    = secondarySkillInputDisplayTxt
+        { _infoTextType                       = infoTextType'
+        , _moveControlsLeftInputDisplayText   = moveControlsLeftInputDisplayTxt
+        , _moveControlsRightInputDisplayText  = moveControlsRightInputDisplayTxt
+        , _equipmentInfoInputDisplayText      = equipmentInfoInputDisplayTxt
+        , _equipmentInfoSmallInputDisplayText = equipmentInfoSmallInputDisplayTxt
+        , _switchWeaponInputDisplayText       = switchWeaponInputDisplayTxt
+        , _switchGunInputDisplayText          = switchGunInputDisplayTxt
+        , _secondarySkillInputDisplayText     = secondarySkillInputDisplayTxt
         }
 
 drawMoveControlsInfo :: (GraphicsReadWrite m, InputRead m, MonadIO m) => InputDisplayText -> InputDisplayText -> m ()
@@ -300,6 +286,13 @@ drawEquipmentInfo line0InputDisplayTxt line1InputDisplayTxt = case line1InputDis
         drawInputDisplayTextCentered text0Pos uiInfoTextZIndex line0InputDisplayTxt
         drawInputDisplayTextCentered text1Pos uiInfoTextZIndex line1InputDisplayTxt'
 
+secondarySkillInfoSymbolRectOffset :: [(SymbolDisplayText, DisplayText)] -> OffsetY
+secondarySkillInfoSymbolRectOffset skillInfoLines = case length skillInfoLines of
+    0 -> 0.0
+    1 -> 0.0
+    2 -> secondarySkillInfoTextOffsetY / 2.0
+    _ -> secondarySkillInfoTextOffsetY
+
 drawSecondarySkillInfo
     :: (GraphicsReadWrite m, InputRead m, MonadIO m)
     => InputDisplayText
@@ -308,15 +301,30 @@ drawSecondarySkillInfo
     -> m ()
 drawSecondarySkillInfo text3InputDisplayTxt secondarySkillInfoTxts infoTextUI = do
     let
-        img                = _secondarySkillOverlayImage infoTextUI
-        imgWidth           = imageWidth img
+        inputSymbolDisplayTxts =
+            [ _secondarySkillNeutralInputSymbolDisplayText infoTextUI
+            , _secondarySkillUpInputSymbolDisplayText infoTextUI
+            , _secondarySkillDownInputSymbolDisplayText infoTextUI
+            ]
+        skillDisplayTxts       =
+            [ _neutral secondarySkillInfoTxts
+            , _up secondarySkillInfoTxts
+            , _down secondarySkillInfoTxts
+            ]
+        skillInfoLines         =
+            [ (symbolDisplayTxt, displayTxt)
+            | (symbolDisplayTxt, displayTxt) <- zip inputSymbolDisplayTxts skillDisplayTxts
+            , _text (displayTxt :: DisplayText) /= ""
+            ]
+        skillInfoLinesHeight   = fromIntegral (length skillInfoLines) * secondarySkillInfoTextOffsetY
+        skillInfoLastLinePosY  = secondarySkillInfoText0PosY + skillInfoLinesHeight
+
+    symbolDisplayTxtWidths <- traverse (symbolDisplayTextWidth . fst) skillInfoLines
+    let
+        imgWidth           = fromMaybe 0.0 (maybeMaximum symbolDisplayTxtWidths)
         symbolLeftPadWidth = imgWidth + secondarySkillTextSpacerWidth
 
-    symbolWidths <- map (symbolLeftPadWidth +) <$> sequenceA
-        [ displayTextWidth $ _neutral secondarySkillInfoTxts
-        , displayTextWidth $ _up secondarySkillInfoTxts
-        , displayTextWidth $ _down secondarySkillInfoTxts
-        ]
+    symbolWidths <- map (symbolLeftPadWidth +) <$> traverse displayTextWidth skillDisplayTxts
     widths       <- (:symbolWidths) <$> inputDisplayTextWidth text3InputDisplayTxt
 
     let
@@ -324,54 +332,46 @@ drawSecondarySkillInfo text3InputDisplayTxt secondarySkillInfoTxts infoTextUI = 
         textCenterX = virtualRenderWidth / 2.0
         rectX       = textCenterX - rectWidth / 2.0
         rectPos     = Pos2 rectX secondarySkillInfoBackdropPosY
-    drawRect rectPos rectWidth secondarySkillInfoBackdropHeight textBackdropColor uiInfoTextZIndex
+        rectHeight  = secondarySkillInfoBackdropBaseHeight + skillInfoLinesHeight
+    drawRect rectPos rectWidth rectHeight textBackdropColor uiInfoTextZIndex
 
     let
-        symbolMaxWidth    = fromMaybe 0.0 (maybeMaximum symbolWidths)
-        imgLeft           = rectX + (rectWidth - symbolMaxWidth) / 2.0
-        imgPos            = Pos2 imgLeft secondarySkillInfoImagePosY
-        imgRight          = imgLeft + imgWidth + secondarySkillTextSpacerWidth
-        rectCenterX       = rectX + rectWidth / 2.0
-        text0Pos          = Pos2 imgRight secondarySkillInfoText0PosY
-        text1Pos          = Pos2 imgRight secondarySkillInfoText1PosY
-        text2Pos          = Pos2 imgRight secondarySkillInfoText2PosY
-        text3Pos          = Pos2 rectCenterX secondarySkillInfoText3PosY
-        neutralDisplayTxt = _neutral secondarySkillInfoTxts
-        upDisplayTxt      = _up secondarySkillInfoTxts
-        downDisplayTxt    = _down secondarySkillInfoTxts
-    drawImage imgPos RightDir uiInfoTextZIndex img
-    drawDisplayText text0Pos uiInfoTextZIndex neutralDisplayTxt
-    drawDisplayText text1Pos uiInfoTextZIndex upDisplayTxt
-    drawDisplayText text2Pos uiInfoTextZIndex downDisplayTxt
+        symbolMaxWidth = fromMaybe 0.0 (maybeMaximum symbolWidths)
+        imgLeft        = rectX + (rectWidth - symbolMaxWidth) / 2.0
+        imgRight       = imgLeft + imgWidth + secondarySkillTextSpacerWidth
+        rectCenterX    = rectX + rectWidth / 2.0
+
+    for_ (zip [0..] skillInfoLines) $ \(i, (inputSymbolDisplayTxt, skillDisplayTxt)) ->
+        let
+            x   = fromIntegral $ round imgRight
+            y   = secondarySkillInfoText0PosY + i * secondarySkillInfoTextOffsetY
+            pos = Pos2 x y
+        in do
+            drawSymbolDisplayTextRightAligned pos uiInfoTextZIndex inputSymbolDisplayTxt
+            drawDisplayText pos uiInfoTextZIndex skillDisplayTxt
+
+    let text3Pos = Pos2 rectCenterX (skillInfoLastLinePosY + secondarySkillInfoText3OffsetY)
     drawInputDisplayTextCentered text3Pos uiInfoTextZIndex text3InputDisplayTxt
 
-    when (_text (neutralDisplayTxt :: DisplayText) == secondarySkillColonText) $
-        let emptyText0Pos = text0Pos `vecAdd` secondarySkillEmptyTextOffset
-        in drawDisplayText emptyText0Pos uiInfoTextZIndex (_secondarySkillLiteralEmptyText infoTextUI)
-    when (_text (upDisplayTxt :: DisplayText) == secondarySkillColonText) $
-        let emptyText1Pos = text1Pos `vecAdd` secondarySkillEmptyTextOffset
-        in drawDisplayText emptyText1Pos uiInfoTextZIndex (_secondarySkillLiteralEmptyText infoTextUI)
-    when (_text (downDisplayTxt :: DisplayText) == secondarySkillColonText) $
-        let emptyText2Pos = text2Pos `vecAdd` secondarySkillEmptyTextOffset
-        in drawDisplayText emptyText2Pos uiInfoTextZIndex (_secondarySkillLiteralEmptyText infoTextUI)
-
     let
-        secondarySkillSymbolDisplayTxt      = _secondarySkillSymbolDisplayText infoTextUI
-        secondarySkillSymbolDisplayTxtWidth = symbolDisplayTextImageWidth secondarySkillSymbolDisplayTxt
+        neutralInputSymbolDisplayTxt        = _secondarySkillNeutralInputSymbolDisplayText infoTextUI
+        secondarySkillSymbolDisplayTxtWidth = symbolDisplayTextImageWidth neutralInputSymbolDisplayTxt
         secondarySkillInputDisplayTxt       = _secondarySkillInputDisplayText infoTextUI
     secondarySkillInputDisplayTxtWidth <- inputDisplayTextWidth secondarySkillInputDisplayTxt
     let
-        symbolWidth     = secondarySkillSymbolDisplayTxtWidth + secondarySkillInputDisplayTxtWidth
-        symbolRectWidth = symbolWidth + textBackdropBorderSize * 2.0
-        symbolRectX     = rectX + rectWidth + secondarySkillSymbolSpacerWidth
-        symbolRectPos   = Pos2 symbolRectX secondarySkillSymbolBackdropPosY
+        symbolWidth       = secondarySkillSymbolDisplayTxtWidth + secondarySkillInputDisplayTxtWidth
+        symbolRectWidth   = symbolWidth + textBackdropBorderSize * 2.0
+        symbolRectX       = fromIntegral $ round (rectX + rectWidth + secondarySkillSymbolSpacerWidth)
+        symbolRectOffsetY = secondarySkillInfoSymbolRectOffset skillInfoLines
+        symbolRectPos     = Pos2 symbolRectX (secondarySkillSymbolBackdropPosY + symbolRectOffsetY)
     drawRect symbolRectPos symbolRectWidth secondarySkillSymbolBackdropHeight textBackdropColor uiInfoTextZIndex
 
     let
         symbolTextX   = symbolRectX + textBackdropBorderSize
-        symbolTextPos = Pos2 symbolTextX secondarySkillSymbolText0PosY
-        inputTextPos  = Pos2 (symbolTextX + secondarySkillSymbolDisplayTxtWidth) secondarySkillSymbolText0PosY
-    drawSymbolDisplayText symbolTextPos uiInfoTextZIndex secondarySkillSymbolDisplayTxt
+        symbolTextY   = secondarySkillSymbolText0PosY + symbolRectOffsetY
+        symbolTextPos = Pos2 symbolTextX symbolTextY
+        inputTextPos  = Pos2 (symbolTextX + secondarySkillSymbolDisplayTxtWidth) symbolTextY
+    drawSymbolDisplayText symbolTextPos uiInfoTextZIndex neutralInputSymbolDisplayTxt
     drawInputDisplayText inputTextPos uiInfoTextZIndex secondarySkillInputDisplayTxt
 
 drawInfoTextUI :: (GraphicsReadWrite m, InputRead m, MonadIO m) => InfoTextUI -> m ()

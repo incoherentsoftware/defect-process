@@ -38,6 +38,7 @@ checkPlayerEnemyAttacksCollisions player enemies = foldr checkCollision [] enemi
             atk       <- E._attack enemy
             atkHitbox <- attackHitbox atk
             guard $ playerHitbox player `intersectsHitbox` atkHitbox
+            guard $ not (isEnemyInStasis enemy)
 
             Just $ attackCollisionEntityHitMessages player atk
 

@@ -1,7 +1,7 @@
 module Enemy
     ( module E
     , module Enemy.Flags
-    , module Enemy.Timers
+    , module Enemy.StasisData
     , module Enemy.Util
     , mkEnemy
     , mkEnemyWithId
@@ -22,7 +22,7 @@ module Enemy
     ) where
 
 import Control.Applicative    ((<|>))
-import Control.Monad          (unless, when)
+import Control.Monad          (when)
 import Control.Monad.IO.Class (MonadIO)
 import Data.Dynamic           (fromDynamic)
 import Data.Foldable          (sequenceA_)
@@ -41,7 +41,7 @@ import Configs.All.Settings
 import Configs.All.Settings.Debug
 import Enemy.DebugText
 import Enemy.Flags
-import Enemy.Timers
+import Enemy.StasisData
 import Enemy.Types as E
 import Enemy.Util
 import Id
@@ -102,7 +102,8 @@ mkEnemyInternal enMsgId enData pos dir enDummyType = do
             (health,) . Just <$> mkEnemyDebugText health
         EnemyDummyType -> return (dummyHealth, Nothing)
 
-    debugCfg <- readConfig _settings _debug
+    stasisData <- mkEnemyStasisData
+    debugCfg   <- readConfig _settings _debug
 
     return $ Enemy
         { _data                   = enData
@@ -121,9 +122,9 @@ mkEnemyInternal enMsgId enData pos dir enDummyType = do
         , _lockOnReticleData      = dummyLockOnReticleData
         , _deathEffectData        = dummyDeathEffectData
         , _spawnEffectData        = dummySpawnEffectData
+        , _stasisData             = stasisData
         , _knownPlayerInfo        = Nothing
         , _flags                  = mkEnemyFlags
-        , _timers                 = mkEnemyTimers
         , _thinkAI                = const $ return []
         , _updateHurtResponse     = const return
         , _updateGroundResponse   = const return
@@ -215,20 +216,20 @@ drawEnemy enemy = case _draw enemy of
     Just drawFn -> drawFn enemy >> drawEnemyOverlay
     Nothing     ->
         let
-            isStasis = _stasisTtl (_timers enemy) > 0.0
-            dir      = E._dir enemy
-            hp       = E._health enemy
-            spr      = case _attack enemy of
+            isDrawStasis = isEnemyStasisDataDrawStasis $ _stasisData enemy
+            dir          = E._dir enemy
+            hp           = E._health enemy
+            spr          = case _attack enemy of
                 Just attack
                     | not (isHealthZero hp) -> Just $ attackSprite attack
                 _                           -> E._sprite enemy
         in do
             pos <- enemyLerpPos enemy
 
-            when isStasis $
+            when isDrawStasis $
                 setGraphicsBlendMode BlendModeAdditive
             sequenceA_ $ drawSprite pos dir (_bodyZIndex enemy) <$> spr
-            when isStasis $
+            when isDrawStasis $
                 setGraphicsBlendMode BlendModeAlpha
 
             drawEnemyOverlay
@@ -245,6 +246,10 @@ lockOnReticleDataMsgs enemy
     | isHealthZero (_health enemy) = []
     | otherwise                    =
         let
+            vel
+                | isEnemyInStasis enemy = zeroVel2
+                | otherwise             = E._vel enemy
+
             lockOnReticleData = _lockOnReticleData enemy
             offsetMap         = _offsetMap lockOnReticleData
             offset            = _offset (lockOnReticleData :: EnemyLockOnReticleData)
@@ -259,14 +264,19 @@ lockOnReticleDataMsgs enemy
                 { _enemyId       = E._msgId enemy
                 , _enemyHitbox   = (_hitbox enemy) enemy
                 , _enemyHealth   = _health enemy
-                , _enemyVel      = E._vel enemy
+                , _enemyVel      = vel
                 , _reticleScale  = _scale (lockOnReticleData :: EnemyLockOnReticleData)
                 , _reticleOffset = vecFlip reticleOffset (E._dir enemy)
                 }
         in [mkMsg $ InfoMsgEnemyLockOnReticle lockOnData]
 
 thinkEnemy :: Enemy d -> AppEnv ThinkEnemyMsgsPhase ()
-thinkEnemy enemy = unless (isEnemyInStasis enemy) $ do
-    writeMsgs =<< (_thinkAI enemy) enemy
-    writeMsgs $ lockOnReticleDataMsgs enemy
-    writeMsgs $ maybe [] thinkAttack (_attack enemy)
+thinkEnemy enemy
+    | isEnemyInStasis enemy = do
+        writeMsgs $ lockOnReticleDataMsgs enemy
+        writeMsgs [enemyStasisDataSoundMessage (E._pos enemy) (_stasisData enemy)]
+
+    | otherwise = do
+        writeMsgs =<< (_thinkAI enemy) enemy
+        writeMsgs $ lockOnReticleDataMsgs enemy
+        writeMsgs $ maybe [] thinkAttack (_attack enemy)

@@ -1,17 +1,21 @@
 module Player.EquipmentInfo
     ( module Player.EquipmentInfo.Types
-    , maxEquipWeapons
-    , maxEquipGuns
-    , maxEquipMovementSkills
     , mkPlayerEquipmentInfo
     , mkEmptyPlayerEquipmentInfo
     , playerEquipmentInfoSecondarySkillTypes
     , playerEquipmentInfoUpgradeTypes
+    , isPlayerEquipmentInfoWeaponsFull
+    , isPlayerEquipmentInfoGunsFull
+    , isPlayerEquipmentInfoMovementSkillFull
+    , isPlayerEquipmentInfoSecondarySkillsFull
+    , readPlayerEquipmentInfo
     ) where
 
 import qualified Data.Map as M
-import Data.Maybe (catMaybes)
+import Data.Maybe (catMaybes, isJust)
 
+import InfoMsg.Util
+import Msg
 import Player
 import Player.EquipmentInfo.Types
 import Player.SecondarySkill.Manager
@@ -55,3 +59,29 @@ playerEquipmentInfoSecondarySkillTypes equipmentInfo = catMaybes
 
 playerEquipmentInfoUpgradeTypes :: PlayerEquipmentInfo -> [PlayerUpgradeType]
 playerEquipmentInfoUpgradeTypes equipmentInfo = M.keys $ M.filter (> 0) (_upgradeCounts equipmentInfo)
+
+isPlayerEquipmentInfoWeaponsFull :: PlayerEquipmentInfo -> Bool
+isPlayerEquipmentInfoWeaponsFull equipmentInfo = length (_weaponTypes equipmentInfo) >= maxEquipWeapons
+
+isPlayerEquipmentInfoGunsFull :: PlayerEquipmentInfo -> Bool
+isPlayerEquipmentInfoGunsFull equipmentInfo = length (_gunTypes equipmentInfo) >= maxEquipGuns
+
+isPlayerEquipmentInfoMovementSkillFull :: PlayerEquipmentInfo -> Bool
+isPlayerEquipmentInfoMovementSkillFull equipmentInfo =
+    length (_movementSkillTypes equipmentInfo) >= maxEquipMovementSkills
+
+isPlayerEquipmentInfoSecondarySkillsFull :: PlayerEquipmentInfo -> Bool
+isPlayerEquipmentInfoSecondarySkillsFull equipmentInfo = and
+    [ isJust $ _secondarySkillNeutralType equipmentInfo
+    , isJust $ _secondarySkillUpType equipmentInfo
+    , isJust $ _secondarySkillNeutralType equipmentInfo
+    ]
+
+readPlayerEquipmentInfo :: (AllowMsgRead p InfoMsgPayload, MsgsRead p m) => m PlayerEquipmentInfo
+readPlayerEquipmentInfo = processMsg <$> readMsgs
+    where
+        processMsg :: [InfoMsgPayload] -> PlayerEquipmentInfo
+        processMsg []     = mkEmptyPlayerEquipmentInfo
+        processMsg (d:ds) = case d of
+            InfoMsgPlayer playerInfo -> _equipment playerInfo
+            _                        -> processMsg ds

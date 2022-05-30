@@ -110,7 +110,7 @@ drawDisplayTextCenteredEx
 drawDisplayTextCenteredEx (Pos2 x y) zIndex scale opacity displayTxt = do
     width  <- displayTextWidth displayTxt
     height <- displayTextHeight displayTxt
-    let pos = Pos2 (x - width / 2.0) (y - height / 2.0)
+    let pos = vecRoundXY $ Pos2 (x - width / 2.0) (y - height / 2.0)
     drawDisplayTextEx pos zIndex scale opacity displayTxt
 
 drawDisplayTextRightAligned :: (GraphicsReadWrite m, MonadIO m) => Pos2 -> ZIndex -> DisplayText -> m ()
@@ -127,5 +127,5 @@ drawDisplayTextRightAlignedEx
     -> m ()
 drawDisplayTextRightAlignedEx (Pos2 x y) zIndex scale opacity displayTxt = do
     width  <- displayTextWidth displayTxt
-    let pos = Pos2 (x - width) y
+    let pos = vecRoundXY $ Pos2 (x - width) y
     drawDisplayTextEx pos zIndex scale opacity displayTxt

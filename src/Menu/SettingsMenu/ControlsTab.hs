@@ -63,11 +63,11 @@ mkSettingsControlsTab = do
 
     menuCfg             <- readConfig _settings (_menu :: SettingsConfig -> MenuConfig)
     let showToggleBtnPos = _settingsControlsTabShowToggleButtonPos menuCfg
-    showMouseKbBtn      <- mkImageButton showToggleBtnPos showMouseKbButtonImgPath
-    showGamepadBtn      <- mkImageButton showToggleBtnPos showGamepadButtonImgPath
+    showMouseKbBtn      <- mkImageButtonCentered showToggleBtnPos showMouseKbButtonImgPath
+    showGamepadBtn      <- mkImageButtonCentered showToggleBtnPos showGamepadButtonImgPath
 
     let restoreDefaultsBtnPos = _settingsControlsTabRestoreDefaultsButtonPos menuCfg
-    restoreDefaultsBtn       <- mkImageButton restoreDefaultsBtnPos restoreDefaultsButtonImgPath
+    restoreDefaultsBtn       <- mkImageButtonCentered restoreDefaultsBtnPos restoreDefaultsButtonImgPath
 
     notificationDisplayTxt      <- mkDisplayText T.empty Font32 notificationTextColor
     rebindKeyInputDisplayTxt    <- mkInputDisplayText rebindKeyText Font22 whiteColor

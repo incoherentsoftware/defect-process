@@ -136,6 +136,7 @@ data InfoMsgPayload
     | InfoMsgProjectilePos Pos2 MsgId MsgId
     | InfoMsgEnemyPos Hitbox MsgId
     | InfoMsgEnemyLockOnReticle EnemyLockOnData
+    | InfoMsgEnemyInStasis MsgId
     | InfoMsgRoomArenaWalls RoomArenaWallsInfo
     | InfoMsgRoomTopBounds PosY
     | InfoMsgBattleMusic LayeredMusicType
@@ -184,7 +185,6 @@ data PlayerMsgPayload where
         -> (SecondarySkill d -> SecondarySkill d)
         -> PlayerMsgPayload
     PlayerMsgFiredGun                    :: PlayerMsgPayload
-    PlayerMsgGiveWeapon                  :: Some Weapon -> PlayerMsgPayload
     PlayerMsgUpdateGun                   :: Typeable d => (Gun d -> Gun d) -> PlayerMsgPayload
     PlayerMsgUpdateWeapon                :: Typeable d => (Weapon d -> Weapon d) -> PlayerMsgPayload
     PlayerMsgSetPhased                   :: PlayerMsgPayload
@@ -202,6 +202,14 @@ data PlayerMsgPayload where
     PlayerMsgBuySecondarySkill           :: Some SecondarySkill -> GoldValue -> PlayerMsgPayload
     PlayerMsgBuyUpgrade                  :: PlayerUpgradeType -> GoldValue -> PlayerMsgPayload
     PlayerMsgBuyHealth                   :: GoldValue -> PlayerMsgPayload
+    PlayerMsgClearWeapon                 :: WeaponType -> PlayerMsgPayload
+    PlayerMsgClearGun                    :: GunType -> PlayerMsgPayload
+    PlayerMsgClearSecondarySkill         :: SecondarySkillType -> PlayerMsgPayload
+    PlayerMsgSetSecondarySkillSlots
+        :: Maybe SecondarySkillType
+        -> Maybe SecondarySkillType
+        -> Maybe SecondarySkillType
+        -> PlayerMsgPayload
     PlayerMsgClearInputBuffer            :: S.Set PlayerInput -> PlayerMsgPayload
     PlayerMsgGainMeter                   :: MeterValue -> PlayerMsgPayload
     PlayerMsgSpendMeter                  :: MeterValue -> PlayerMsgPayload
@@ -249,6 +257,7 @@ data UiMsgPayload
     | UiMsgShowGunEquipmentInfo Int
     | UiMsgShowSecondarySkillEquipmentInfo PlayerEquipmentInfo
     | UiMsgShowGeneralEquipmentInfo
+    | UiMsgHideEquipmentInfo
 
 data WorldMsgPayload
     = WorldMsgSwitchRoom RoomType PosY

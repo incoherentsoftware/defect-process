@@ -70,7 +70,7 @@ mkSettingsAudioTab = do
     soundComboBox      <- mkComboBox' (_settingsAudioTabSoundComboBoxPos menuCfg) (_soundVolume audioCfg)
     musicComboBox      <- mkComboBox' (_settingsAudioTabMusicComboBoxPos menuCfg) (_musicVolume audioCfg)
     restoreDefaultsBtn <-
-        mkImageButton (_settingsAudioTabRestoreDefaultsButtonPos menuCfg) restoreDefaultsButtonImgPath
+        mkImageButtonCentered (_settingsAudioTabRestoreDefaultsButtonPos menuCfg) restoreDefaultsButtonImgPath
 
     return $ SettingsAudioTab
         { _buttons               = tabBtns

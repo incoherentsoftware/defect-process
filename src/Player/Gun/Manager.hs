@@ -8,6 +8,7 @@ module Player.Gun.Manager
     , gunManagerGunType
     , gunManagerDir
     , giveGunManagerGun
+    , clearGunManagerGun
     , clearGunManagerGuns
     , drawGunManager
     , drawGunManagerOverlay
@@ -127,6 +128,11 @@ giveGunManagerGun someGun@(Some gun) gunManager = case _guns gunManager of
     [_, someGun2]                 -> gunManager {_guns = [someGun, someGun2]}
     _                             -> gunManager
     where gunType = G._type gun
+
+clearGunManagerGun :: GunType -> GunManager -> GunManager
+clearGunManagerGun gunType gunManager = gunManager
+    { _guns = filter (\(Some gun) -> _type gun /= gunType) (_guns gunManager)
+    }
 
 clearGunManagerGuns :: GunManager -> GunManager
 clearGunManagerGuns gunManager = gunManager {_guns = []}

@@ -90,9 +90,7 @@ secondarySkillSelections = S.fromList
     , PauseMenuSecondarySkillRightSelection
     ] :: S.Set PauseMenuSelection
 
-mkPauseMenuData
-    :: (ConfigsRead m, FileCache m, GraphicsRead m, InputRead m, MonadIO m)
-    => m PauseMenuData
+mkPauseMenuData :: (ConfigsRead m, FileCache m, GraphicsRead m, InputRead m, MonadIO m) => m PauseMenuData
 mkPauseMenuData = do
     cfg <- readConfig _settings (_menu :: SettingsConfig -> MenuConfig)
 
@@ -106,9 +104,9 @@ mkPauseMenuData = do
     infoOverlayLeftImg                   <- loadPackImage infoOverlayLeftImagePath
     infoOverlayRightImg                  <- loadPackImage infoOverlayRightImagePath
 
-    resumeBtn   <- mkImageButton (_pausedResumeButtonPos cfg) resumeButtonImgPath
-    mainMenuBtn <- mkImageButton (_pausedMainMenuButtonPos cfg) mainMenuButtonImgPath
-    settingsBtn <- mkImageButton (_pausedSettingsButtonPos cfg) settingsButtonImgPath
+    resumeBtn   <- mkImageButtonCentered (_pausedResumeButtonPos cfg) resumeButtonImgPath
+    mainMenuBtn <- mkImageButtonCentered (_pausedMainMenuButtonPos cfg) mainMenuButtonImgPath
+    settingsBtn <- mkImageButtonCentered (_pausedSettingsButtonPos cfg) settingsButtonImgPath
 
     settingsMenuData          <- mkSettingsMenuData
     viewInfoInputDisplayTxt   <- mkInputDisplayText viewInfoText Font22 whiteColor

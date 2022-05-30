@@ -4,10 +4,17 @@ module Window.Graphics.Fonts
     , mkGraphicsFonts
     , freeGraphicsFonts
     , getGraphicsFont
+    , graphicsFontTextWidth
     ) where
 
-import Control.Monad.IO.Class (MonadIO)
+import Control.Monad.IO.Class (MonadIO, liftIO)
+import Foreign.Marshal.Alloc  (alloca)
+import Foreign.C.String       (withCString)
+import Foreign.Ptr            (nullPtr)
+import Foreign.Storable       (peek)
+import qualified Data.Text as T
 import qualified SDL.Font
+import qualified SDL.Raw.Font
 
 import Util
 import Window.Graphics.Fonts.Types
@@ -70,3 +77,17 @@ getGraphicsFont fontType = fontF . _fonts <$> getGraphics
             Font32    -> _font32
             Font44    -> _font44
             AltFont36 -> _altFont36
+
+-- TODO: add cache if this actually gets used
+graphicsFontTextWidth :: (GraphicsRead m, MonadIO m) => FontType -> T.Text -> m Int
+graphicsFontTextWidth fontType txt = do
+    font <- getGraphicsFont fontType
+    liftIO . alloca $ \widthPtr ->
+        let
+            str     = T.unpack txt
+            fontPtr = SDL.Font.unwrap $ _sdlFont font
+        in do
+            ret <- withCString str (\s -> SDL.Raw.Font.sizeText fontPtr s widthPtr nullPtr)
+            if
+                | ret == 0  -> fromIntegral <$> peek widthPtr
+                | otherwise -> return 0

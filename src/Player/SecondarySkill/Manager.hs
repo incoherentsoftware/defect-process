@@ -4,6 +4,7 @@ module Player.SecondarySkill.Manager
     , thinkSecondarySkillManager
     , updateSecondarySkillManager
     , giveSecondarySkillManagerSkill
+    , clearSecondarySkillManagerSkill
     , secondarySkillManagerNeutralSlotType
     , secondarySkillManagerUpSlotType
     , secondarySkillManagerDownSlotType
@@ -109,6 +110,18 @@ giveSecondarySkillManagerSkill slot (Some secondarySkill) secondarySkillMgr = ca
                 | isNothing (_upSlot secondarySkillMgr)      -> SecondarySkillUpSlot
                 | isNothing (_downSlot secondarySkillMgr)    -> SecondarySkillDownSlot
                 | otherwise                                  -> SecondarySkillNeutralSlot
+
+clearSecondarySkillManagerSkill :: SecondarySkillType -> SecondarySkillManager -> SecondarySkillManager
+clearSecondarySkillManagerSkill secondarySkillType secondarySkillMgr = secondarySkillMgr
+    { _neutralSlot = clearSlot _neutralSlot
+    , _upSlot      = clearSlot _upSlot
+    , _downSlot    = clearSlot _downSlot
+    }
+    where
+        clearSlot = \slotF -> case slotF secondarySkillMgr of
+            Just (Some ss)
+                | _type ss == secondarySkillType -> Nothing
+            slot                                 -> slot
 
 secondarySkillManagerNeutralSlotType :: SecondarySkillManager -> Maybe SecondarySkillType
 secondarySkillManagerNeutralSlotType secondarySkillMgr = case _neutralSlot secondarySkillMgr of

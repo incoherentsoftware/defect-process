@@ -213,7 +213,7 @@ mkUnlocksMenuData = do
     unlocksDisplayTxt       <- mkDisplayText unlocksText Font32 whiteColor
     unavailableDisplayTxt   <- mkDisplayText unavailableText Font32 whiteColor
     viewInfoInputDisplayTxt <- mkInputDisplayText viewInfoText Font26 whiteColor
-    mainMenuBtn             <- mkImageButton (_unlocksMainMenuButtonPos menuCfg) mainMenuButtonImagePath
+    mainMenuBtn             <- mkImageButtonCentered (_unlocksMainMenuButtonPos menuCfg) mainMenuButtonImagePath
     insufficientGoldImg     <- loadPackImage insufficientGoldImagePath
     musicIndex              <- getFmodMusic menuMusicPath
     soundIndices            <- mkMenuSoundIndices
