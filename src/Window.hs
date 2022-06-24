@@ -50,7 +50,7 @@ updateWindow window = do
 
     return $ window
         { _inputState = inputState
-        , _closed     = QuitEvent `elem` inputEvents
+        , _closed     = _closed window || QuitEvent `elem` inputEvents
         }
 
 processWindowGraphicsEvents
