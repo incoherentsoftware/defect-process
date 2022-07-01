@@ -30,7 +30,7 @@ import Msg
 import Particle.Manager
 import Player
 import Player.EquipmentInfo
-import Player.Info
+import Player.RoomInfo
 import Player.SecondarySkill.Types
 import Projectile.Manager
 import Stats.Manager
@@ -111,12 +111,12 @@ changeWorldRoomInternal :: RoomType -> PosY -> ChangeRoomBehavior -> World -> Ap
 changeWorldRoomInternal roomType playerOffsetY changeRoomBehavior world = do
     let
         level              = _level (world :: World)
-        playerInfo         = mkPlayerInfo $ _player (world :: World)
+        playerRoomInfo     = mkPlayerRoomInfo $ _player (world :: World)
         roomChooser        = _roomChooser level
         currentDangerValue = _currentDangerValue level
         statsManager       = _statsManager world
 
-        loadRoom' = \rId -> loadRoom rId playerInfo roomChooser currentDangerValue statsManager
+        loadRoom' = \rId -> loadRoom rId playerRoomInfo roomChooser currentDangerValue statsManager
 
     loadTime <- mkTime
 

@@ -3,6 +3,7 @@ module Player.BufferedInputState
     , PlayerBufferedInputState()
     , allWeaponBufferedInputs
     , allShootBufferedInputs
+    , allSecondarySkillBufferedInputs
     , mkPlayerBufferedInputState
     , inPlayerBufferedInputState
     , inPlayerBufferedInputStateTapInputs
@@ -61,6 +62,12 @@ allShootBufferedInputs = S.fromList
     , ShootReleaseInput
     , ShootReleaseUpInput
     , ShootReleaseDownInput
+    ] :: S.Set PlayerInput
+
+allSecondarySkillBufferedInputs = S.fromList
+    [ SecondarySkillNeutralInput
+    , SecondarySkillUpInput
+    , SecondarySkillDownInput
     ] :: S.Set PlayerInput
 
 mkPlayerBufferedInputState :: ConfigsRead m => m PlayerBufferedInputState

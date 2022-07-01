@@ -12,10 +12,12 @@ import Util
 
 data PlayerInfo = PlayerInfo
     { _msgId            :: MsgId
+    , _vel              :: Vel2
     , _dir              :: Direction
     , _hitbox           :: Hitbox
     , _groundBeneathPos :: Pos2
     , _touchingGround   :: Bool
+    , _touchingWall     :: Bool
     , _equipment        :: PlayerEquipmentInfo
     }
 

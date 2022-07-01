@@ -36,7 +36,7 @@ import Level.Room.JSON
 import Level.Room.Types
 import Player.EquipmentInfo
 import Player.Gun.Types
-import Player.Info
+import Player.RoomInfo
 import Player.MovementSkill.Types
 import Player.SecondarySkill.Types
 import Player.Upgrade
@@ -83,6 +83,7 @@ allInitSecondarySkillRoomItems =
     , (FlightSkill, mkStoneFormItemPickup)
     , (FastFallSkill, mkStoneFormItemPickup)
     , (StasisBlastSkill, mkStoneFormItemPickup)
+    , (SummonPlatformSkill, mkStoneFormItemPickup)
     ] :: [(SecondarySkillType, RoomType -> RoomItemInit p)]
 
 allInitUpgradeRoomItems =
@@ -191,10 +192,10 @@ takeAnyRoomItemChoices equipmentInfo chosenItems roomItemChoices =
             AnyUpgradeItemChoice        ->
                 (listToMaybe upgradeChoices, roomItemChoices {_upgrades = safeTail upgradeChoices})
 
-chooseLoadRoomItemPickups :: forall p. RoomJSON -> RoomType -> PlayerInfo -> StatsManager -> AppEnv p [Some RoomItem]
-chooseLoadRoomItemPickups roomJSON roomType playerInfo statsManager =
+chooseLoadRoomItemPickups :: forall p. RoomJSON -> RoomType -> PlayerRoomInfo -> StatsManager -> AppEnv p [Some RoomItem]
+chooseLoadRoomItemPickups roomJSON roomType playerRoomInfo statsManager =
     let
-        equipmentInfo            = _equipment playerInfo
+        equipmentInfo            = _equipment playerRoomInfo
         equipWeaponTypes         = _weaponTypes equipmentInfo
         equipGunTypes            = _gunTypes equipmentInfo
         equipMovementSkillTypes  = _movementSkillTypes equipmentInfo
@@ -283,10 +284,10 @@ chooseLoadRoomItemPickups roomJSON roomType playerInfo statsManager =
                             return (chosen', choices')
 
                 HealthPickup
-                    | isHealthMax (_health (playerInfo :: PlayerInfo)) ->
+                    | isHealthMax (_health (playerRoomInfo :: PlayerRoomInfo)) ->
                         let json' = json {_type = RandomAnyPickup} :: RoomItemPickupJSON
                         in chooseRoomItemInits (chosen, choices) json'
-                    | otherwise                                        -> do
+                    | otherwise                                                -> do
                         chosen' <- (:chosen) <$> mkHealthItemPickup roomType pos statsManager
                         return (chosen', choices)
 

@@ -4,6 +4,7 @@ module Attack.Projectile
     , mkEnemyAttackProjectileWithMsgId
     , mkPlayerEnemyAttackProjectile
     , mkAttackProjectile
+    , mkAttackProjectileWithMsgId
     , attackProjectileAttack
     ) where
 

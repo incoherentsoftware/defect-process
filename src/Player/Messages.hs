@@ -250,6 +250,7 @@ processPlayerMsgs player = foldlM processMsg player =<< readMsgs
             PlayerMsgSpendMeter meter                   -> return $ p {_meter = spendPlayerMeter meter (_meter p)}
             PlayerMsgResetDoubleJump                    -> return $ resetPlayerAirStallDoubleJump p
             PlayerMsgResetAirStallAttacksCounter        -> return resetPlayerAirStall
+            PlayerMsgResetPlatformDropping              -> return $ p {_flags = flags {_platformDropping = False}}
             PlayerMsgForceInAir                         -> return forcePlayerInAir
             PlayerMsgWarpOut                            -> return $ p {_flags = flags {_warpingOut = True}}
             PlayerMsgTouchingInfoSign                   -> return $ p {_flags = flags {_touchingInfoSign = True}}

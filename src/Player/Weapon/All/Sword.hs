@@ -333,6 +333,7 @@ alterSwordAttack swordData player atk
         groundedAtkDescs =
             [ _slash1
             , _slash2
+            , _slash2Heavy
             , _slash3
             , _slash3Aoe
             , _upSlash
@@ -340,6 +341,7 @@ alterSwordAttack swordData player atk
             , _flurryThrust
             , _chargeRelease
             , _summonAttackOrb
+            , _fallSlashLand
             ]
 
 updateSword :: (ConfigsRead m, InputRead m, MsgsWrite UpdatePlayerMsgsPhase m) => WeaponUpdate SwordData m

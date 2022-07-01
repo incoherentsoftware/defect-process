@@ -30,6 +30,7 @@ module Collision.Hitbox
     , intersectsLineHitbox
     , containsPointHitbox
     , hitboxAvgIntersectPos
+    , isDummyHitbox
     , drawHitbox
     ) where
 
@@ -308,6 +309,11 @@ hitboxAvgIntersectPos hbx1 hbx2
                     | start2Contained                  -> Just start2
                     | end2Contained                    -> Just end2
                     | otherwise                        -> Nothing
+
+isDummyHitbox :: Hitbox -> Bool
+isDummyHitbox = \case
+    DummyHitbox _ -> True
+    _             -> False
 
 drawHitbox :: (GraphicsReadWrite m, MonadIO m) => Color -> ZIndex -> Hitbox -> m ()
 drawHitbox color zIndex (RectHitbox pos w h _)  = drawRect pos w h color zIndex

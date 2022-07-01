@@ -58,9 +58,9 @@ import Particle.Manager
 import Player
 import Player.Gun as G
 import Player.Gun.Manager
-import Player.Info
 import Player.Meter
 import Player.MovementSkill as MS
+import Player.RoomInfo
 import Player.SecondarySkill as SS
 import Player.SecondarySkill.All
 import Player.SecondarySkill.Manager
@@ -1073,8 +1073,8 @@ shopCmd args world =
         "up" -> decodeEither' <$> readFileCache (roomTypeToFilePath roomType) >>= \case
             Left e         -> return $ NoUpdateResult ("failed to load current room info:" <> T.pack (show e))
             Right roomJSON -> do
-                let playerInfo = mkPlayerInfo $ _player (world :: World)
-                itemPickups   <- loadRoomItemsShop roomJSON roomType playerInfo (_statsManager world)
+                let playerRoomInfo = mkPlayerRoomInfo $ _player (world :: World)
+                itemPickups       <- loadRoomItemsShop roomJSON roomType playerRoomInfo (_statsManager world)
                 return $ UpdateWorldResult "shop up" (setRoomItems itemPickups)
 
         "down" -> return $ UpdateWorldResult "shop down" (setRoomItems [])

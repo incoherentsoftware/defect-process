@@ -41,7 +41,7 @@ import Level.Room.SpringLauncher
 import Level.Room.SpringLauncher.JSON
 import Level.Room.Trigger.All
 import Player.EquipmentInfo
-import Player.Info
+import Player.RoomInfo
 import Stats.Manager
 import Util
 import Window.Graphics
@@ -53,9 +53,9 @@ loadRoomRefreshStations :: (FileCache m, GraphicsRead m, InputRead m, MonadIO m)
 loadRoomRefreshStations roomJSON = traverse mkRefreshStation positions
     where positions = fromMaybe [] (_refreshStations roomJSON)
 
-loadRoomItemsShop :: RoomJSON -> RoomType -> PlayerInfo -> StatsManager -> AppEnv p [Some RoomItem]
-loadRoomItemsShop roomJSON roomType playerInfo statsManager = do
-    itemPickups     <- chooseLoadRoomItemPickups roomJSON roomType playerInfo statsManager
+loadRoomItemsShop :: RoomJSON -> RoomType -> PlayerRoomInfo -> StatsManager -> AppEnv p [Some RoomItem]
+loadRoomItemsShop roomJSON roomType playerRoomInfo statsManager = do
+    itemPickups     <- chooseLoadRoomItemPickups roomJSON roomType playerRoomInfo statsManager
     refreshStations <- if
         | null itemPickups -> return []
         | otherwise        -> loadRoomRefreshStations roomJSON
@@ -75,9 +75,9 @@ loadRoomJukeboxes (j:js) = do
             | S.size (S.filter isExploreMusicType unlockedMusic) > 1 -> (:) <$> mkJukebox j <*> loadRoomJukeboxes js
         _                                                            -> loadRoomJukeboxes js
 
-loadRoom :: RoomType -> PlayerInfo -> RoomChooser -> DangerValue -> StatsManager -> AppEnv p Room
-loadRoom EmptyRoomType _ _ _ _                                           = return mkEmptyRoom
-loadRoom roomType playerInfo roomChooser currentDangerValue statsManager = do
+loadRoom :: RoomType -> PlayerRoomInfo -> RoomChooser -> DangerValue -> StatsManager -> AppEnv p Room
+loadRoom EmptyRoomType _ _ _ _                                               = return mkEmptyRoom
+loadRoom roomType playerRoomInfo roomChooser currentDangerValue statsManager = do
     let
         filePath = case roomType of
             NextRoomType -> roomTypeToFilePath $ nextRoomChooserRoomType roomChooser
@@ -120,16 +120,16 @@ loadRoom roomType playerInfo roomChooser currentDangerValue statsManager = do
                 otherItems <- case roomChooserRoomContentType newRoomType roomChooser of
                     ShopContentType ->
                         let
-                            playerInfo' = playerInfo
+                            playerRoomInfo' = playerRoomInfo
                                 { _equipment = if
                                     | roomType == startingShopRoomType -> mkEmptyPlayerEquipmentInfo
-                                    | otherwise                        -> _equipment playerInfo
+                                    | otherwise                        -> _equipment playerRoomInfo
                                 }
-                        in loadRoomItemsShop roomJSON newRoomType playerInfo' statsManager
+                        in loadRoomItemsShop roomJSON newRoomType playerRoomInfo' statsManager
 
                     HealthContentType
-                        | isHealthMax (_health playerInfo) -> loadRoomItemGoldChunk roomJSON
-                        | otherwise                        ->
+                        | isHealthMax (_health playerRoomInfo) -> loadRoomItemGoldChunk roomJSON
+                        | otherwise                            ->
                             loadRoomItemHealthPickups roomJSON newRoomType statsManager
 
                     GoldChunkContentType       -> loadRoomItemGoldChunk roomJSON

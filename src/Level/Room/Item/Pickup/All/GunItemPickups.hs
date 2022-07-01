@@ -70,7 +70,7 @@ calculateGunSlots itemData = calc <$> readPlayerEquipmentInfo
                 gunTypes          = _gunTypes playerEquipment
                 buyGunType        = case _buyMsgPayload itemData of
                     PlayerMsgBuyGun (Some gun) _ -> Just $ G._type gun
-                    _                               -> Nothing
+                    _                            -> Nothing
 
 updateBuyConfirm
     :: (FileCache m, GraphicsRead m, InputRead m, MonadIO m, MsgsRead UpdateLevelMsgsPhase m)

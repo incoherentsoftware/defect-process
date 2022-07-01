@@ -27,9 +27,11 @@ data ShotgunConfig = ShotgunConfig
     , _shotStartShoulderOffset :: Pos2
     , _shotMeterCost           :: MeterValue
     , _shotHitlag              :: Secs
+    , _knockbackMagnitude      :: Float
+    , _knockbackDistThreshold  :: Float
 
-    , _knockbackMagnitude     :: Float
-    , _knockbackDistThreshold :: Float
+    , _burnShotDamage :: Damage
+    , _burnShotHitlag :: Secs
 
     , _headAngleMultiplier     :: Float
     , _leadArmAngleMultiplier  :: Float

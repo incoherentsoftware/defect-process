@@ -22,7 +22,7 @@ module Attack
     , attackScreenshakeType
     , attackHitbox
     , attackHitlagMessages
-    , attackHitSoundFilePath
+    , attackHitSoundMessages
     , attackSoundMessages
     , attackCollisionEntityHitMessages
     , attackEnemyHitMessages
@@ -188,10 +188,12 @@ attackScreenshakeMessages attack = case attackScreenshakeType attack of
 attackSound :: Attack -> AttackSound
 attackSound = _sound . _description
 
-attackHitSoundFilePath :: Attack -> Maybe FilePath
-attackHitSoundFilePath = _hitSoundFilePath . attackSound
+attackHitSoundMessages :: AllowMsgWrite p AudioMsgPayload => Pos2 -> Attack -> [Msg p]
+attackHitSoundMessages pos atk = case _hitSoundFilePath (attackSound atk) of
+    Just hitSoundFilePath -> [mkMsg $ AudioMsgPlaySound hitSoundFilePath pos]
+    Nothing               -> []
 
-attackSoundMessages :: (AllowMsgWrite p AudioMsgPayload) => Attack -> [Msg p]
+attackSoundMessages :: AllowMsgWrite p AudioMsgPayload => Attack -> [Msg p]
 attackSoundMessages atk = case _type (attackSound atk :: AttackSound) of
     AttackPlaySound soundFilePath frameIndex
         | atkFrameIndex == frameIndex && atkFrameChanged ->
@@ -242,9 +244,7 @@ attackCollisionEntityHitMessages collisionEntity attack = case attackOnHitType a
             | otherwise = []
 
         audioMsgs
-            | isNewAtk && atkDamage > Damage 0 = case _hitSoundFilePath (attackSound attack) of
-                Just hitSoundFilePath -> [mkMsg $ AudioMsgPlaySound hitSoundFilePath atkIntersectPos]
-                Nothing               -> []
+            | isNewAtk && atkDamage > Damage 0 = attackHitSoundMessages atkIntersectPos attack
             | otherwise                        = []
 
         normalOnHitMsgs = hurtMsg:worldMsgs ++ audioMsgs

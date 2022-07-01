@@ -193,11 +193,9 @@ setEnemyStasis stasisSecs stasisAtk enemy
             pos              = hitboxCenter $ enemyHitbox enemy
             dir              = _dir (stasisAtk :: Attack)
             mkEffectParticle = loadSimpleParticle pos dir enemyHurtParticleZIndex stasisHitEffectPath
-            hitSoundMsgs     = case attackHitSoundFilePath stasisAtk of
-                Just hitSoundFilePath -> [mkMsg $ AudioMsgPlaySound hitSoundFilePath pos]
-                Nothing               -> []
+            mkEffectMsg      = mkMsg $ ParticleMsgAddM mkEffectParticle
         in do
-            writeMsgs $ mkMsg (ParticleMsgAddM mkEffectParticle):attackHitlagMessages stasisAtk ++ hitSoundMsgs
+            writeMsgs $ mkEffectMsg:attackHitlagMessages stasisAtk ++ attackHitSoundMessages pos stasisAtk
 
             return $ enemy
                 { _hitByHashedIds = atkHashedId `S.insert` hitByHashedIds

@@ -216,6 +216,7 @@ data PlayerMsgPayload where
     PlayerMsgFillMeterFull               :: PlayerMsgPayload
     PlayerMsgResetDoubleJump             :: PlayerMsgPayload
     PlayerMsgResetAirStallAttacksCounter :: PlayerMsgPayload
+    PlayerMsgResetPlatformDropping       :: PlayerMsgPayload
     PlayerMsgForceInAir                  :: PlayerMsgPayload
     PlayerMsgWarpOut                     :: PlayerMsgPayload
     PlayerMsgTouchingInfoSign            :: PlayerMsgPayload

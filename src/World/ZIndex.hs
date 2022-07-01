@@ -26,6 +26,7 @@ module World.ZIndex
     , playerBodyZIndex
     , playerOverSpecialLegsZIndex
     , playerSpecialLegsZIndex
+    , playerUnderBodyZIndex
     , enemyOverBodyZIndex
     , enemyBodyZIndex
     , enemyBodyTallZIndex
@@ -80,11 +81,12 @@ playerOverBodyZIndex        = ZIndex 70 :: ZIndex
 playerBodyZIndex            = ZIndex 71 :: ZIndex
 playerOverSpecialLegsZIndex = ZIndex 72 :: ZIndex
 playerSpecialLegsZIndex     = ZIndex 73 :: ZIndex
-enemyOverBodyZIndex         = ZIndex 74 :: ZIndex
-enemyBodyZIndex             = ZIndex 75 :: ZIndex
-enemyBodyTallZIndex         = ZIndex 76 :: ZIndex
-enemyBodyBigZIndex          = ZIndex 77 :: ZIndex
-enemyUnderBodyZIndex        = ZIndex 78 :: ZIndex
+playerUnderBodyZIndex       = ZIndex 74 :: ZIndex
+enemyOverBodyZIndex         = ZIndex 75 :: ZIndex
+enemyBodyZIndex             = ZIndex 76 :: ZIndex
+enemyBodyTallZIndex         = ZIndex 77 :: ZIndex
+enemyBodyBigZIndex          = ZIndex 78 :: ZIndex
+enemyUnderBodyZIndex        = ZIndex 79 :: ZIndex
 
 uiInfoTextZIndex      = ZIndex 80  :: ZIndex
 goldDropZIndex        = ZIndex 81  :: ZIndex

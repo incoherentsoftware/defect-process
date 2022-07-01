@@ -52,10 +52,12 @@ thinkInfoMsgManager world =
 calculatePlayerInfo :: Player -> [Surface] -> PlayerInfo
 calculatePlayerInfo player surfaces = PlayerInfo
     { _msgId            = _msgId (player :: Player)
+    , _vel              = _vel (player :: Player)
     , _dir              = _dir (player :: Player)
     , _hitbox           = playerHitbox player
     , _groundBeneathPos = beneathGroundPos
     , _touchingGround   = touchingGround
+    , _touchingWall     = _touchingWall (playerFlags :: PlayerFlags)
     , _equipment        = mkPlayerEquipmentInfo player
     }
     where
@@ -82,7 +84,8 @@ calculatePlayerInfo player surfaces = PlayerInfo
                 intersectsSurface = playerProjHbx `intersectsHitbox` surfaceHbx
                 surfaceTop        = hitboxTop surfaceHbx
 
-        touchingGround       = _touchingGround (_flags (player :: Player) :: PlayerFlags)
+        playerFlags          = _flags (player :: Player)
+        touchingGround       = _touchingGround (playerFlags :: PlayerFlags)
         beneathGroundPos
             | touchingGround = playerPos
             | otherwise      = fromMaybe playerPos (foldr processGroundPos Nothing surfaces)
