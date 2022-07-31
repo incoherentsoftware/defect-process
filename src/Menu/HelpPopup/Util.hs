@@ -31,7 +31,7 @@ import Window.InputState
 symbolInputAliasTextPos        = Pos2 1488.0 914.0 :: Pos2
 stoneFormSkillSlotTextPos      = Pos2 960.0 587.0  :: Pos2
 flightSkillSlotTextPos         = Pos2 959.0 541.0  :: Pos2
-fastFallSkillSlotTextPos       = Pos2 959.0 541.0  :: Pos2
+fastFallSkillSlotTextPos       = Pos2 811.0 605.0  :: Pos2
 stasisBlastSkillSlotTextPos    = Pos2 959.0 570.0  :: Pos2
 markRecallSkillSlotText0Pos    = Pos2 691.0 584.0  :: Pos2
 markRecallSkillSlotText1Pos    = Pos2 1229.0 584.0 :: Pos2

@@ -626,8 +626,8 @@ updatePlayer player
             modify updatePlayerGravity
 
             get >>= \p -> case _movementSkill p of
-                Just (Some ms) ->
-                    lift (updateMovementSkill p ms) >>= \ms' ->
+                Just (Some ms) -> do
+                    ms' <- lift $ updateMovementSkill p ms
                     put $ p {_movementSkill = Just (Some ms')}
                 Nothing        -> return ()
 
@@ -635,13 +635,13 @@ updatePlayer player
                 secondarySkillMgr <- lift $ updateSecondarySkillManager p (_secondarySkillManager p)
                 put $ p {_secondarySkillManager = secondarySkillMgr}
 
-            get >>= \p ->
-                lift (updateGunManager p (_gunManager p)) >>= \gs ->
+            get >>= \p -> do
+                gunMgr <- lift $ updateGunManager p (_gunManager p)
                 put $ p
                     { _dir        = if
-                        | gunManagerActive gs -> gunManagerDir gs
-                        | otherwise           -> _dir (p :: Player)
-                    , _gunManager = gs
+                        | gunManagerActive gunMgr -> gunManagerDir gunMgr
+                        | otherwise               -> _dir (p :: Player)
+                    , _gunManager = gunMgr
                     }
 
             modify $ updatePlayerAttack inputState

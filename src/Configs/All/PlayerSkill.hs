@@ -6,6 +6,7 @@ import Data.Aeson.Types (FromJSON, genericParseJSON, parseJSON)
 import GHC.Generics     (Generic)
 
 import Configs.All.PlayerSkill.Dash
+import Configs.All.PlayerSkill.FastFall
 import Configs.All.PlayerSkill.Flight
 import Configs.All.PlayerSkill.Grapple
 import Configs.All.PlayerSkill.MarkRecall
@@ -24,6 +25,7 @@ data PlayerSkillConfig = PlayerSkillConfig
     , _stasisBlast    :: StasisBlastConfig
     , _markRecall     :: MarkRecallConfig
     , _summonPlatform :: SummonPlatformConfig
+    , _fastFall       :: FastFallConfig
     }
     deriving Generic
 

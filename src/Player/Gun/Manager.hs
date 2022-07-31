@@ -84,8 +84,8 @@ thinkGunManager shootable player gunManager =
 
 isSwitchGun :: InputRead m => Player -> GunManager -> m Bool
 isSwitchGun player gunManager
-    | length (_guns gunManager) < 2 = return False
-    | otherwise                     = readInputState <&> \inputState ->
+    | length (_guns gunManager) <= 1 = return False
+    | otherwise                      = readInputState <&> \inputState ->
         SwitchGunAlias `aliasPressed` inputState || SwitchGunInput `inPlayerInputBuffer` player
 
 updateGunManager :: Player -> GunManager -> AppEnv UpdatePlayerMsgsPhase GunManager
@@ -109,7 +109,7 @@ updateGunManager player gunManager =
         isSwitchGun'  <- isSwitchGun player gunManager
 
         return . flip execState gunManager $ do
-            modify $ \gs -> gs
+            modify $ \gunMgr -> gunMgr
                 { _guns          = guns'
                 , _fireDrawState = fireDrawState
                 }

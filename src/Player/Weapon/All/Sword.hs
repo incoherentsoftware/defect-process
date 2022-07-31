@@ -112,7 +112,7 @@ thinkSwordCharge swordData wpnThinkStatus player atk = (chargeAudioMsgs ++) <$> 
                             [mkMsg (PlayerMsgSpendMeter chargeMeterCost)]
                         | weaponNotHeld && not isChargeReleaseAtk              ->
                             -- refund meter if released button during uncancelable action and there's no attack
-                            [mkMsg $ PlayerMsgGainMeter chargeMeterCost]
+                            [mkMsg $ PlayerMsgGainMeter NullId chargeMeterCost]
                         | otherwise                                            -> []
 
 thinkSwordAttack :: SwordData -> Maybe Attack -> Player -> [Msg ThinkPlayerMsgsPhase]

@@ -21,7 +21,6 @@ musicFileNameExtension = ".ogg"       :: FileName
 expectedFolderNames = S.fromList
     [ "SFX Events"
     , "UI"
-    , "WIP"
     ] :: S.Set T.Text
 
 loadMusicDirectoryFilePaths :: MonadIO m => m [FilePath]
@@ -35,15 +34,22 @@ loadMusicDirectoryFilePaths = do
 -- workaround FMOD Studio tool exporting these particular paths with altered case for whatever reason
 translateFmodStudioPath :: MonadIO m => FilePath -> m FilePath
 translateFmodStudioPath = \case
-    "event:/SFX Events/Player/Spawn"             -> return "event:/SFX Events/Player/spawn"
-    "event:/SFX Events/Player/Grind-c"           -> return "event:/SFX Events/Player/grind-c"
-    "event:/SFX Events/Player/Warp-out"          -> return "event:/SFX Events/Player/warp-out"
-    "event:/SFX Events/Enemy/Spawn"              -> return "event:/SFX Events/Enemy/spawn"
-    "event:/SFX Events/Enemy/Death"              -> return "event:/SFX Events/Enemy/death"
-    "event:/SFX Events/Enemy/giant/attack-smash" -> return "event:/SFX Events/Enemy/Giant/attack-smash"
-    "event:/SFX Events/Enemy/giant/attack-punch" -> return "event:/SFX Events/Enemy/Giant/attack-punch"
-    "event:/SFX Events/Enemy/giant/hurt"         -> return "event:/SFX Events/Enemy/Giant/hurt"
-    "event:/SFX Events/Enemy/Super-armor"        -> return "event:/SFX Events/Enemy/super-armor"
+    "event:/SFX Events/Player/Spawn"                      -> return "event:/SFX Events/Player/spawn"
+    "event:/SFX Events/Player/Grind-c"                    -> return "event:/SFX Events/Player/grind-c"
+    "event:/SFX Events/Player/Warp-out"                   -> return "event:/SFX Events/Player/warp-out"
+    "event:/SFX Events/Enemy/Spawn"                       -> return "event:/SFX Events/Enemy/spawn"
+    "event:/SFX Events/Enemy/Death"                       -> return "event:/SFX Events/Enemy/death"
+    "event:/SFX Events/Enemy/giant/attack-smash"          -> return "event:/SFX Events/Enemy/Giant/attack-smash"
+    "event:/SFX Events/Enemy/giant/attack-punch"          -> return "event:/SFX Events/Enemy/Giant/attack-punch"
+    "event:/SFX Events/Enemy/giant/hurt"                  -> return "event:/SFX Events/Enemy/Giant/hurt"
+    "event:/SFX Events/Enemy/Super-armor"                 -> return "event:/SFX Events/Enemy/super-armor"
+    "event:/SFX Events/Enemy/spear/hurt"                  -> return "event:/SFX Events/Enemy/Spear/hurt"
+    "event:/SFX Events/Enemy/spear/attack-projectile-hit" ->
+        return "event:/SFX Events/Enemy/Spear/attack-projectile-hit"
+    "event:/SFX Events/Enemy/spear/attack-throw-release"  ->
+        return "event:/SFX Events/Enemy/Spear/attack-throw-release"
+    "event:/SFX Events/Enemy/spear/attack-shove"          -> return "event:/SFX Events/Enemy/Spear/attack-shove"
+    "event:/SFX Events/Enemy/spear/attack-throw-charge"   -> return "event:/SFX Events/Enemy/Spear/attack-throw-charge"
 
     path ->
         let

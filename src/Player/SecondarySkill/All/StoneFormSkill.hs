@@ -119,8 +119,8 @@ thinkStoneFormSkill canUseSkill player slot stoneFormSkill =
                 _                                               -> []
 
             meterMsgs = case newDeflect of
-                Just MeleeDeflect  -> [mkMsg $ PlayerMsgGainMeter (_meleeDeflectMeterGain cfg)]
-                Just RangedDeflect -> [mkMsg $ PlayerMsgGainMeter (_rangedDeflectMeterGain cfg)]
+                Just MeleeDeflect  -> [mkMsg $ PlayerMsgGainMeter NullId (_meleeDeflectMeterGain cfg)]
+                Just RangedDeflect -> [mkMsg $ PlayerMsgGainMeter NullId (_rangedDeflectMeterGain cfg)]
                 Nothing            -> []
 
             think :: InputState -> [Msg ThinkPlayerMsgsPhase]

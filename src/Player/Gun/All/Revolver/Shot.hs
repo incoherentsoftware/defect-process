@@ -18,6 +18,7 @@ import Msg
 import Particle
 import Particle.All.Simple
 import Player
+import Player.Gun.All.Revolver.Util
 import Projectile as P
 import Util
 import Window.Graphics
@@ -33,17 +34,28 @@ surfaceHitSoundPath = "event:/SFX Events/Player/Guns/gun-surface-hit" :: FilePat
 
 debugHitboxColor = Color 155 155 155 255 :: Color
 
-mkShotProjectile :: MonadIO m => Player -> RevolverConfig -> m (Some Projectile)
-mkShotProjectile player cfg =
+data ShotData = ShotData
+    { _type   :: RevolverShotType
+    , _config :: RevolverConfig
+    }
+
+mkShotProjectile :: MonadIO m => RevolverShotType -> Player -> RevolverConfig -> m (Some Projectile)
+mkShotProjectile shotType player cfg =
     let
         plId          = _msgId (player :: Player)
         pos           = playerShoulderPos player
         targetPos     = playerAimTarget player (_shootRange cfg)
         shotAliveSecs = _shotAliveSecs cfg
     in do
-        msgId  <- newId
-        let hbx = lineHitbox pos targetPos
-        return . Some $ (mkProjectile cfg msgId hbx shotAliveSecs)
+        msgId <- newId
+        let
+            shotData = ShotData
+                { _type   = shotType
+                , _config = cfg
+                }
+            hbx      = lineHitbox pos targetPos
+
+        return . Some $ (mkProjectile shotData msgId hbx shotAliveSecs)
             { _ownerId              = plId
             , _registeredCollisions = S.fromList
                 [ ProjRegisteredEnemyCollision
@@ -55,14 +67,14 @@ mkShotProjectile player cfg =
             , _processCollisions    = processShotCollisions
             }
 
-thinkShot :: Monad m => Pos2 -> ProjectileThink RevolverConfig m
+thinkShot :: Monad m => Pos2 -> ProjectileThink ShotData m
 thinkShot targetPos shot
     | P._ttl shot - timeStep <= 0.0 =
         let mkWhiffEffect = loadSimpleParticle targetPos RightDir worldEffectZIndex whiffEffectPath
         in return [mkMsg $ ParticleMsgAddM mkWhiffEffect]
     | otherwise                     = return []
 
-processShotCollisions :: ProjectileProcessCollisions RevolverConfig
+processShotCollisions :: ProjectileProcessCollisions ShotData
 processShotCollisions projCollisions shot = processCollisions $ sortProjectileCollisions projCollisions shot
     where
         processCollisions :: [(Pos2, ProjectileCollision)] -> [Msg ThinkCollisionMsgsPhase]
@@ -74,7 +86,7 @@ processShotCollisions projCollisions shot = processCollisions $ sortProjectileCo
             ProjRoomItemCollision (Some roomItem) -> shotEntityCollision roomItem shot intersectPos
             _                                     -> processCollisions collisions
 
-shotSurfaceCollision :: Hitbox -> Projectile RevolverConfig -> Pos2 -> [Msg ThinkCollisionMsgsPhase]
+shotSurfaceCollision :: Hitbox -> Projectile ShotData -> Pos2 -> [Msg ThinkCollisionMsgsPhase]
 shotSurfaceCollision nonEnemyHbx shot intersectPos =
     [ mkMsgTo (ProjectileMsgSetHitbox hitbox) shotId
     , mkMsgTo ProjectileMsgRemoveCollision shotId
@@ -91,7 +103,7 @@ shotSurfaceCollision nonEnemyHbx shot intersectPos =
             mkMissEffect             =
                 loadSimpleParticleRotated intersectPos effectDir worldEffectZIndex effectAngle missEffectPath
 
-shotEntityCollision :: CollisionEntity e => e -> Projectile RevolverConfig -> Pos2 -> [Msg ThinkCollisionMsgsPhase]
+shotEntityCollision :: CollisionEntity e => e -> Projectile ShotData -> Pos2 -> [Msg ThinkCollisionMsgsPhase]
 shotEntityCollision entity shot intersectPos =
     [ mkMsgTo (ProjectileMsgSetHitbox hitbox) shotId
     , mkMsgTo ProjectileMsgRemoveCollision shotId
@@ -112,16 +124,21 @@ shotEntityCollision entity shot intersectPos =
             mkImpactEffect           =
                 loadSimpleParticleRotated intersectPos effectDir worldEffectZIndex effectAngle hitEffectPath
 
-            cfg     = P._data shot
+            shotData   = P._data shot
+            cfg        = _config (shotData :: ShotData)
+            shotDamage = case _type shotData of
+                RevolverNormalShotType     -> _normalShotDamage cfg
+                RevolverContinuousShotType -> _continuousShotDamage cfg
+
             shotHit = (mkAttackHitEmpty shotId intersectPos)
                 { _vel               = _shotHitVel cfg
-                , _damage            = _shotDamage cfg
+                , _damage            = shotDamage
                 , _stagger           = _shotStagger cfg
                 , _hitstunMultiplier = _shotHitstunMultiplier cfg
                 , _isRanged          = True
                 }
 
-drawShotLine :: (ConfigsRead m, GraphicsReadWrite m, MonadIO m) => ProjectileDraw RevolverConfig m
+drawShotLine :: (ConfigsRead m, GraphicsReadWrite m, MonadIO m) => ProjectileDraw ShotData m
 drawShotLine projectile = whenM (readSettingsConfig _debug _drawEntityHitboxes) $
     let points = hitboxVertices $ projectileHitbox projectile
     in drawLines points debugHitboxColor debugHitboxZIndex

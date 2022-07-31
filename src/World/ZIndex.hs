@@ -10,6 +10,7 @@ module World.ZIndex
     , enemyDebugTextZIndex
     , playerLockOnZIndex
     , playerAimOverlayZIndex
+    , worldFrontEffectZIndex
     , worldEffectZIndex
     , worldProjectileZIndex
     , worldBehindProjectileZIndex
@@ -61,9 +62,10 @@ enemyDebugTextZIndex = ZIndex 21 :: ZIndex
 playerLockOnZIndex     = ZIndex 30 :: ZIndex
 playerAimOverlayZIndex = ZIndex 31 :: ZIndex
 
-worldEffectZIndex           = ZIndex 40 :: ZIndex
-worldProjectileZIndex       = ZIndex 41 :: ZIndex
-worldBehindProjectileZIndex = ZIndex 42 :: ZIndex
+worldFrontEffectZIndex      = ZIndex 40 :: ZIndex
+worldEffectZIndex           = ZIndex 41 :: ZIndex
+worldProjectileZIndex       = ZIndex 42 :: ZIndex
+worldBehindProjectileZIndex = ZIndex 43 :: ZIndex
 
 enemyAttackProjectileZIndex = ZIndex 50 :: ZIndex
 playerAttackEffectZIndex    = ZIndex 51 :: ZIndex

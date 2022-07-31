@@ -231,7 +231,6 @@ attackCollisionEntityHitMessages collisionEntity attack = case attackOnHitType a
         entityId        = collisionEntityMsgId collisionEntity
         atkHashedId     = hashId $ _id (attack :: Attack)
         isNewAtk        = collisionEntityNotPrevHitBy atkHashedId collisionEntity
-        atkDamage       = attackDamage attack
         entityHbx       = collisionEntityHitbox collisionEntity
         atkPos          = _pos (attack :: Attack)
         atkHitbox       = fromMaybe (dummyHitbox atkPos) (attackHitbox attack)
@@ -244,17 +243,17 @@ attackCollisionEntityHitMessages collisionEntity attack = case attackOnHitType a
             | otherwise = []
 
         audioMsgs
-            | isNewAtk && atkDamage > Damage 0 = attackHitSoundMessages atkIntersectPos attack
-            | otherwise                        = []
+            | isNewAtk  = attackHitSoundMessages atkIntersectPos attack
+            | otherwise = []
 
         normalOnHitMsgs = hurtMsg:worldMsgs ++ audioMsgs
 
 attackEnemyHitMessages :: Enemy d -> Attack -> [Msg ThinkCollisionMsgsPhase]
 attackEnemyHitMessages enemy attack = enemySpecificHitMsgs ++ attackCollisionEntityHitMessages enemy attack
     where
-        atkHashedId = hashId $ _id (attack :: Attack)
-        isNewAtk    = collisionEntityNotPrevHitBy atkHashedId enemy
-        enemyHbx    = collisionEntityHitbox enemy
+        atkId    = _id (attack :: Attack)
+        isNewAtk = collisionEntityNotPrevHitBy (hashId atkId) enemy
+        enemyHbx = collisionEntityHitbox enemy
 
         particleMsgs
             | isNewAtk  = attackHitEffectMessages enemyHbx attack
@@ -262,7 +261,7 @@ attackEnemyHitMessages enemy attack = enemySpecificHitMsgs ++ attackCollisionEnt
 
         meterMsgs = case attackMeterGain attack of
             Just meter
-                | isNewAtk -> [mkMsg $ PlayerMsgGainMeter meter]
+                | isNewAtk -> [mkMsg $ PlayerMsgGainMeter atkId meter]
             _              -> []
 
         enemySpecificHitMsgs

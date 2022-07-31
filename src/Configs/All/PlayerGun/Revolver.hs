@@ -14,17 +14,22 @@ import Player.Meter
 import Util
 
 data RevolverConfig = RevolverConfig
-    { _shootRange        :: Distance
-    , _maxBullets        :: Int
-    , _fireAirVel        :: Vel2
-    , _betweenShotsCd    :: Secs
-    , _reloadCd          :: Secs
-    , _autoReloadCd      :: Secs
-    , _muzzleFlashOffset :: Pos2
+    { _shootRange              :: Distance
+    , _maxBullets              :: Int
+    , _fireAirVel              :: Vel2
+    , _normalShotsCd           :: Secs
+    , _continuousShotsCd       :: Secs
+    , _continuousShotsChargeCd :: Secs
+    , _reloadCd                :: Secs
+    , _autoReloadCd            :: Secs
+    , _continuousChargeMinSecs :: Secs
+    , _muzzleFlashOffset       :: Pos2
+    , _fakeLegsHipsOffset      :: Pos2
 
+    , _normalShotDamage      :: Damage
+    , _continuousShotDamage  :: Damage
     , _shotAliveSecs         :: Secs
     , _shotHitVel            :: Vel2
-    , _shotDamage            :: Damage
     , _shotStagger           :: Stagger
     , _shotHitstunMultiplier :: Float
     , _shotMeterCost         :: MeterValue

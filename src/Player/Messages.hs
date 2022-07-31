@@ -245,9 +245,10 @@ processPlayerMsgs player = foldlM processMsg player =<< readMsgs
             PlayerMsgClearSecondarySkill ssType         -> return $ clearPlayerSecondarySkillSlot ssType p
             PlayerMsgSetSecondarySkillSlots ntT upT dnT -> return $ setPlayerSecondarySkillManagerOrder ntT upT dnT p
             PlayerMsgClearInputBuffer _                 -> return p
-            PlayerMsgGainMeter meter                    -> return $ p {_meter = gainPlayerMeter meter (_meter p)}
+            PlayerMsgGainMeter mId mVal                 -> return $ p {_meter = gainPlayerMeter mId mVal (_meter p)}
             PlayerMsgFillMeterFull                      -> return $ p {_meter = fillPlayerMeterFull (_meter p)}
             PlayerMsgSpendMeter meter                   -> return $ p {_meter = spendPlayerMeter meter (_meter p)}
+            PlayerMsgResetRisingJump                    -> return resetPlayerRisingJump
             PlayerMsgResetDoubleJump                    -> return $ resetPlayerAirStallDoubleJump p
             PlayerMsgResetAirStallAttacksCounter        -> return resetPlayerAirStall
             PlayerMsgResetPlatformDropping              -> return $ p {_flags = flags {_platformDropping = False}}
@@ -280,7 +281,8 @@ processPlayerMsgs player = foldlM processMsg player =<< readMsgs
                     atk <- maybe (return Nothing) (fmap Just . update) (_attack p)
                     return $ p {_attack = atk}
 
-                resetPlayerAirStall = p {_timersCounters = (_timersCounters p) {_airStallAttacksCounter = 0}}
+                resetPlayerRisingJump = p {_flags = flags {_risingJump = PlayerNotRisingJumpFlag}}
+                resetPlayerAirStall   = p {_timersCounters = (_timersCounters p) {_airStallAttacksCounter = 0}}
 
                 forcePlayerInAir = p
                     { _flags          = flags {_touchingGround = False}

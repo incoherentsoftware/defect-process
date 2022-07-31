@@ -10,6 +10,10 @@ module Player.Meter
     ) where
 
 import Data.Aeson.Types (FromJSON)
+import qualified Data.Set as S
+
+import Id
+import {-# SOURCE #-} Attack.Types
 
 newtype MeterValue = MeterValue
     { _int :: Int
@@ -21,25 +25,30 @@ minMeterValue        = MeterValue 0  :: MeterValue
 defaultMaxMeterValue = MeterValue 10 :: MeterValue
 
 data PlayerMeter = PlayerMeter
-    { _value    :: MeterValue
-    , _maxValue :: MeterValue
+    { _value        :: MeterValue
+    , _maxValue     :: MeterValue
+    , _gainMeterIds :: S.Set (Id Attack)
     }
 
 mkPlayerMeter :: PlayerMeter
 mkPlayerMeter = PlayerMeter
-    { _value    = defaultMaxMeterValue
-    , _maxValue = defaultMaxMeterValue
+    { _value        = defaultMaxMeterValue
+    , _maxValue     = defaultMaxMeterValue
+    , _gainMeterIds = S.empty
     }
 
 playerMeterValue :: PlayerMeter -> MeterValue
 playerMeterValue = _value
 
-gainPlayerMeter :: MeterValue -> PlayerMeter -> PlayerMeter
-gainPlayerMeter meterVal playerMeter
-    | meterVal <= minMeterValue = playerMeter
-    | otherwise                 =
-        let meter = min (_maxValue playerMeter) (_value playerMeter + meterVal)
-        in playerMeter {_value = meter}
+gainPlayerMeter :: Id Attack -> MeterValue -> PlayerMeter -> PlayerMeter
+gainPlayerMeter meterId meterVal playerMeter
+    | meterId /= NullId && meterId `S.member` gainMeterIds = playerMeter
+    | meterVal <= minMeterValue                            = playerMeter
+    | otherwise                                            = playerMeter
+        { _value        = min (_maxValue playerMeter) (_value playerMeter + meterVal)
+        , _gainMeterIds = meterId `S.insert` gainMeterIds
+        }
+    where gainMeterIds = _gainMeterIds playerMeter
 
 spendPlayerMeter :: MeterValue -> PlayerMeter -> PlayerMeter
 spendPlayerMeter meterVal playerMeter

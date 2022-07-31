@@ -211,9 +211,10 @@ data PlayerMsgPayload where
         -> Maybe SecondarySkillType
         -> PlayerMsgPayload
     PlayerMsgClearInputBuffer            :: S.Set PlayerInput -> PlayerMsgPayload
-    PlayerMsgGainMeter                   :: MeterValue -> PlayerMsgPayload
+    PlayerMsgGainMeter                   :: Id Attack -> MeterValue -> PlayerMsgPayload
     PlayerMsgSpendMeter                  :: MeterValue -> PlayerMsgPayload
     PlayerMsgFillMeterFull               :: PlayerMsgPayload
+    PlayerMsgResetRisingJump             :: PlayerMsgPayload
     PlayerMsgResetDoubleJump             :: PlayerMsgPayload
     PlayerMsgResetAirStallAttacksCounter :: PlayerMsgPayload
     PlayerMsgResetPlatformDropping       :: PlayerMsgPayload
