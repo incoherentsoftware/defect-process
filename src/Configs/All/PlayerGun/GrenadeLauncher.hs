@@ -20,14 +20,23 @@ data GrenadeLauncherConfig = GrenadeLauncherConfig
     , _leadArmAngleMultiplier   :: Float
     , _shotStartShoulderOffsetY :: PosY
     , _shotMeterCost            :: MeterValue
+    , _fakeLegsHipsOffset       :: Pos2
 
-    , _grenadeWidth   :: Float
-    , _grenadeHeight  :: Float
-    , _grenadeSpeed   :: Speed
-    , _grenadeGravity :: Float
-
+    , _grenadeWidth                 :: Float
+    , _grenadeHeight                :: Float
+    , _grenadeSpeed                 :: Speed
+    , _grenadeGravity               :: Float
     , _grenadeExplosionLaunchRadius :: Float
     , _grenadeExplosionLaunchSpeed  :: Float
+
+    , _mineOuterWidth  :: Float
+    , _mineOuterHeight :: Float
+    , _mineInnerWidth  :: Float
+    , _mineInnerHeight :: Float
+    , _mineVel         :: Vel2
+    , _mineGravity     :: Acceleration
+    , _mineArmingSecs  :: Secs
+    , _mineMeterCost   :: MeterValue
 
     , _headAngleMultiplier     :: Float
     , _leadArmAngleMultiplier  :: Float

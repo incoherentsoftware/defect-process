@@ -195,6 +195,7 @@ data PlayerMsgPayload where
     PlayerMsgSetAttackDescEx             :: Pos2 -> Direction -> AttackDescription -> PlayerMsgPayload
     PlayerMsgUpdateAttack                :: (Attack -> Attack) -> PlayerMsgPayload
     PlayerMsgUpdateAttackM               :: (Attack -> AppEnv UpdatePlayerMsgsPhase Attack) -> PlayerMsgPayload
+    PlayerMsgForceNewAttackId            :: PlayerMsgPayload
     PlayerMsgInteract                    :: GoldValue -> PlayerMsgPayload
     PlayerMsgBuyWeapon                   :: Some Weapon -> GoldValue -> PlayerMsgPayload
     PlayerMsgBuyGun                      :: Some Gun -> GoldValue -> PlayerMsgPayload
@@ -218,6 +219,7 @@ data PlayerMsgPayload where
     PlayerMsgResetDoubleJump             :: PlayerMsgPayload
     PlayerMsgResetAirStallAttacksCounter :: PlayerMsgPayload
     PlayerMsgResetPlatformDropping       :: PlayerMsgPayload
+    PlayerMsgResetPrevHitbox             :: PlayerMsgPayload
     PlayerMsgForceInAir                  :: PlayerMsgPayload
     PlayerMsgWarpOut                     :: PlayerMsgPayload
     PlayerMsgTouchingInfoSign            :: PlayerMsgPayload

@@ -14,6 +14,8 @@ data FlightConfig = FlightConfig
     , _dashSpeedY           :: Speed
     , _dashDecelerateSpeedX :: Speed
     , _dashDecelerateSpeedY :: Speed
+    , _diagSpeedXMultiplier :: Float
+    , _diagSpeedYMultiplier :: Float
     , _baseSpeed            :: Speed
     }
     deriving Generic

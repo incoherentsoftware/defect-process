@@ -8,7 +8,7 @@
 
 #### Enable Game Audio (optional)
 1. Register for a [FMOD account](https://www.fmod.com/profile/register)
-1. Download and extract ["FMOD Studio Studio Suite - FMOD Engine 2.02"](https://www.fmod.com/download#fmodstudiosuite) (Mac)
+1. Download and extract ["FMOD Engine 2.02.08"](https://fmod.com/download#fmodengine) (Mac)
 1. From the extracted contents:
    - Copy `api/core/inc/*.h` into `<project root>/inc/`
    - Copy `api/studio/inc/*.h` into `<project root>/inc/`

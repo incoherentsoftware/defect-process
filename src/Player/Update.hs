@@ -342,7 +342,10 @@ updatePlayerSprite player = player {_sprite = spr'}
             | otherwise                                     = switchSprite idleSpr
 
 updatePlayerPos :: Player -> Player
-updatePlayerPos player = player {_pos = pos'}
+updatePlayerPos player = player
+    { _pos        = pos'
+    , _prevHitbox = prevHitbox
+    }
     where
         pos            = _pos (player :: Player)
         Vel2 velX velY = _vel (player :: Player)
@@ -358,6 +361,10 @@ updatePlayerPos player = player {_pos = pos'}
 
         vel  = Vel2 velX' velY'
         pos' = toPos2 $ pos `vecAdd` (toPos2 $ vel `vecMul` timeStep)
+
+        prevHitbox
+            | _resetPrevHitbox flags = playerHitbox $ player {_pos = pos'}
+            | otherwise              = _prevHitbox player
 
 updatePlayerGettingHit :: Player -> Player
 updatePlayerGettingHit player = player {_flags = flags'}

@@ -84,6 +84,7 @@ allInitSecondarySkillRoomItems =
     , (FastFallSkill, mkStoneFormItemPickup)
     , (StasisBlastSkill, mkStoneFormItemPickup)
     , (SummonPlatformSkill, mkStoneFormItemPickup)
+    , (MarkRecallSkill, mkStoneFormItemPickup)
     ] :: [(SecondarySkillType, RoomType -> RoomItemInit p)]
 
 allInitUpgradeRoomItems =

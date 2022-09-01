@@ -190,9 +190,10 @@ int freeBank(FMOD_STUDIO_BANK** bank) {
     if (*bank == NULL)
         return 0;
 
-    if (FMOD_Studio_Bank_Unload(*bank) != FMOD_OK)
-        return -1;
+    int ret = FMOD_Studio_Bank_Unload(*bank);
     *bank = NULL;
+    if (ret != FMOD_OK)
+        return -1;
 
     return 0;
 }
@@ -258,10 +259,9 @@ void clearMusicWorld() {
 }
 
 int muteMusic(FMOD_BOOL mute) {
-    musicMuted = mute;
-
     if (FMOD_ChannelGroup_SetMute(musicsChannelGroup, mute) != FMOD_OK)
         return -1;
+    musicMuted = mute;
 
     return 0;
 }

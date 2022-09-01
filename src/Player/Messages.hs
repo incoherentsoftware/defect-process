@@ -21,6 +21,7 @@ import Configs.All.Settings
 import Configs.All.Settings.Debug
 import Constants
 import FileCache
+import Id
 import Msg
 import Particle.All.Simple
 import Player
@@ -199,6 +200,15 @@ updatePlayerGold updateGold player =
         writeMsgs [mkMsg $ UiMsgGainedGold goldDiff]
         return $ player {_gold = gold'}
 
+forcePlayerNewAttackId :: MonadIO m => Player -> m Player
+forcePlayerNewAttackId player = case _attack player of
+    Nothing  -> return player
+    Just atk -> do
+        newAtkId <- newId
+        return $ player
+            { _attack = Just $ atk {_id = newAtkId}
+            }
+
 resetPlayerAirStallDoubleJump :: Player -> Player
 resetPlayerAirStallDoubleJump player = player
     { _timersCounters = (_timersCounters player)
@@ -232,6 +242,7 @@ processPlayerMsgs player = foldlM processMsg player =<< readMsgs
             PlayerMsgSetAttackDescEx pos dir atkDesc    -> setPlayerAttackDescEx pos dir atkDesc p
             PlayerMsgUpdateAttack update                -> return $ p {_attack = update <$> _attack p}
             PlayerMsgUpdateAttackM update               -> updatePlayerAttackM update
+            PlayerMsgForceNewAttackId                   -> forcePlayerNewAttackId p
             PlayerMsgUsedMovementSkill                  -> return $ p {_flags = flags {_movementSkilled = True}}
             PlayerMsgBuyWeapon wpn cost                 -> return $ buyPlayerWeapon wpn cost p
             PlayerMsgBuyGun gun cost                    -> return $ buyPlayerGun gun cost p
@@ -252,6 +263,7 @@ processPlayerMsgs player = foldlM processMsg player =<< readMsgs
             PlayerMsgResetDoubleJump                    -> return $ resetPlayerAirStallDoubleJump p
             PlayerMsgResetAirStallAttacksCounter        -> return resetPlayerAirStall
             PlayerMsgResetPlatformDropping              -> return $ p {_flags = flags {_platformDropping = False}}
+            PlayerMsgResetPrevHitbox                    -> return $ p {_flags = flags {_resetPrevHitbox = True}}
             PlayerMsgForceInAir                         -> return forcePlayerInAir
             PlayerMsgWarpOut                            -> return $ p {_flags = flags {_warpingOut = True}}
             PlayerMsgTouchingInfoSign                   -> return $ p {_flags = flags {_touchingInfoSign = True}}

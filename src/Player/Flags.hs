@@ -44,6 +44,7 @@ data PlayerFlags = PlayerFlags
     , _gettingHit            :: Bool
     , _phased                :: Bool
     , _willFallOffGround     :: Bool
+    , _resetPrevHitbox       :: Bool
     , _warpingOut            :: Bool
     , _touchingInfoSign      :: Bool
     , _risingJump            :: PlayerRisingJumpFlag
@@ -75,6 +76,7 @@ mkPlayerFlags = PlayerFlags
     , _gettingHit            = False
     , _phased                = False
     , _willFallOffGround     = False
+    , _resetPrevHitbox       = False
     , _warpingOut            = False
     , _touchingInfoSign      = False
     , _risingJump            = PlayerNotRisingJumpFlag
@@ -102,6 +104,7 @@ updatePlayerFlags flags = flags
     , _firedGun              = False
     , _movementSkilled       = False
     , _willFallOffGround     = False
+    , _resetPrevHitbox       = False
     , _phased                = False
     , _touchingInfoSign      = False
     , _wallProximity         = PlayerWallProximityNone

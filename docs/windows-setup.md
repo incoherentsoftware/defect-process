@@ -8,7 +8,7 @@
 
 #### Enable Game Audio (optional)
 1. Register for a [FMOD account](https://www.fmod.com/profile/register)
-1. Download and install ["FMOD Studio Studio Suite - FMOD Engine 2.02"](https://www.fmod.com/download#fmodstudiosuite) (Windows)
+1. Download and extract ["FMOD Engine 2.02.08"](https://fmod.com/download#fmodengine) (Windows)
 1. From the installed contents:
    - Copy `FMOD Studio API Windows/api/core/inc/*.h` into `<project root>/inc/`
    - Copy `FMOD Studio API Windows/api/studio/inc/*.h` into `<project root>/inc/`
