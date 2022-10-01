@@ -95,14 +95,14 @@ drawTextureSubRectEx srcSubRect originPos pos destWidth destHeight dir zIndex an
         originXOffset        = if flipX then originX' else originX
         originYOffset        = originY
         angle'               = CDouble $ realToFrac (toDegrees angle)
-        rotatePoint          = Just . SDL.P $ SDL.V2 (realToFrac originX') (realToFrac originY)
+        scale                = drawScaleToFloat drawScale
+        rotatePoint          = Just . SDL.P $ SDL.V2 (realToFrac (originX' * scale)) (realToFrac (originY * scale))
         flipXY               = if flipX then SDL.V2 True False else SDL.V2 False False
 
         subRectPoint = SDL.P $ SDL.V2 (_x srcSubRect) (_y srcSubRect)
         subRectSize  = SDL.V2 (_width (srcSubRect :: SubRect)) (_height (srcSubRect :: SubRect))
         srcRect      = Just $ SDL.Rectangle subRectPoint subRectSize
 
-        scale       = drawScaleToFloat drawScale
         destWidth'  = realToFrac $ destWidth * scale
         destHeight' = realToFrac $ destHeight * scale
         destSize    = SDL.V2 destWidth' destHeight'

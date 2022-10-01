@@ -21,7 +21,7 @@ import Enemy.All.Axe.Data
 import Msg
 import Util
 
-thinkAI :: ConfigsRead m => EnemyUpdateAI AxeEnemyData m
+thinkAI :: ConfigsRead m => EnemyThinkAI AxeEnemyData m
 thinkAI enemy =
     let
         enemyData  = _data enemy

@@ -6,8 +6,10 @@ import Data.Aeson.Types (FromJSON, genericParseJSON, parseJSON)
 import GHC.Generics     (Generic)
 
 import Attack.Util
+import Enemy.DeathEffectData.Types
+import Enemy.HurtEffectData.Types
+import Enemy.SpawnEffectData.Types
 import Util
-import {-# SOURCE #-} Enemy.Util
 
 data GiantEnemyConfig = GiantEnemyConfig
     { _health  :: Health

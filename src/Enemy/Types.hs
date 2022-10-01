@@ -2,7 +2,7 @@ module Enemy.Types
     ( EnemyType(..)
     , enemyTypeFromName
     , EnemyDummyType(..)
-    , EnemyUpdateAI
+    , EnemyThinkAI
     , EnemyHitbox
     , EnemyPullable
     , EnemyUpdateHurtResponse
@@ -29,13 +29,13 @@ import Collision
 import Configs.All.Settings.Debug
 import Enemy.DebugText
 import Enemy.Flags
+import Enemy.LockOnReticleData
 import Enemy.StasisData.Types
 import Id
 import InfoMsg.Util
 import Msg.Types
 import Util
 import Window.Graphics
-import {-# SOURCE #-} Enemy.Util
 
 data EnemyType
     = AxeEnemy
@@ -92,7 +92,7 @@ data EnemyDummyType
     | EnemyRealType
     deriving Eq
 
-type EnemyUpdateAI d m             = Enemy d -> m [Msg ThinkEnemyMsgsPhase]
+type EnemyThinkAI d m              = Enemy d -> m [Msg ThinkEnemyMsgsPhase]
 type EnemyHitbox d                 = Enemy d -> Hitbox
 type EnemyPullable d               = Enemy d -> Bool
 type EnemyUpdateHurtResponse d m   = AttackHit -> Enemy d -> m (Enemy d)
@@ -106,6 +106,7 @@ type EnemySetDebugBehavior d       = [T.Text] -> Enemy d -> (T.Text, Enemy d)
 
 data Enemy d = Enemy
     { _data                   :: d
+    , _type                   :: Maybe EnemyType
     , _dummyType              :: EnemyDummyType
     , _msgId                  :: MsgId
     , _pos                    :: Pos2
@@ -119,12 +120,10 @@ data Enemy d = Enemy
     , _hitbox                 :: EnemyHitbox d
     , _pullable               :: EnemyPullable d
     , _lockOnReticleData      :: EnemyLockOnReticleData
-    , _deathEffectData        :: EnemyDeathEffectData
-    , _spawnEffectData        :: EnemySpawnEffectData
     , _stasisData             :: EnemyStasisData
     , _knownPlayerInfo        :: Maybe PlayerInfo
     , _flags                  :: EnemyFlags
-    , _thinkAI                :: EnemyUpdateAI d (AppEnv ThinkEnemyMsgsPhase)
+    , _thinkAI                :: EnemyThinkAI d (AppEnv ThinkEnemyMsgsPhase)
     , _updateHurtResponse     :: EnemyUpdateHurtResponse d (AppEnv UpdateEnemyMsgsPhase)
     , _updateGroundResponse   :: EnemyUpdateGroundResponse d (AppEnv UpdateEnemyMsgsPhase)
     , _updateHangtimeResponse :: EnemyUpdateHangtimeResponse d

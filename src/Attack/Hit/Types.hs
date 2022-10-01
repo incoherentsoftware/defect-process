@@ -7,6 +7,7 @@ import Attack.Description.Types
 import Attack.Util
 import Collision
 import Id
+import Particle.All.AttackSpecks.Types
 import Util
 
 data AttackHitLaunchTarget = AttackHitLaunchTarget
@@ -29,4 +30,7 @@ data AttackHit = AttackHit
     , _isRanged          :: Bool
     , _hitstunMultiplier :: Float
     , _hitEffectType     :: AttackHitEffectType
+    , _specksType        :: Maybe AttackSpecksType
+    , _specksPos         :: Maybe AttackSpecksPosition
+    , _specksDirection   :: Maybe AttackSpecksDirection
     }

@@ -3,6 +3,7 @@ module Player.Gun.All.Revolver.Shot
     ) where
 
 import Control.Monad.IO.Class (MonadIO)
+import qualified Data.List.NonEmpty as NE
 import qualified Data.Set as S
 
 import Attack.Hit
@@ -16,6 +17,7 @@ import FileCache
 import Id
 import Msg
 import Particle
+import Particle.All.AttackSpecks.Types
 import Particle.All.Simple
 import Player
 import Player.Gun.All.Revolver.Util
@@ -26,8 +28,13 @@ import World.ZIndex
 
 gunsPack        = \p -> PackResourceFilePath "data/player/player-guns.pack" p
 missEffectPath  = gunsPack "bullet-miss-effect.spr"  :: PackResourceFilePath
-hitEffectPath   = gunsPack "bullet-hit-effect.spr"   :: PackResourceFilePath
 whiffEffectPath = gunsPack "bullet-whiff-effect.spr" :: PackResourceFilePath
+
+hitEffectPaths = NE.fromList
+    [ gunsPack "bullet-hit-effect-a.spr"
+    , gunsPack "bullet-hit-effect-b.spr"
+    , gunsPack "bullet-hit-effect-c.spr"
+    ] :: NE.NonEmpty PackResourceFilePath
 
 enemyHitSoundPath   = "event:/SFX Events/Player/Guns/gun-hit"         :: FilePath
 surfaceHitSoundPath = "event:/SFX Events/Player/Guns/gun-surface-hit" :: FilePath
@@ -121,7 +128,8 @@ shotEntityCollision entity shot intersectPos =
 
             entityHbx                = collisionEntityHitbox entity
             (effectDir, effectAngle) = particleClosestDirAngle intersectPos entityHbx
-            mkImpactEffect           =
+            mkImpactEffect           = do
+                hitEffectPath <- randomChoice hitEffectPaths
                 loadSimpleParticleRotated intersectPos effectDir worldEffectZIndex effectAngle hitEffectPath
 
             shotData   = P._data shot
@@ -136,6 +144,8 @@ shotEntityCollision entity shot intersectPos =
                 , _stagger           = _shotStagger cfg
                 , _hitstunMultiplier = _shotHitstunMultiplier cfg
                 , _isRanged          = True
+                , _specksType        = Just BulletSpecksType
+                , _specksDirection   = Just SpecksAnyDir
                 }
 
 drawShotLine :: (ConfigsRead m, GraphicsReadWrite m, MonadIO m) => ProjectileDraw ShotData m

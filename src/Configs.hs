@@ -14,6 +14,7 @@ import Data.Yaml              (FromJSON, decodeFileEither)
 import Configs.All.Enemy
 import Configs.All.EnemyLockOn
 import Configs.All.Level
+import Configs.All.Particle
 import Configs.All.Player
 import Configs.All.PlayerGun
 import Configs.All.PlayerSkill
@@ -31,6 +32,7 @@ data Configs = Configs
     , _enemy        :: EnemyConfig
     , _enemyLockOn  :: EnemyLockOnConfig
     , _level        :: LevelConfig
+    , _particle     :: ParticleConfig
     , _progress     :: ProgressConfig
     }
 
@@ -56,13 +58,14 @@ mkConfigs =
     loadConfig "enemy.cfg" <*>
     loadConfig "enemy-lock-on.cfg" <*>
     loadConfig "level.cfg" <*>
+    loadConfig "particle.cfg" <*>
     loadConfig "progress.cfg"
 
 readSettingsConfig :: ConfigsRead m => (SettingsConfig -> a) -> (a -> b) -> m b
 readSettingsConfig cfg f = readConfig (cfg . _settings) f
 
-readEnemyConfig :: ConfigsRead m => (EnemyConfig -> a) -> (a -> b) -> m b
-readEnemyConfig cfg f = readConfig (cfg . _enemy) f
+readEnemyConfig :: ConfigsRead m => (EnemyConfig -> a) -> m a
+readEnemyConfig f = readConfig _enemy f
 
 readEnemyLockOnConfig :: ConfigsRead m => (EnemyLockOnConfig -> a) -> m a
 readEnemyLockOnConfig f = readConfig _enemyLockOn f

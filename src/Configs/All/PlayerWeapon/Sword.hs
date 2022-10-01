@@ -6,9 +6,9 @@ import Data.Aeson.Types (FromJSON, genericParseJSON, parseJSON)
 import GHC.Generics     (Generic)
 import qualified Data.Map as M
 
+import Enemy.LockOnReticleData
 import Player.Meter
 import Util
-import {-# SOURCE #-} Enemy.Util
 
 data SwordConfig = SwordConfig
     { _slash3AoeHitVel            :: Vel2

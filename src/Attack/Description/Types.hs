@@ -13,6 +13,7 @@ import Attack.Util
 import Collision
 import FileCache
 import Msg.Types
+import Particle.All.AttackSpecks.Types
 import Player.Meter
 import Util
 import Window.Graphics
@@ -55,13 +56,16 @@ data AttackDescription = AttackDescription
     , _sound                   :: AttackSound
     , _screenshakeType         :: ScreenshakeType
     , _refreshHitboxesType     :: AttackRefreshHitboxesType
-    , _hitEffectPath           :: Maybe PackResourceFilePath
+    , _hitEffectPaths          :: [PackResourceFilePath]
     , _hitEffectType           :: AttackHitEffectType
     , _onHitType               :: AttackOnHitType
     , _onSurfaceHitType        :: AttackOnSurfaceHitType
     , _meterGain               :: Maybe MeterValue
     , _nextAttackDescOnDone    :: Maybe AttackDescription
     , _isRanged                :: Bool
+    , _specksType              :: Maybe AttackSpecksType
+    , _specksPos               :: Maybe AttackSpecksPosition
+    , _specksDirection         :: Maybe AttackSpecksDirection
     }
 
 instance Eq AttackDescription where

@@ -6,12 +6,12 @@ import Data.Aeson.Types (FromJSON, genericParseJSON, parseJSON)
 import GHC.Generics     (Generic)
 import qualified Data.List.NonEmpty as NE
 
+import Enemy.LockOnReticleData
 import Level.Room.ArenaWalls.EnemySpawn.Types
 import Level.Room.ArenaWalls.JSON
 import Level.Room.Event.SlotMachine.Util
 import Util
 import World.Util
-import {-# SOURCE #-} Enemy.Util
 
 data LevelConfig = LevelConfig
     { _maxNumArenas          :: Int

@@ -39,6 +39,7 @@ import Configs
 import Configs.All.Enemy
 import Configs.All.Settings
 import Configs.All.Settings.Debug
+import Enemy.DeathEffectData
 import Enemy.DebugText
 import Enemy.Flags
 import Enemy.StasisData
@@ -55,23 +56,6 @@ dummyHealth = mkHealth 999999 :: Health
 
 debugHitboxColor       = Color 205 100 0 155  :: Color
 debugAttackHitboxColor = Color 183 65 222 155 :: Color
-
-dummyLockOnReticleData = EnemyLockOnReticleData
-    { _scale     = 1.0
-    , _offset    = zeroPos2
-    , _offsetMap = Nothing
-    } :: EnemyLockOnReticleData
-
-dummyDeathEffectData = EnemyDeathEffectData
-    { _drawScale = NonScaled
-    , _offset    = Nothing
-    } :: EnemyDeathEffectData
-
-dummySpawnEffectData = EnemySpawnEffectData
-    { _drawScale = NonScaled
-    , _offset    = Nothing
-    , _inAir     = Nothing
-    } :: EnemySpawnEffectData
 
 mkEnemy :: (ConfigsRead m, GraphicsRead m, MonadIO m, Typeable d) => d -> Pos2 -> Direction -> m (Enemy d)
 mkEnemy enData pos dir = do
@@ -107,6 +91,7 @@ mkEnemyInternal enMsgId enData pos dir enDummyType = do
 
     return $ Enemy
         { _data                   = enData
+        , _type                   = Nothing
         , _dummyType              = enDummyType
         , _msgId                  = enMsgId
         , _pos                    = pos
@@ -120,8 +105,6 @@ mkEnemyInternal enMsgId enData pos dir enDummyType = do
         , _hitbox                 = const $ dummyHitbox pos
         , _pullable               = const True
         , _lockOnReticleData      = dummyLockOnReticleData
-        , _deathEffectData        = dummyDeathEffectData
-        , _spawnEffectData        = dummySpawnEffectData
         , _stasisData             = stasisData
         , _knownPlayerInfo        = Nothing
         , _flags                  = mkEnemyFlags

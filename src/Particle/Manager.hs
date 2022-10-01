@@ -34,15 +34,14 @@ addParticleManagerParticles particleManager = foldlM processMsg particleManager 
             return $ pm {_particles = particles'}
 
 updateParticleManager :: ParticleManager -> AppEnv UpdateParticleMsgsPhase ParticleManager
-updateParticleManager particleManager = addParticleManagerParticles particleManager'
+updateParticleManager particleManager = addParticleManagerParticles $ particleManager {_particles = particles'}
     where
-        particles'       = flip execState (_particles particleManager) $ do
+        particles' = flip execState (_particles particleManager) $ do
             modify $ \ps ->
                 [Some $ (_update p) p | Some p <- ps]
             modify $ \ps ->
                 [Some $ p {_ttl = _ttl p - timeStep} | Some p <- ps]
             modify $ filter (\(Some p) -> _ttl p > 0.0)
-        particleManager' = particleManager {_particles = particles'}
 
 drawParticleManager :: ParticleManager -> AppEnv DrawMsgsPhase ()
 drawParticleManager particleManager = for_ (_particles particleManager) $ \(Some p) ->

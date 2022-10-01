@@ -104,7 +104,7 @@ readIsAtRoomTopBounds bouncingBall = processMsgs <$> readMsgs
             InfoMsgRoomTopBounds topBounds -> hitboxTop (bouncingBallHitbox bouncingBall) < topBounds + roomTopOffsetY
             _                              -> processMsgs ps
 
-thinkBouncingBall :: MsgsRead ThinkEnemyMsgsPhase m => EnemyUpdateAI BouncingBallData m
+thinkBouncingBall :: MsgsRead ThinkEnemyMsgsPhase m => EnemyThinkAI BouncingBallData m
 thinkBouncingBall bouncingBall = do
     let
         pos               = E._pos bouncingBall

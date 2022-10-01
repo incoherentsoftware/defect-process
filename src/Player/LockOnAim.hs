@@ -1,5 +1,7 @@
 module Player.LockOnAim
     ( module Player.LockOnAim.Types
+    , calculateAxisThreshold
+    , calculateGamepadVisualAimPos
     , mkPlayerLockOnAim
     , thinkPlayerLockOnAim
     , updatePlayerLockOnAim
@@ -18,6 +20,7 @@ import qualified SDL.Raw
 import Attack.Util
 import Collision.Hitbox
 import Configs
+import Configs.All.Player
 import Configs.All.Settings
 import Configs.All.Settings.Debug
 import Enemy.Util
@@ -33,11 +36,26 @@ import Window.InputState
 import World.ZIndex
 import {-# SOURCE #-} Player
 
-lockOnAxisThresholdSq = 0.5 ** 2.0     :: Float
-lockOnAngleThreshold  = toRadians 10.0 :: Radians
-lockOnReticleOpacity  = Opacity 0.85   :: Opacity
+lockOnAngleThreshold = toRadians 10.0 :: Radians
+lockOnReticleOpacity = Opacity 0.85   :: Opacity
 
 lockOnReticleSprPathSuffixes = map pure ['a'..'p'] :: [FilePath]
+
+calculateAxisThreshold :: InputState -> Float
+calculateAxisThreshold inputState = sqrt $ xAxis ** 2 + yAxis ** 2
+    where Vec2 xAxis yAxis = axisVec inputState
+
+calculateGamepadVisualAimPos :: Player -> Pos2
+calculateGamepadVisualAimPos player = shoulderPos `vecAdd` offsetPos
+    where
+        aimPos         = _aimPos (player :: Player)
+        shoulderPos    = playerShoulderPos player
+        playerCenterX  = vecX $ _pos player
+        visualDiffX    = vecX shoulderPos - playerCenterX
+        posVec         = toPos2 . vecNormalize $ aimPos `vecSub` shoulderPos
+        playerCfg      = _config (player :: Player)
+        gamepadAimDist = _gamepadAimDist playerCfg
+        offsetPos      = posVec `vecMul` (gamepadAimDist - vecX posVec * visualDiffX)
 
 mkPlayerLockOnAim :: (FileCache m, GraphicsRead m, MonadIO m) => m PlayerLockOnAim
 mkPlayerLockOnAim = do
@@ -81,10 +99,6 @@ axisVec inputState = Vec2 xAxis yAxis
     where
         xAxis = gamepadAxis SDL.Raw.SDL_CONTROLLER_AXIS_RIGHTX inputState
         yAxis = gamepadAxis SDL.Raw.SDL_CONTROLLER_AXIS_RIGHTY inputState
-
-axisThresholdSq :: InputState -> Float
-axisThresholdSq inputState = xAxis ** 2 + yAxis ** 2
-    where Vec2 xAxis yAxis = axisVec inputState
 
 readMsgsEnemyLockOnData :: MsgsRead UpdatePlayerMsgsPhase m => m [EnemyLockOnData]
 readMsgsEnemyLockOnData = L.foldl' processMsg [] <$> readMsgs
@@ -265,17 +279,18 @@ updateLockOnGamepadAxisTarget player lockOnAim = do
 
 updateLockOnTarget :: (InputRead m, MsgsRead UpdatePlayerMsgsPhase m) => Player -> PlayerLockOnAim -> m PlayerLockOnAim
 updateLockOnTarget player lockOnAim = do
-    axisThresholdSq'     <- axisThresholdSq <$> readInputState
     isSwitchTargetInput' <- isSwitchTargetInput player
     isLockOnCursorInput' <- isLockOnCursorInput player
     isLockOnClearInput'  <- isLockOnClearInput player
+    axisThreshold        <- calculateAxisThreshold <$> readInputState
+    let aimAxisThreshold  = _aimAxisThreshold $ _config player
 
     if
-        | isSwitchTargetInput'                      -> switchLockOnTarget player lockOnAim
-        | isLockOnCursorInput'                      -> updateLockOnCursorTarget lockOnAim
-        | isLockOnClearInput'                       -> return $ clearPlayerLockOnAim lockOnAim
-        | axisThresholdSq' >= lockOnAxisThresholdSq -> updateLockOnGamepadAxisTarget player lockOnAim
-        | otherwise                                 -> return lockOnAim
+        | isSwitchTargetInput'              -> switchLockOnTarget player lockOnAim
+        | isLockOnCursorInput'              -> updateLockOnCursorTarget lockOnAim
+        | isLockOnClearInput'               -> return $ clearPlayerLockOnAim lockOnAim
+        | axisThreshold >= aimAxisThreshold -> updateLockOnGamepadAxisTarget player lockOnAim
+        | otherwise                         -> return lockOnAim
 
 updateLockOnPosHealth :: MsgsRead UpdatePlayerMsgsPhase m => PlayerLockOnAim -> m PlayerLockOnAim
 updateLockOnPosHealth lockOnAim = case _enemyLockOn (lockOnAim :: PlayerLockOnAim) of
@@ -298,10 +313,12 @@ updateLockOnPosHealth lockOnAim = case _enemyLockOn (lockOnAim :: PlayerLockOnAi
                 where currentEnemyId = _enemyId (enLockOn :: PlayerEnemyLockOn)
         in processLockOnDatas <$> readMsgsEnemyLockOnData
 
-updateLockOnManualOverride :: InputRead m => PlayerLockOnAim -> m PlayerLockOnAim
-updateLockOnManualOverride lockOnAim = do
-    axisThresholdSq'  <- axisThresholdSq <$> readInputState
-    let manualOverride = axisThresholdSq' >= lockOnAxisThresholdSq
+updateLockOnManualOverride :: InputRead m => Player -> PlayerLockOnAim -> m PlayerLockOnAim
+updateLockOnManualOverride player lockOnAim = do
+    axisThreshold <- calculateAxisThreshold <$> readInputState
+    let
+        aimCrosshairAxisThreshold = _aimCrosshairAxisThreshold $ _config player
+        manualOverride            = axisThreshold >= aimCrosshairAxisThreshold
     return $ lockOnAim {_manualOverride = manualOverride}
 
 updateLockOnReticleSprites :: PlayerLockOnAim -> PlayerLockOnAim
@@ -316,7 +333,7 @@ updatePlayerLockOnAim
 updatePlayerLockOnAim player lockOnAim =
     updateLockOnTarget player lockOnAim >>=
     updateLockOnPosHealth >>=
-    updateLockOnManualOverride >>=
+    updateLockOnManualOverride player >>=
     return . updateLockOnReticleSprites
 
 drawPlayerLockOnAim :: (ConfigsRead m, GraphicsReadWrite m, MonadIO m) => PlayerLockOnAim -> m ()

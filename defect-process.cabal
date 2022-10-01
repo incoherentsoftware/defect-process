@@ -5,7 +5,7 @@ cabal-version: 1.12
 -- see: https://github.com/sol/hpack
 
 name:           defect-process
-version:        0.9.0
+version:        0.9.1
 synopsis:       2d hack n' slash game
 category:       Game
 author:         Garrick Chin
@@ -71,6 +71,7 @@ executable defect-process
       Configs.All.Enemy.Zombie
       Configs.All.EnemyLockOn
       Configs.All.Level
+      Configs.All.Particle
       Configs.All.Player
       Configs.All.PlayerGun
       Configs.All.PlayerGun.GrenadeLauncher
@@ -118,10 +119,18 @@ executable defect-process
       Enemy.All.Axe.Behavior
       Enemy.All.Axe.Data
       Enemy.All.Axe.Sprites
+      Enemy.DeathEffectData
+      Enemy.DeathEffectData.Types
       Enemy.DebugText
       Enemy.Flags
+      Enemy.HurtEffectData
+      Enemy.HurtEffectData.Types
+      Enemy.LockOnData
+      Enemy.LockOnReticleData
       Enemy.Manager
       Enemy.Manager.Types
+      Enemy.SpawnEffectData
+      Enemy.SpawnEffectData.Types
       Enemy.StasisData
       Enemy.StasisData.Types
       Enemy.Types
@@ -254,6 +263,9 @@ executable defect-process
       Msg.Phase
       Msg.Types
       Particle
+      Particle.All.AttackSpecks
+      Particle.All.AttackSpecks.Types
+      Particle.All.AttackSpecks.Util
       Particle.All.EnemyHurt
       Particle.All.Simple
       Particle.Manager

@@ -3,8 +3,9 @@ module Enemy.All.Axe
     , mkAxeEnemy
     ) where
 
+import Control.Monad          (unless, when)
 import Control.Monad.IO.Class (MonadIO)
-import Control.Monad.State    (execState, get, modify, put, when)
+import Control.Monad.State    (execState, get, modify, put)
 import qualified Data.Text as T
 
 import Attack
@@ -23,6 +24,7 @@ import Enemy.All.Axe.Data
 import Enemy.All.Axe.Sprites
 import FileCache
 import Msg
+import Particle.All.AttackSpecks
 import Particle.All.EnemyHurt
 import Util
 import Window.Graphics
@@ -37,15 +39,14 @@ mkAxeEnemy :: (ConfigsRead m, FileCache m, GraphicsRead m, MonadIO m) => Pos2 ->
 mkAxeEnemy pos dir = do
     enemyData         <- mkAxeEnemyData
     enemy             <- mkEnemy enemyData pos dir
-    axeCfg            <- readEnemyConfig _axe id
+    axeCfg            <- readEnemyConfig _axe
     lockOnReticleData <- readEnemyLockOnConfig _axe
 
     return . Some $ enemy
-        { _health                 = _health (axeCfg :: AxeEnemyConfig)
+        { _type                   = Just AxeEnemy
+        , _health                 = _health (axeCfg :: AxeEnemyConfig)
         , _hitbox                 = axeEnemyHitbox
         , _lockOnReticleData      = lockOnReticleData
-        , _deathEffectData        = _deathEffectData (axeCfg :: AxeEnemyConfig)
-        , _spawnEffectData        = _spawnEffectData (axeCfg :: AxeEnemyConfig)
         , _thinkAI                = thinkAI
         , _updateHurtResponse     = updateHurtResponse
         , _updateGroundResponse   = updateGroundResponse
@@ -56,27 +57,17 @@ mkAxeEnemy pos dir = do
 
 axeEnemyHitbox :: EnemyHitbox AxeEnemyData
 axeEnemyHitbox enemy = case _behavior enemyData of
-    SpawnBehavior        -> dummyHbx
-    DeathBehavior        -> dummyHbx
-    HurtBehavior _ _
-        | False && inAir -> rectHitbox airHurtPos airHurtWidth airHurtHeight
-    _                    -> rectHitbox pos width height
+    SpawnBehavior -> dummyHbx
+    DeathBehavior -> dummyHbx
+    _             -> rectHitbox pos width height
     where
         enemyData = _data enemy
-        inAir     = not $ enemyTouchingGround enemy
         Pos2 x y  = E._pos enemy
         cfg       = _axe (_config enemyData :: EnemyConfig)
-
-        width  = _width (cfg :: AxeEnemyConfig)
-        height = _height (cfg :: AxeEnemyConfig)
-        pos    = Pos2 (x - width / 2.0) (y - height)
-
-        airHurtWidth   = _airHurtWidth (cfg :: AxeEnemyConfig)
-        airHurtHeight  = _airHurtHeight (cfg :: AxeEnemyConfig)
-        airHurtOffsetY = _airHurtOffsetY (cfg :: AxeEnemyConfig)
-        airHurtPos     = Pos2 (x - airHurtWidth / 2.0) (y - airHurtHeight + airHurtOffsetY)
-
-        dummyHbx = dummyHitbox $ Pos2 x (y - height / 2.0)
+        width     = _width (cfg :: AxeEnemyConfig)
+        height    = _height (cfg :: AxeEnemyConfig)
+        pos       = Pos2 (x - width / 2.0) (y - height)
+        dummyHbx  = dummyHitbox $ Pos2 x (y - height / 2.0)
 
 updateSpr :: EnemyUpdateSprite AxeEnemyData
 updateSpr enemy = case _behavior enemyData of
@@ -159,9 +150,12 @@ updateHurtResponse atkHit enemy
                 | otherwise                = onGround
         in do
             when (atkDmg > 0) $ do
-                let mkEffectPart = mkEnemyHurtParticle enemy atkHit (_hurtEffectData cfg)
-                writeMsgs [mkMsg $ ParticleMsgAddM mkEffectPart]
-                unlessM (readSettingsConfig _debug _disableEnemyHurtSfx) $
+                unless justGotHit $
+                    writeMsgs
+                        [ mkMsg $ ParticleMsgAddM (mkEnemyHurtParticle enemy atkHit hurtEffectData)
+                        , mkMsg $ ParticleMsgAddM (mkAttackSpecksParticle atkHit)
+                        ]
+                unlessM ((justGotHit ||) <$> readSettingsConfig _debug _disableEnemyHurtSfx) $
                     writeMsgs [mkMsg $ AudioMsgPlaySound hurtSoundPath atkPos]
 
             return $ enemy
@@ -178,9 +172,11 @@ updateHurtResponse atkHit enemy
                 }
 
     | otherwise = do
-        when (atkDmg > 0) $
-            let mkEffectPart = mkEnemyHurtParticleEx enemy atkHit (_hurtEffectData cfg) WeakHitEffect
-            in writeMsgs [mkMsg $ ParticleMsgAddM mkEffectPart]
+        when (atkDmg > 0 && not justGotHit) $
+            writeMsgs
+                [ mkMsg $ ParticleMsgAddM (mkEnemyHurtParticleEx enemy atkHit hurtEffectData WeakHitEffect)
+                , mkMsg $ ParticleMsgAddM (mkAttackSpecksParticleEx atkHit WeakHitEffect)
+                ]
 
         return $ enemy
             { _health = hp
@@ -188,11 +184,12 @@ updateHurtResponse atkHit enemy
             }
 
     where
-        enemyData = _data enemy
-        cfg       = _axe (_config enemyData :: EnemyConfig)
-        behavior  = _behavior enemyData
-        onGround  = enemyTouchingGround enemy
-        inAir     = not onGround
+        enemyData      = _data enemy
+        cfg            = _axe (_config enemyData :: EnemyConfig)
+        hurtEffectData = _hurtEffectData cfg
+        behavior       = _behavior enemyData
+        onGround       = enemyTouchingGround enemy
+        inAir          = not onGround
 
         isWeakAtkHitVel = _isWeakVel atkHit
         velY            = vecY $ E._vel enemy
@@ -209,6 +206,7 @@ updateHurtResponse atkHit enemy
             _                     -> False
 
         atkPos                  = _intersectPos atkHit
+        justGotHit              = enemyJustGotHit enemy
         flags                   = _flags enemy
         atkAlwaysLaunches       = _alwaysLaunches atkHit
         atkVel@(Vel2 _ atkVelY) = _vel (atkHit :: AttackHit)

@@ -96,7 +96,7 @@ attackOrbHitbox attackOrb
         isAppearSpr   = maybe False (== appearSpr) (E._sprite attackOrb)
         pos           = E._pos attackOrb
 
-thinkAttackOrb :: Monad m => EnemyUpdateAI AttackOrbData m
+thinkAttackOrb :: Monad m => EnemyThinkAI AttackOrbData m
 thinkAttackOrb attackOrb = return $ updateMsg:audioMsg:disappearMsgs
     where
         pos            = E._pos attackOrb

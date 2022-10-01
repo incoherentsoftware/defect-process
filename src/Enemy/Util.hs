@@ -1,13 +1,13 @@
 module Enemy.Util
-    ( enemySpawnDummyBodyPath
+    ( module Enemy.DeathEffectData
+    , module Enemy.HurtEffectData.Types
+    , module Enemy.LockOnData
+    , module Enemy.LockOnReticleData
+    , module Enemy.SpawnEffectData
+    , enemySpawnDummyBodyPath
     , enemyDeathEffectPath
     , enemyDeathSoundPath
     , enemySuperArmorSoundPath
-    , EnemyLockOnReticleData(..)
-    , EnemyLockOnData(..)
-    , EnemyHurtEffectData(..)
-    , EnemyDeathEffectData(..)
-    , EnemySpawnEffectData(..)
     , enemyHitbox
     , enemySpriteFinished
     , enemyFlippedDirIfWallOrGround
@@ -33,20 +33,23 @@ module Enemy.Util
     ) where
 
 import Control.Monad.IO.Class (MonadIO)
-import Data.Aeson.Types       (FromJSON, genericParseJSON, parseJSON)
 import Data.Maybe             (fromMaybe)
 import Data.Typeable          (Typeable)
-import GHC.Generics           (Generic)
-import qualified Data.Map as M
 
 import AppEnv
 import Attack.Hit.Types
 import Attack.Util
 import Collision.Hitbox
+import Configs
 import Configs.All.Enemy
 import Configs.All.Settings.Debug
 import Constants
+import Enemy.DeathEffectData
 import Enemy.Flags
+import Enemy.HurtEffectData.Types
+import Enemy.LockOnData
+import Enemy.LockOnReticleData
+import Enemy.SpawnEffectData
 import Enemy.StasisData
 import Enemy.Types as E
 import FileCache
@@ -68,53 +71,6 @@ enemySpawnSoundPath         = "event:/SFX Events/Enemy/spawn"                 ::
 enemyDeathSoundPath         = "event:/SFX Events/Enemy/death"                 :: FilePath
 enemyGroundImpactSoundPath  = "event:/SFX Events/Enemy/ground-impact"         :: FilePath
 enemySuperArmorSoundPath    = "event:/SFX Events/Enemy/super-armor"           :: FilePath
-
-data EnemyLockOnReticleData = EnemyLockOnReticleData
-    { _scale     :: Float
-    , _offset    :: Pos2
-    , _offsetMap :: Maybe (M.Map String [Pos2])
-    }
-    deriving Generic
-
-instance FromJSON EnemyLockOnReticleData where
-    parseJSON = genericParseJSON aesonFieldDropUnderscore
-
-data EnemyLockOnData = EnemyLockOnData
-    { _enemyId       :: MsgId
-    , _enemyHitbox   :: Hitbox
-    , _enemyHealth   :: Health
-    , _enemyVel      :: Vel2
-    , _reticleScale  :: Float
-    , _reticleOffset :: Pos2
-    }
-
-data EnemyHurtEffectData = EnemyHurtEffectData
-    { _drawScale       :: DrawScale
-    , _strongDrawScale :: DrawScale
-    }
-    deriving Generic
-
-instance FromJSON EnemyHurtEffectData where
-    parseJSON = genericParseJSON aesonFieldDropUnderscore
-
-data EnemyDeathEffectData = EnemyDeathEffectData
-    { _drawScale :: DrawScale
-    , _offset    :: Maybe Pos2
-    }
-    deriving Generic
-
-instance FromJSON EnemyDeathEffectData where
-    parseJSON = genericParseJSON aesonFieldDropUnderscore
-
-data EnemySpawnEffectData = EnemySpawnEffectData
-    { _drawScale :: DrawScale
-    , _offset    :: Maybe Pos2
-    , _inAir     :: Maybe Bool
-    }
-    deriving Generic
-
-instance FromJSON EnemySpawnEffectData where
-    parseJSON = genericParseJSON aesonFieldDropUnderscore
 
 enemyHitbox :: Enemy d -> Hitbox
 enemyHitbox enemy = (E._hitbox enemy) enemy
@@ -171,16 +127,16 @@ clearEnemySprite :: Enemy d -> Enemy d
 clearEnemySprite enemy = enemy {_sprite = Nothing}
 
 -- assumes death sprite is already set for Enemy _sprite
-drawEnemyDeath :: (GraphicsReadWrite m, MonadIO m) => EnemyDraw d m
+drawEnemyDeath :: (ConfigsRead m, GraphicsReadWrite m, MonadIO m) => EnemyDraw d m
 drawEnemyDeath enemy = case E._sprite enemy of
     Nothing  -> return ()
-    Just spr ->
+    Just spr -> do
+        deathEffectData <- readDeathEffectData $ _type enemy
         let
-            deathEffectData = _deathEffectData enemy
-            offset          = fromMaybe zeroPos2 (_offset (deathEffectData :: EnemyDeathEffectData))
-            pos             = hitboxCenter (enemyHitbox enemy) `vecAdd` offset
-            drawScale       = _drawScale (deathEffectData :: EnemyDeathEffectData)
-        in drawSpriteEx pos (E._dir enemy) enemyBodyZIndex 0.0 FullOpacity drawScale spr
+            offset    = fromMaybe zeroPos2 (_offset (deathEffectData :: EnemyDeathEffectData))
+            pos       = hitboxCenter (enemyHitbox enemy) `vecAdd` offset
+            drawScale = _drawScale (deathEffectData :: EnemyDeathEffectData)
+        drawSpriteEx pos (E._dir enemy) enemyBodyZIndex 0.0 FullOpacity drawScale spr
 
 enemyKnownPlayerPos :: Enemy d -> Maybe Pos2
 enemyKnownPlayerPos enemy = playerInfoPos <$> _knownPlayerInfo enemy
@@ -215,21 +171,23 @@ enemyHitstunFromAttackHit atkHit enemyCfg
 enemySpawnEffectMessages :: Enemy d -> [Msg ThinkEnemyMsgsPhase]
 enemySpawnEffectMessages enemy =
     [ mkMsg $ ParticleMsgAddM mkSpawnEffect
-    , mkMsg $ AudioMsgPlaySound enemySpawnSoundPath pos
+    , mkMsg $ AudioMsgPlaySound enemySpawnSoundPath (E._pos enemy)
     ]
     where
-        spawnEffectData = _spawnEffectData enemy
-        offset          = fromMaybe zeroPos2 (_offset (spawnEffectData :: EnemySpawnEffectData))
-        inAir           = fromMaybe False (_inAir spawnEffectData)
-        pos
-            | inAir     = hitboxCenter (enemyHitbox enemy) `vecAdd` offset
-            | otherwise = E._pos enemy `vecAdd` offset
-        dir             = E._dir enemy
-        drawScale       = _drawScale (spawnEffectData :: EnemySpawnEffectData)
-        effectPath
-            | inAir     = enemyAirSpawnEffectPath
-            | otherwise = enemySpawnEffectPath
-        mkSpawnEffect   = loadSimpleParticleEx pos dir enemyOverBodyZIndex drawScale effectPath
+        mkSpawnEffect = do
+            spawnEffectData <- readSpawnEffectData $ _type enemy
+            let
+                offset          = fromMaybe zeroPos2 (_offset (spawnEffectData :: EnemySpawnEffectData))
+                inAir           = fromMaybe False (_inAir spawnEffectData)
+                pos
+                    | inAir     = hitboxCenter (enemyHitbox enemy) `vecAdd` offset
+                    | otherwise = E._pos enemy `vecAdd` offset
+                dir             = E._dir enemy
+                drawScale       = _drawScale (spawnEffectData :: EnemySpawnEffectData)
+                effectPath
+                    | inAir     = enemyAirSpawnEffectPath
+                    | otherwise = enemySpawnEffectPath
+            loadSimpleParticleEx pos dir enemyOverBodyZIndex drawScale effectPath
 
 enemySetDeadMessages :: Enemy d -> [Msg ThinkEnemyMsgsPhase]
 enemySetDeadMessages enemy = [mkMsgTo EnemyMsgSetDead (E._msgId enemy)]

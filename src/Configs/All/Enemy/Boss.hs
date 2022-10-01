@@ -6,9 +6,9 @@ import Data.Aeson.Types (FromJSON, genericParseJSON, parseJSON)
 import GHC.Generics     (Generic)
 
 import Attack.Util
+import Enemy.HurtEffectData.Types
 import Util
 import Window.Graphics.Util
-import {-# SOURCE #-} Enemy.Util
 
 data BossEnemyConfig = BossEnemyConfig
     { _health :: Health

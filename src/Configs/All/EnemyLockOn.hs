@@ -5,8 +5,8 @@ module Configs.All.EnemyLockOn
 import Data.Aeson.Types (FromJSON, genericParseJSON, parseJSON)
 import GHC.Generics     (Generic)
 
+import Enemy.LockOnReticleData
 import Util
-import {-# SOURCE #-} Enemy.Util
 
 data EnemyLockOnConfig = EnemyLockOnConfig
     { _axe          :: EnemyLockOnReticleData

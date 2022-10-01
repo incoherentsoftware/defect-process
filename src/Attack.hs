@@ -40,6 +40,7 @@ module Attack
 import Control.Monad.IO.Class (MonadIO)
 import Data.Maybe             (fromMaybe, isNothing, listToMaybe)
 import qualified Data.List as L
+import qualified Data.List.NonEmpty as NE
 import qualified Data.Set as S
 
 import Attack.Description
@@ -47,7 +48,7 @@ import Attack.Sound
 import Attack.Types
 import Attack.Util
 import Collision
-import Enemy.Types
+import Enemy.Types as E
 import Id
 import Msg
 import Particle.All.Simple
@@ -163,16 +164,19 @@ attackOnHitType = _onHitType . _description
 attackHitEffectType :: Attack -> AttackHitEffectType
 attackHitEffectType = _hitEffectType . _description
 
-attackHitEffectMessages :: Hitbox -> Attack -> [Msg ThinkCollisionMsgsPhase]
-attackHitEffectMessages collisionEntityHbx attack = case _hitEffectPath (_description attack) of
-    Nothing            -> []
-    Just hitEffectPath -> [mkMsg $ ParticleMsgAddM mkEffect]
-        where
+attackEnemyHitEffectMessages :: Enemy d -> Attack -> [Msg ThinkCollisionMsgsPhase]
+attackEnemyHitEffectMessages enemy attack = case _hitEffectPaths (_description attack) of
+    []     -> []
+    (p:ps) ->
+        let
             atkPos          = _pos (attack :: Attack)
             atkHitbox       = fromMaybe (dummyHitbox atkPos) (attackHitbox attack)
-            atkIntersectPos = hitboxAvgIntersectPos atkHitbox collisionEntityHbx
+            atkIntersectPos = hitboxAvgIntersectPos atkHitbox (collisionEntityHitbox enemy)
             dir             = _dir (attack :: Attack)
-            mkEffect        = loadSimpleParticle atkIntersectPos dir playerAttackEffectZIndex hitEffectPath
+            mkEffect        = do
+                hitEffectPath <- randomChoice $ p NE.:| ps
+                loadSimpleParticle atkIntersectPos dir playerAttackEffectZIndex hitEffectPath
+        in [mkMsg $ ParticleMsgAddM mkEffect]
 
 attackHitlagMessages :: AllowMsgWrite p WorldMsgPayload => Attack -> [Msg p]
 attackHitlagMessages attack
@@ -253,10 +257,9 @@ attackEnemyHitMessages enemy attack = enemySpecificHitMsgs ++ attackCollisionEnt
     where
         atkId    = _id (attack :: Attack)
         isNewAtk = collisionEntityNotPrevHitBy (hashId atkId) enemy
-        enemyHbx = collisionEntityHitbox enemy
 
         particleMsgs
-            | isNewAtk  = attackHitEffectMessages enemyHbx attack
+            | isNewAtk  = attackEnemyHitEffectMessages enemy attack
             | otherwise = []
 
         meterMsgs = case attackMeterGain attack of

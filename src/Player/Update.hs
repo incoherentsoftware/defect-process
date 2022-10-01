@@ -155,24 +155,23 @@ updatePlayerAimTarget inputState player =
     let
         dir               = _dir (player :: Player)
         playerCfg         = _config (player :: Player)
-        aimAxisThreshold  = _aimAxisThreshold playerCfg
         gamepadAimDist    = _gamepadAimDist playerCfg
         defaultAimXOffset = _defaultAimXOffset playerCfg
     in do
-        aimPos <- (_lastUsedInputType <$> readInputState) <&> \case
+        lockOnAim <- updatePlayerLockOnAim player (_lockOnAim player)
+        aimPos    <- (_lastUsedInputType <$> readInputState) <&> \case
             MouseKbInputType -> _mouseWorldPos inputState
             GamepadInputType ->
                 let
-                    xAxis                   = gamepadAxis SDL.Raw.SDL_CONTROLLER_AXIS_RIGHTX inputState
-                    yAxis                   = gamepadAxis SDL.Raw.SDL_CONTROLLER_AXIS_RIGHTY inputState
-                    axisPastThreshold       = abs xAxis >= aimAxisThreshold || abs yAxis >= aimAxisThreshold
                     axisOffsetPos
-                        | axisPastThreshold = Pos2 (xAxis * gamepadAimDist) (yAxis * gamepadAimDist)
-                        | otherwise         = Pos2 (directionNeg dir * defaultAimXOffset) 0.0
-                    shoulderPos             = playerShoulderPos player
-                in shoulderPos `vecAdd` axisOffsetPos
+                        | _manualOverride lockOnAim =
+                            let
+                                xAxis = gamepadAxis SDL.Raw.SDL_CONTROLLER_AXIS_RIGHTX inputState
+                                yAxis = gamepadAxis SDL.Raw.SDL_CONTROLLER_AXIS_RIGHTY inputState
+                            in vecNormalize (Pos2 xAxis yAxis) `vecMul` gamepadAimDist
+                        | otherwise                 = Pos2 (directionNeg dir * defaultAimXOffset) 0.0
+                in playerShoulderPos player `vecAdd` axisOffsetPos
 
-        lockOnAim <- updatePlayerLockOnAim player (_lockOnAim player)
         return $ player
             { _aimPos    = aimPos
             , _lockOnAim = lockOnAim

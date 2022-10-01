@@ -30,6 +30,7 @@ import Attack.Hit.Types
 import Attack.Types
 import Audio.Volume
 import Collision.Hitbox.Types
+import Enemy.LockOnData
 import Enemy.Types
 import Id
 import InfoMsg.Util
@@ -59,7 +60,6 @@ import World.Screenshake.Types
 import World.Surface.Types
 import World.UI.Voiceover.Types
 import World.Util
-import {-# SOURCE #-} Enemy.Util
 import {-# SOURCE #-} Msg.Types
 
 class IsMsgPayload a where

@@ -34,6 +34,9 @@ mkAttackHitEx intersectPos atk = AttackHit
     , _isRanged          = _isRanged (atkDesc :: AttackDescription)
     , _hitstunMultiplier = attackHitstunMultiplier atk
     , _hitEffectType     = attackHitEffectType atk
+    , _specksType        = _specksType (atkDesc :: AttackDescription)
+    , _specksPos         = _specksPos (atkDesc :: AttackDescription)
+    , _specksDirection   = _specksDirection (atkDesc :: AttackDescription)
     }
     where
         atkDesc        = _description atk
@@ -60,6 +63,9 @@ mkAttackHitEmpty msgId intersectPos = AttackHit
     , _isRanged          = False
     , _hitstunMultiplier = 1.0
     , _hitEffectType     = NormalHitEffect
+    , _specksType        = Nothing
+    , _specksPos         = Nothing
+    , _specksDirection   = Nothing
     }
 
 attackHitLaunchTargetY :: Pos2 -> AttackHit -> Maybe PosY

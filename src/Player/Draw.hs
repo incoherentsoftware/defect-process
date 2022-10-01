@@ -10,7 +10,6 @@ import AppEnv
 import Attack
 import Collision
 import Configs
-import Configs.All.Player
 import Configs.All.Settings
 import Configs.All.Settings.Debug
 import Msg.Phase
@@ -43,12 +42,8 @@ drawPlayer player
                         atkDir = _dir (atk :: Attack)
                     in drawSpriteRotated atkPos atkDir playerBodyZIndex (_angle atk) atkSpr
 
-            weaponManager   = _weaponManager player
-            gunManager      = _gunManager player
-            aimPos          = _aimPos (player :: Player)
-            aimDist         = vecDist aimPos (playerShoulderPos player)
-            aimCrosshairImg = _aimCrosshair $ _images (player :: Player)
-            lockOnAim       = _lockOnAim player
+            weaponManager = _weaponManager player
+            gunManager    = _gunManager player
         in do
             unlessM (readSettingsConfig _debug _hidePlayer) $ do
                 lerpOffset <- playerLerpOffset player
@@ -75,14 +70,17 @@ drawPlayer player
                     Just (Some overlay) -> (OL._draw overlay) player overlay
 
             unlessM (readSettingsConfig _debug _hideTargeting) $ do
+                let lockOnAim = _lockOnAim player
                 drawPlayerLockOnAim lockOnAim
 
                 gamepadLastUsed <- (== GamepadInputType) . _lastUsedInputType <$> readInputState
-                when (gamepadLastUsed && aimDist >= _aimCrosshairDistThreshold cfg) $
-                    drawImage aimPos RightDir playerAimOverlayZIndex aimCrosshairImg
+                when (gamepadLastUsed && _manualOverride lockOnAim) $
+                    let
+                        visualAimPos    = calculateGamepadVisualAimPos player
+                        aimCrosshairImg = _aimCrosshair $ _images (player :: Player)
+                    in drawImage visualAimPos RightDir playerAimOverlayZIndex aimCrosshairImg
 
     where
         pos = _pos (player :: Player)
         dir = _dir (player :: Player)
         spr = _sprite (player :: Player)
-        cfg = _config (player :: Player)

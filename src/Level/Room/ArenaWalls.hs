@@ -41,7 +41,6 @@ import Level.Room.ArenaWalls.Ripple
 import Level.Room.ArenaWalls.Types
 import Level.Room.ArenaWalls.Util
 import Msg
-import Particle.All.EnemyHurt
 import Particle.All.Simple
 import Util
 import Window.Graphics
@@ -67,6 +66,8 @@ markerRippleSoundPath    = "event:/SFX Events/Level/arena-marker-ripple"    :: F
 markerDisappearSoundPath = "event:/SFX Events/Level/arena-marker-disappear" :: FilePath
 wallAppearSoundPath      = "event:/SFX Events/Level/arena-wall-appear"      :: FilePath
 wallImpactSoundPath      = "event:/SFX Events/Level/arena-wall-impact"      :: FilePath
+
+enemyParticlesPackPath = "data/particles/particles-enemy.pack" :: FilePath
 
 mkRoomArenaWallsSprites :: (FileCache m, GraphicsRead m, MonadIO m) => m RoomArenaWallsSprites
 mkRoomArenaWallsSprites =
@@ -274,7 +275,7 @@ preloadRoomArenaWallsPackResources arenaWalls =
         writeAsyncRequest'        = writeAsyncRequest . PreloadPackFileRequest
     in do
         traverse_ writeAsyncRequest' enemyPreloadPackFilePaths
-        writeAsyncRequest' enemyHurtPackPath
+        writeAsyncRequest' enemyParticlesPackPath
 
 roomArenaWallsSurfaces :: RoomArenaWalls -> [Surface]
 roomArenaWallsSurfaces arenaWalls

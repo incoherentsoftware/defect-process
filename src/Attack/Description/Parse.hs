@@ -19,6 +19,7 @@ import Attack.Sound
 import Attack.Util
 import Collision
 import FileCache
+import Particle.All.AttackSpecks.Types
 import Player.Meter
 import Util
 import Window.Graphics
@@ -85,11 +86,14 @@ data AttackDescriptionJSON = AttackDescriptionJSON
     , _screenshakeOnHit             :: Maybe Bool
     , _refreshHitboxesOnLoop        :: Maybe Bool
     , _refreshHitboxesPerFrameCount :: Maybe Int
-    , _hitEffectSpriteFileName      :: Maybe FilePath
+    , _hitEffectSpriteFileNames     :: Maybe [FilePath]
     , _hitEffectType                :: Maybe AttackHitEffectType
     , _meterGain                    :: Maybe MeterValue
     , _nextAttackOnDonePath         :: Maybe FilePath
     , _isRanged                     :: Maybe Bool
+    , _specksType                   :: Maybe AttackSpecksType
+    , _specksPos                    :: Maybe AttackSpecksPosition
+    , _specksDirection              :: Maybe AttackSpecksDirection
     }
     deriving Generic
 
@@ -216,8 +220,9 @@ parseLoadAttackDescription filePath atkDescByteStr packFilePath =
         refreshHitboxesOnLoop        = _refreshHitboxesOnLoop (atkDescJSON :: AttackDescriptionJSON)
         refreshHitboxesPerFrameCount = _refreshHitboxesPerFrameCount (atkDescJSON :: AttackDescriptionJSON)
 
-        hitEffectSpriteFileName = _hitEffectSpriteFileName (atkDescJSON :: AttackDescriptionJSON)
-        hitEffectPath           = PackResourceFilePath packFilePath <$> hitEffectSpriteFileName
+        hitEffectPaths = case _hitEffectSpriteFileNames (atkDescJSON :: AttackDescriptionJSON) of
+            Nothing           -> []
+            Just sprFileNames -> map (PackResourceFilePath packFilePath) sprFileNames
 
         hitEffectType  = _hitEffectType (atkDescJSON :: AttackDescriptionJSON)
         hitEffectType' = fromMaybe NormalHitEffect hitEffectType
@@ -299,13 +304,16 @@ parseLoadAttackDescription filePath atkDescByteStr packFilePath =
             , _sound                   = sound
             , _screenshakeType         = screenshakeType
             , _refreshHitboxesType     = refreshHitboxesType
-            , _hitEffectPath           = hitEffectPath
+            , _hitEffectPaths          = hitEffectPaths
             , _hitEffectType           = hitEffectType'
             , _onHitType               = NormalOnHitType
             , _onSurfaceHitType        = NoSurfaceHitType
             , _meterGain               = _meterGain (atkDescJSON :: AttackDescriptionJSON)
             , _nextAttackDescOnDone    = nextAttackDescOnDone
             , _isRanged                = fromMaybe False (_isRanged (atkDescJSON :: AttackDescriptionJSON))
+            , _specksType              = _specksType (atkDescJSON :: AttackDescriptionJSON)
+            , _specksPos               = _specksPos (atkDescJSON :: AttackDescriptionJSON)
+            , _specksDirection         = _specksDirection (atkDescJSON :: AttackDescriptionJSON)
             }
 
 loadPackAttackDescription :: (FileCache m, GraphicsRead m, MonadIO m) => PackResourceFilePath -> m AttackDescription
