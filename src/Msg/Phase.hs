@@ -94,6 +94,7 @@ instance AllowMsgWrite ThinkEnemyMsgsPhase WorldMsgPayload where
 
 instance AllowMsgRead ThinkLevelMsgsPhase InfoMsgPayload where
 instance AllowMsgRead ThinkLevelMsgsPhase PlayerMsgPayload where
+instance AllowMsgRead ThinkLevelMsgsPhase UiMsgPayload where
 instance AllowMsgWrite ThinkLevelMsgsPhase AudioMsgPayload where
 instance AllowMsgWrite ThinkLevelMsgsPhase CollisionMsgPayload where
 instance AllowMsgWrite ThinkLevelMsgsPhase ConsoleMsgPayload where
@@ -101,8 +102,10 @@ instance AllowMsgWrite ThinkLevelMsgsPhase EnemyMsgPayload where
 instance AllowMsgWrite ThinkLevelMsgsPhase NewThinkProjectileMsgPayload where
 instance AllowMsgWrite ThinkLevelMsgsPhase ParticleMsgPayload where
 instance AllowMsgWrite ThinkLevelMsgsPhase PlayerMsgPayload where
+instance AllowMsgWrite ThinkLevelMsgsPhase ProjectileMsgPayload where
 instance AllowMsgWrite ThinkLevelMsgsPhase RoomMsgPayload where
 instance AllowMsgWrite ThinkLevelMsgsPhase UiMsgPayload where
+instance AllowMsgWrite ThinkLevelMsgsPhase WorldMsgPayload where
 
 instance AllowMsgRead ThinkProjectileMsgsPhase InfoMsgPayload where
 instance AllowMsgRead ThinkProjectileMsgsPhase NewThinkProjectileMsgPayload where

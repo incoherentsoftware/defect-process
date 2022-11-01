@@ -60,7 +60,7 @@ data MenuConfig = MenuConfig
     , _helpPopupCloseButtonPos                 :: Pos2
     , _helpPopupControlsButtonPos              :: Pos2
     , _helpPopupAltControlsButtonPos           :: Pos2
-    , _helpPopupTargetingTextPositions         :: (Pos2, Pos2, Pos2, Pos2, Pos2)
+    , _helpPopupTargetingTextPositions         :: (Pos2, Pos2, Pos2, Pos2, Pos2, Pos2, Pos2)
     , _helpPopupSwordBasicTabButtonPos         :: Pos2
     , _helpPopupSwordSpecialTabButtonPos       :: Pos2
     , _helpPopupGauntletsBasicTabButtonPos     :: Pos2

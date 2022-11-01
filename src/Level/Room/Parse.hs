@@ -5,6 +5,7 @@ module Level.Room.Parse
 
 import Control.Monad.IO.Class (MonadIO)
 import Data.Maybe             (fromMaybe)
+import Data.Traversable       (for)
 import Data.Yaml              (decodeEither')
 import System.FilePath        (takeDirectory)
 import qualified Data.Map as M
@@ -32,6 +33,7 @@ import Level.Room.Item.Jukebox
 import Level.Room.Item.Jukebox.JSON
 import Level.Room.Item.Pickup.All
 import Level.Room.Item.RefreshStation
+import Level.Room.Item.TutorialSign
 import Level.Room.Item.Types as RI
 import Level.Room.JSON
 import Level.Room.MovingPlatform
@@ -104,9 +106,12 @@ loadRoom roomType playerRoomInfo roomChooser currentDangerValue statsManager = d
                     Just cs -> mkGoldChunkSet cs
                     Nothing -> return []
 
-                infoSigns <- case _infoSigns roomJSON of
-                    Just positions -> traverse mkInfoSign positions
-                    Nothing        -> return []
+                signs <- case _signs roomJSON of
+                    Just ss -> for ss $ \s -> case _type (s :: SignJSON) of
+                        InfoSignType     -> mkInfoSign $ _pos (s :: SignJSON)
+                        TutorialSignType -> mkTutorialSign $ _pos (s :: SignJSON)
+                    Nothing -> return []
+
                 jukeboxes <- maybe (return []) loadRoomJukeboxes (_jukeboxes roomJSON)
 
                 eventActivators <- case _eventActivator (roomJSON :: RoomJSON) of
@@ -139,7 +144,7 @@ loadRoom roomType playerRoomInfo roomChooser currentDangerValue statsManager = d
                         | isTransitionRoomType newRoomType -> return []
                         | otherwise                        -> loadRoomRefreshStations roomJSON
 
-                let roomItems = goldChunks ++ infoSigns ++ jukeboxes ++ eventActivators ++ otherItems
+                let roomItems = goldChunks ++ signs ++ jukeboxes ++ eventActivators ++ otherItems
 
                 portalMgr <- case _portal (roomJSON :: RoomJSON) of
                     Nothing -> return Nothing
@@ -175,7 +180,7 @@ loadRoom roomType playerRoomInfo roomChooser currentDangerValue statsManager = d
                             height = _height (doorOverlay :: RoomDoorLightOverlayJSON)
                         in Just <$> mkRoomDoorLightOverlay pos height
 
-                triggers <- mkAllRoomTriggers
+                triggers <- mkRoomTriggers newRoomType
 
                 let
                     newRoom = (mkRoom newRoomType allSurfaces)

@@ -15,7 +15,7 @@ module Window.Graphics.InputDisplayText
 import Control.Monad.IO.Class (MonadIO)
 import Data.Foldable          (for_)
 import Data.Functor           ((<&>))
-import Data.Maybe             (mapMaybe)
+import Data.Maybe             (isNothing, mapMaybe)
 import Text.Printf            (printf)
 import qualified Data.HashMap.Lazy as HM
 import qualified Data.Text as T
@@ -39,8 +39,7 @@ import Window.InputState.GamepadManager.Types
 import Window.InputState.RawData
 import Window.InputState.Types
 
-separatorText       = " / " :: T.Text
-defaultEntriesLimit = 2     :: Int
+separatorText = " / " :: T.Text
 
 specialTextToInputAlias :: T.Text -> Maybe InputAlias
 specialTextToInputAlias = \case
@@ -178,31 +177,37 @@ mkFontTexture text font color =
         surface <- SDL.Font.blended sdlFont (colorToV4 color) text'
         loadTextureEx fakeFilePath surface
 
-formatMouseKbInputAlias :: MonadIO m => Int -> [InputRawData] -> m T.Text
-formatMouseKbInputAlias entriesLimit inputRawDatas = case filterInputRawDataMouseKb inputRawDatas of
+formatMouseKbInputAlias :: MonadIO m => Maybe Int -> [InputRawData] -> m T.Text
+formatMouseKbInputAlias entriesIdx inputRawDatas = case filterInputRawDataMouseKb inputRawDatas of
     (rd0:rd1:_)
-        | entriesLimit >= 2 -> do
+        | Just idx <- entriesIdx, idx == 1 -> T.pack . printf "[%s]" <$> formatInputRawData rd1
+        | isNothing entriesIdx             -> do
             txt0 <- formatInputRawData rd0
             txt1 <- formatInputRawData rd1
             return $ T.pack (printf "[%s]%s[%s]" txt0 separatorText txt1)
-    (rd:_)
-        | entriesLimit >= 1 -> T.pack . printf "[%s]" <$> formatInputRawData rd
-    _                       -> return T.empty
 
-toGamepadImageFilePath :: InputRead m => Int -> [InputRawData] -> m [PackResourceFilePath]
-toGamepadImageFilePath entriesLimit inputRawDatas = do
-    lastGamepadType   <- _lastGamepadType <$> readInputState
-    let inputRawDatas' = take entriesLimit $ filterInputRawDataGamepad inputRawDatas
+    (rd:_)
+        | maybe True (== 0) entriesIdx -> T.pack . printf "[%s]" <$> formatInputRawData rd
+
+    _ -> return T.empty
+
+toGamepadImageFilePath :: InputRead m => Maybe Int -> [InputRawData] -> m [PackResourceFilePath]
+toGamepadImageFilePath entriesIdx inputRawDatas = do
+    lastGamepadType <- _lastGamepadType <$> readInputState
+    let
+        inputRawDatas' = case entriesIdx of
+            Nothing  -> filterInputRawDataGamepad inputRawDatas
+            Just idx -> maybe [] pure (filterInputRawDataGamepad inputRawDatas !!? idx)
     return $ mapMaybe (inputRawDataToImageFilePath lastGamepadType) inputRawDatas'
 
 loadGamepadImages
     :: forall m. (FileCache m, GraphicsRead m, InputRead m, MonadIO m)
     => T.Text
     -> Font
-    -> Int
+    -> Maybe Int
     -> [InputRawData]
     -> m [(Pos2, Image)]
-loadGamepadImages startTxt font entriesLimit inputRawDatas = do
+loadGamepadImages startTxt font entriesIdx inputRawDatas = do
     let sdlFont                = _sdlFont font
     separatorTxtWidth         <- fromIntegral . fst <$> SDL.Font.size sdlFont separatorText
     (startWidth, startHeight) <- SDL.Font.size sdlFont startTxt
@@ -220,7 +225,7 @@ loadGamepadImages startTxt font entriesLimit inputRawDatas = do
             let totalWidth' = totalWidth + imgWidth + separatorTxtWidth
             ((Pos2 offsetX offsetY, img):) <$> loadImages totalWidth' paths
 
-    loadImages (fromIntegral startWidth) =<< toGamepadImageFilePath entriesLimit inputRawDatas
+    loadImages (fromIntegral startWidth) =<< toGamepadImageFilePath entriesIdx inputRawDatas
 
 formatGamepadTextureText :: MonadIO m => T.Text -> T.Text -> Font -> [(Pos2, Image)] -> m T.Text
 formatGamepadTextureText startTxt endTxt font gamepadImgs = case gamepadImgs of
@@ -253,17 +258,18 @@ mkInputDisplayText txt fontType color = do
     (prefixSymbolImg, parsedTxt) <- parseLoadPrefixSymbolImage txt font
 
     let
-        (startTxt, remainderTxt)    = T.breakOn "{" parsedTxt
-        (specialTxt, endTxt)        = T.breakOnEnd "}" remainderTxt
-        (specialTxt', entriesLimit) = case T.splitOn "." specialTxt of
-            [spTxtPre, "1}"] -> (spTxtPre <> "}", 1)
-            _                -> (specialTxt, defaultEntriesLimit)
+        (startTxt, remainderTxt)  = T.breakOn "{" parsedTxt
+        (specialTxt, endTxt)      = T.breakOnEnd "}" remainderTxt
+        (specialTxt', entriesIdx) = case T.splitOn "." specialTxt of
+            [spTxtPre, "0}"] -> (spTxtPre <> "}", Just 0)
+            [spTxtPre, "1}"] -> (spTxtPre <> "}", Just 1)
+            _                -> (specialTxt, Nothing)
         inputAlias                  = specialTextToInputAlias specialTxt'
 
     inputRawDatas        <- lookupInputAliasRawDatas inputAlias
-    mouseKbInputAliasTxt <- formatMouseKbInputAlias entriesLimit inputRawDatas
+    mouseKbInputAliasTxt <- formatMouseKbInputAlias entriesIdx inputRawDatas
     mouseKbTexture       <- mkFontTexture (startTxt <> mouseKbInputAliasTxt <> endTxt) font color
-    gamepadImgs          <- loadGamepadImages startTxt font entriesLimit inputRawDatas
+    gamepadImgs          <- loadGamepadImages startTxt font entriesIdx inputRawDatas
     gamepadTxt           <- formatGamepadTextureText startTxt endTxt font gamepadImgs
     gamepadTexture       <- mkFontTexture gamepadTxt font color
     gamepadType          <- _lastGamepadType <$> readInputState

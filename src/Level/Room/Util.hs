@@ -3,6 +3,7 @@ module Level.Room.Util
     , startingShopRoomType
     , endRoomType
     , endHallwayRoomType
+    , tutorialRoomType
     , isArenaRoomType
     , isTransitionRoomType
     , isToTransitionRoomType
@@ -28,6 +29,7 @@ defaultRoomMinCameraY = -9999                           :: PosY
 startingShopRoomType  = SpecialRoomType "starting-shop" :: RoomType
 endRoomType           = SpecialRoomType "end"           :: RoomType
 endHallwayRoomType    = SpecialRoomType "end-hallway"   :: RoomType
+tutorialRoomType      = SpecialRoomType "tutorial"      :: RoomType
 
 isArenaRoomType :: RoomType -> Bool
 isArenaRoomType = \case

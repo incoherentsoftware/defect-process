@@ -28,6 +28,7 @@ data RoomItemType
     | UpgradePickupItemType
     | HealthPickupItemType
     | InfoSignItemType
+    | TutorialSignItemType
     | RefreshStationItemType
     | JukeboxItemType
     | EventActivatorItemType

@@ -9,9 +9,10 @@ import Player.Meter
 import Util
 
 data StoneFormConfig = StoneFormConfig
-    { _stoneFormCooldown      :: Secs
-    , _meleeDeflectMeterGain  :: MeterValue
-    , _rangedDeflectMeterGain :: MeterValue
+    { _stoneFormCooldown        :: Secs
+    , _stoneFormExtendMeterCost :: MeterValue
+    , _meleeDeflectMeterGain    :: MeterValue
+    , _rangedDeflectMeterGain   :: MeterValue
     }
     deriving Generic
 

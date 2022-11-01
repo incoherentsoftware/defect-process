@@ -4,7 +4,6 @@ module Configs.All.PlayerWeapon.Sword
 
 import Data.Aeson.Types (FromJSON, genericParseJSON, parseJSON)
 import GHC.Generics     (Generic)
-import qualified Data.Map as M
 
 import Enemy.LockOnReticleData
 import Player.Meter
@@ -22,8 +21,6 @@ data SwordConfig = SwordConfig
     , _attackOrbLockOnReticleData :: EnemyLockOnReticleData
     , _chargeHeldThresholdSecs    :: Secs
     , _chargeMeterCost            :: MeterValue
-    , _chargeOverlaySprOffset     :: Pos2
-    , _chargeOverlaySprOffsetMap  :: M.Map String [Pos2]
     }
     deriving Generic
 

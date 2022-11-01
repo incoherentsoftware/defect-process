@@ -1,5 +1,7 @@
 module Level.Room.JSON
-    ( RoomRandomOffsetsJSON(..)
+    ( SignTypeJSON(..)
+    , SignJSON(..)
+    , RoomRandomOffsetsJSON(..)
     , RoomJSON(..)
     ) where
 
@@ -24,6 +26,20 @@ import Level.Room.SpeedRail.JSON
 import Level.Room.SpringLauncher.JSON
 import Util
 
+data SignTypeJSON
+    = InfoSignType
+    | TutorialSignType
+    deriving (FromJSON, Generic)
+
+data SignJSON = SignJSON
+    { _type :: SignTypeJSON
+    , _pos  :: Pos2
+    }
+    deriving Generic
+
+instance FromJSON SignJSON where
+    parseJSON = genericParseJSON aesonFieldDropUnderscore
+
 data RoomRandomOffsetsJSON = RoomRandomOffsetsJSON
     { _platforms   :: Maybe (M.Map Int T.Text)
     , _imageLayers :: Maybe (M.Map Int T.Text)
@@ -45,7 +61,7 @@ data RoomJSON = RoomJSON
     , _items                 :: Maybe [RoomItemPickupJSON]
     , _arenaWalls            :: Maybe RoomArenaWallsJSON
     , _goldChunks            :: Maybe [GoldChunkSetJSON]
-    , _infoSigns             :: Maybe [Pos2]
+    , _signs                 :: Maybe [SignJSON]
     , _refreshStations       :: Maybe [Pos2]
     , _jukeboxes             :: Maybe [JukeboxJSON]
     , _eventActivator        :: Maybe EventActivatorJSON

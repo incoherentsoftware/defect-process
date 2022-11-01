@@ -4,7 +4,10 @@ module World.Messages
 
 import Control.Monad.IO.Class (MonadIO)
 import Data.Foldable          (foldlM)
+import qualified Data.Map as M
 
+import Level.Types
+import Level.Room.Types
 import Msg
 import World
 import World.Camera
@@ -21,6 +24,17 @@ updateWorldMessages world = foldlM processMsg world =<< readMsgs
                 return $ w
                     { _screenWipe    = Just screenWipeOut
                     , _pendingChange = Just $ changeWorldRoom roomName playerOffsetY
+                    }
+
+            WorldMsgSaveRoomItems ->
+                let
+                    level             = _level w
+                    room              = _room level
+                    roomType          = _type (room :: Room)
+                    roomItems         = _items room
+                    roomItemsOverride = M.insert roomType roomItems (_roomItemsOverride level)
+                in return $ w
+                    { _level = level {_roomItemsOverride = roomItemsOverride}
                     }
 
             WorldMsgHitlag duration

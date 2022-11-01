@@ -74,7 +74,7 @@ data AudioMsgPayload
     | AudioMsgMuteSound HashedId Bool
     | AudioMsgRampMusicToNormalVolume
     | AudioMsgPlayPostBattleExplorationMusic
-    | AudioMsgCycleJukeboxMusic Pos2 JukeboxType
+    | AudioMsgCycleJukeboxMusic JukeboxType
 
 data CollisionMsgPayload
     = CollisionMsgTouchingGround PosY SurfaceType
@@ -152,6 +152,7 @@ data RoomMsgPayload where
     RoomMsgAddTrigger              :: RoomTrigger -> RoomMsgPayload
     RoomMsgAddTriggerM             :: AppEnv UpdateLevelMsgsPhase RoomTrigger -> RoomMsgPayload
     RoomMsgRemoveTrigger           :: MsgId -> RoomMsgPayload
+    RoomMsgAddItemM                :: AppEnv UpdateLevelMsgsPhase (Some RoomItem) -> RoomMsgPayload
     RoomMsgRemoveItem              :: MsgId -> RoomMsgPayload
     RoomMsgRemoveItemType          :: RoomItemType -> RoomMsgPayload
     RoomMsgReappearItem            :: MsgId -> RoomMsgPayload
@@ -270,6 +271,7 @@ data WorldMsgPayload
     | WorldMsgLockCamera
     | WorldMsgPause
     | WorldMsgDeactivate
+    | WorldMsgSaveRoomItems
 
 instance IsMsgPayload AudioMsgPayload where
     toMsgPayload :: AudioMsgPayload -> MsgPayload

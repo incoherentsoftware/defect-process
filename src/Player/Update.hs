@@ -147,7 +147,7 @@ updatePlayerMoveLeftRight inputState player
         moveRight = overrideDir . updateFlags $ movePlayerHorizontal RightDir player
 
 updatePlayerAimTarget
-    :: (ConfigsRead m, InputRead m, MsgsRead UpdatePlayerMsgsPhase m)
+    :: (InputRead m, MsgsRead UpdatePlayerMsgsPhase m)
     => InputState
     -> Player
     -> m Player

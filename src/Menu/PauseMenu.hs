@@ -66,7 +66,7 @@ secondarySkillUpInputOverlayImgPath      =
 secondarySkillDownInputOverlayImgPath    =
     pauseMenuPack "secondary-skill-down-input-overlay.image"    :: PackResourceFilePath
 
-viewInfoText   = "View Info: {MenuSelectAlias.1}"        :: T.Text
+viewInfoText   = "View Info: {MenuSelectAlias.0}"        :: T.Text
 changeSlotText = "Reassign Input: {MenuSlotChangeAlias}" :: T.Text
 
 selectionInfoCenterTextPos@(Pos2 selectionInfoCenterTextX selectionInfoCenterTextY) = Pos2 960.0 834.0 :: Pos2

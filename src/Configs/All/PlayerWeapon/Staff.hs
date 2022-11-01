@@ -4,7 +4,6 @@ module Configs.All.PlayerWeapon.Staff
 
 import Data.Aeson.Types (FromJSON, genericParseJSON, parseJSON)
 import GHC.Generics     (Generic)
-import qualified Data.Map as M
 import qualified Data.Vector as V
 
 import Player.Meter
@@ -21,8 +20,6 @@ data StaffConfig = StaffConfig
     , _windProjectileMinCollisionDiffY :: Float
     , _chargeHeldThresholdSecs         :: Secs
     , _chargeMeterCost                 :: MeterValue
-    , _chargeOverlaySprOffset          :: Pos2
-    , _chargeOverlaySprOffsetMap       :: M.Map String [Pos2]
     }
     deriving Generic
 

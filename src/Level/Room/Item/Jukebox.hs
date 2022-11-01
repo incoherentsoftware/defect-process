@@ -95,7 +95,7 @@ thinkJukebox jukebox =
                         in j {_data = jData {_sprite = _active $ _sprites jData}}
                 in
                     [ mkMsg $ AudioMsgPlaySound jukeboxCycleSoundPath pos
-                    , mkMsg $ AudioMsgCycleJukeboxMusic pos jukeboxType
+                    , mkMsg $ AudioMsgCycleJukeboxMusic jukeboxType
                     , mkMsgTo (RoomMsgUpdateItem setJukeboxSpr) (_msgId jukebox)
                     ]
 
@@ -121,8 +121,8 @@ updateJukebox jukebox =
         jukeboxPressed :: [AudioMsgPayload] -> Bool
         jukeboxPressed []     = False
         jukeboxPressed (d:ds) = case d of
-            AudioMsgCycleJukeboxMusic _ _ -> True
-            _                             -> jukeboxPressed ds
+            AudioMsgCycleJukeboxMusic _ -> True
+            _                           -> jukeboxPressed ds
 
         jukeboxData = _data jukebox
         jukeboxType = _type (jukeboxData :: JukeboxData)

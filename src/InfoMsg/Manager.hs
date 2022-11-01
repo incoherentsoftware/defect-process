@@ -18,6 +18,7 @@ import Level.Types
 import Msg
 import Player
 import Player.EquipmentInfo
+import Player.LockOnAim
 import Projectile as P
 import Projectile.Manager
 import Util
@@ -59,6 +60,8 @@ calculatePlayerInfo player surfaces = PlayerInfo
     , _touchingGround   = touchingGround
     , _touchingWall     = _touchingWall (playerFlags :: PlayerFlags)
     , _equipment        = mkPlayerEquipmentInfo player
+    , _meter            = _meter (player :: Player)
+    , _enemyLockOn      = _enemyLockOn (_lockOnAim player :: PlayerLockOnAim)
     }
     where
         playerPos@(Pos2 playerX playerY) = _pos (player :: Player)

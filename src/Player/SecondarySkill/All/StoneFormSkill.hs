@@ -3,6 +3,7 @@ module Player.SecondarySkill.All.StoneFormSkill
     ) where
 
 import Control.Monad.IO.Class (MonadIO)
+import Control.Monad.State    (execState, modify)
 import Data.Maybe             (isJust)
 import qualified Data.List as L
 import qualified Data.Set as S
@@ -24,6 +25,7 @@ import Window.InputState
 import World.ZIndex
 
 phasedFrameTagName = FrameTagName "phased" :: FrameTagName
+extendFrameTagName = FrameTagName "extend" :: FrameTagName
 
 data DeflectType
     = MeleeDeflect
@@ -31,9 +33,11 @@ data DeflectType
 
 data StoneFormSkillAttackDescriptions = StoneFormSkillAttackDescriptions
     { _ground             :: AttackDescription
+    , _groundExtend       :: AttackDescription
     , _groundBreak        :: AttackDescription
     , _groundShockwave    :: AttackDescription
     , _air                :: AttackDescription
+    , _airExtend          :: AttackDescription
     , _airBreak           :: AttackDescription
     , _airBreakCancelable :: AttackDescription
     , _airShockwave       :: AttackDescription
@@ -43,9 +47,11 @@ mkStoneFormSkillAttackDescs :: (FileCache m, GraphicsRead m, MonadIO m) => m Sto
 mkStoneFormSkillAttackDescs =
     StoneFormSkillAttackDescriptions <$>
     loadAtkDesc "stone-form.atk" <*>
+    loadAtkDesc "stone-form-extend.atk" <*>
     loadAtkDesc "stone-break.atk" <*>
     loadAtkDesc "stone-shockwave.atk" <*>
     loadAtkDesc "stone-air-form.atk" <*>
+    loadAtkDesc "stone-air-form-extend.atk" <*>
     loadAtkDesc "stone-air-break.atk" <*>
     loadAtkDesc "stone-air-break-cancelable.atk" <*>
     loadAtkDesc "stone-air-shockwave.atk"
@@ -56,6 +62,7 @@ data StoneFormSkillData = StoneFormSkillData
     , _cooldown           :: Secs
     , _newDeflect         :: Maybe DeflectType
     , _deflectedHashedIds :: S.Set HashedId
+    , _isExtendInputHeld  :: Bool
     , _attackDescs        :: StoneFormSkillAttackDescriptions
     , _config             :: StoneFormConfig
     }
@@ -70,6 +77,7 @@ mkStoneFormSkillData = do
         , _cooldown           = 0.0
         , _newDeflect         = Nothing
         , _deflectedHashedIds = S.empty
+        , _isExtendInputHeld  = False
         , _attackDescs        = stoneFormSkillAtkDescs
         , _config             = cfg
         }
@@ -93,6 +101,7 @@ thinkStoneFormSkill canUseSkill player slot stoneFormSkill =
             mkPlayerMsgSetAttackDesc = \atkDesc -> mkMsg $ PlayerMsgSetAttackDesc atkDesc
             attackIs'                = \atkDesc -> maybe False (`attackIs` atkDesc) playerAtk
             attackIn'                = \atkDescs -> maybe False (`attackIn` atkDescs) playerAtk
+            isAttackFrameTag'        = \frameTagName -> maybe False (frameTagName `isAttackFrameTag`) playerAtk
 
             flags                     = _flags player
             onGround                  = _touchingGround flags
@@ -100,8 +109,11 @@ thinkStoneFormSkill canUseSkill player slot stoneFormSkill =
             cooldown                  = _cooldown stoneFormSkillData
             atks                      = _attackDescs stoneFormSkillData
             groundAtkDesc             = _ground atks
+            groundExtendAtkDesc       = _groundExtend atks
+            groundBreakAtkDesc        = _groundBreak atks
             groundShockwaveAtkDesc    = _groundShockwave atks
             airAtkDesc                = _air atks
+            airExtendAtkDesc          = _airExtend atks
             airBreakAtkDesc           = _airBreak atks
             airBreakCancelableAtkDesc = _airBreakCancelable atks
             airShockwaveAtkDesc       = _airShockwave atks
@@ -109,14 +121,16 @@ thinkStoneFormSkill canUseSkill player slot stoneFormSkill =
             dir                       = _dir (player :: Player)
             atkWillBeDone             = maybe False (_done . updateAttack pos dir) playerAtk
             newDeflect                = _newDeflect stoneFormSkillData
+            stoneFormExtendMeterCost  = _stoneFormExtendMeterCost cfg
+            canSpendMeter             = canSpendPlayerMeter stoneFormExtendMeterCost player
+            isExtendInputHeld         = _isExtendInputHeld stoneFormSkillData
 
             cfg               = _config (stoneFormSkillData :: StoneFormSkillData)
             stoneFormCooldown = _stoneFormCooldown cfg
 
-            phasedMsgs = case playerAtk of
-                Just atk
-                    | phasedFrameTagName `isAttackFrameTag` atk -> [mkMsg PlayerMsgSetPhased]
-                _                                               -> []
+            phasedMsgs
+                | isAttackFrameTag' phasedFrameTagName = [mkMsg PlayerMsgSetPhased]
+                | otherwise                            = []
 
             meterMsgs = case newDeflect of
                 Just MeleeDeflect  -> [mkMsg $ PlayerMsgGainMeter NullId (_meleeDeflectMeterGain cfg)]
@@ -129,8 +143,24 @@ thinkStoneFormSkill canUseSkill player slot stoneFormSkill =
                     | onGround  -> [mkPlayerMsgSetAttackDesc groundShockwaveAtkDesc]
                     | otherwise -> [mkPlayerMsgSetAttackDesc airShockwaveAtkDesc]
 
-                | attackIs' groundAtkDesc && not onGround = [mkPlayerMsgSetAttackDesc airAtkDesc]
-                | attackIs' airAtkDesc && onGround        = [mkPlayerMsgSetAttackDesc groundAtkDesc]
+                | attackIn' [groundAtkDesc, groundExtendAtkDesc] && not onGround =
+                    [mkPlayerMsgSetAttackDesc groundBreakAtkDesc]
+
+                | attackIs' airAtkDesc && onGround = [mkPlayerMsgSetAttackDesc groundAtkDesc]
+
+                | attackIs' groundAtkDesc && isAttackFrameTag' extendFrameTagName && isExtendInputHeld = if
+                    | not canSpendMeter -> [mkMsg $ UiMsgInsufficientMeter stoneFormExtendMeterCost False]
+                    | otherwise         ->
+                        [ mkPlayerMsgSetAttackDesc groundExtendAtkDesc
+                        , mkMsg $ PlayerMsgSpendMeter stoneFormExtendMeterCost
+                        ]
+
+                | attackIs' airAtkDesc && isAttackFrameTag' extendFrameTagName && isExtendInputHeld = if
+                    | not canSpendMeter -> [mkMsg $ UiMsgInsufficientMeter stoneFormExtendMeterCost False]
+                    | otherwise         ->
+                        [ mkPlayerMsgSetAttackDesc airExtendAtkDesc
+                        , mkMsg $ PlayerMsgSpendMeter stoneFormExtendMeterCost
+                        ]
 
                 | attackIn' [airBreakAtkDesc, airBreakCancelableAtkDesc] && atkWillBeDone =
                     case _storedAirVel stoneFormSkillData of
@@ -142,8 +172,9 @@ thinkStoneFormSkill canUseSkill player slot stoneFormSkill =
                         let
                             updateActive = \ss -> ss
                                 { _data = (_data ss)
-                                    { _storedAirVel = Nothing
-                                    , _cooldown     = stoneFormCooldown
+                                    { _storedAirVel      = Nothing
+                                    , _cooldown          = stoneFormCooldown
+                                    , _isExtendInputHeld = True
                                     }
                                 }
                         in
@@ -157,8 +188,9 @@ thinkStoneFormSkill canUseSkill player slot stoneFormSkill =
 
                             updateActive = \ss -> ss
                                 { _data = (_data ss)
-                                    { _storedAirVel = Just vel
-                                    , _cooldown     = stoneFormCooldown
+                                    { _storedAirVel      = Just vel
+                                    , _cooldown          = stoneFormCooldown
+                                    , _isExtendInputHeld = True
                                     }
                                 }
                         in
@@ -178,48 +210,51 @@ isAttackStoneForm atk stoneFormSkill = atk `attackIn` stoneFormAtkDescs
         atkDescs          = _attackDescs $ _data stoneFormSkill
         stoneFormAtkDescs =
             [ _ground atkDescs
+            , _groundExtend atkDescs
             , _groundBreak atkDescs
             , _air atkDescs
+            , _airExtend atkDescs
             , _airBreak atkDescs
             ]
 
-updateStoneFormSkill :: MsgsRead UpdatePlayerMsgsPhase m => SecondarySkillUpdate StoneFormSkillData m
-updateStoneFormSkill player stoneFormSkill = update <$> readMsgsTo (_msgId player)
-    where
+updateStoneFormSkill :: (InputRead m, MsgsRead UpdatePlayerMsgsPhase m) => SecondarySkillUpdate StoneFormSkillData m
+updateStoneFormSkill player stoneFormSkill =
+    let
         processHurtMsg :: StoneFormSkillData -> HurtMsgPayload -> StoneFormSkillData
-        processHurtMsg !stoneFormSkillData p = case p of
+        processHurtMsg !d p = case p of
             HurtMsgAttackHit atkHit ->
                 let
                     phased              = _phased $ _flags player
                     atkHashedId         = _hashedId atkHit
-                    deflectedHashedIds  = _deflectedHashedIds stoneFormSkillData
+                    deflectedHashedIds  = _deflectedHashedIds d
                     atkNotPrevDeflected = atkHashedId `S.notMember` deflectedHashedIds
                 in if
-                    | phased && atkNotPrevDeflected -> stoneFormSkillData
+                    | phased && atkNotPrevDeflected -> d
                         { _newDeflect         = Just $ if
                             | _isRanged (atkHit :: AttackHit) -> RangedDeflect
                             | otherwise                       -> MeleeDeflect
                         , _deflectedHashedIds = atkHashedId `S.insert` deflectedHashedIds
                         }
-                    | otherwise                     -> stoneFormSkillData
+                    | otherwise                     -> d
+    in do
+        inputState <- readInputState
+        msgs       <- readMsgsTo $ _msgId player
 
-        update :: [HurtMsgPayload] -> SecondarySkill StoneFormSkillData
-        update hurtMsgPayloads = case _attack player of
-            Just atk
-                | atk `isAttackStoneForm` stoneFormSkill ->
-                    let stoneFormSkillData' = L.foldl' processHurtMsg stoneFormSkillData hurtMsgPayloads
-                    in stoneFormSkill {SS._data = stoneFormSkillData'}
+        let
+            stoneFormSkillData = flip execState (_data stoneFormSkill) $ do
+                modify $ \d -> if
+                    | SecondarySkillAlias `aliasHold` inputState -> d
+                    | otherwise                                  -> d {_isExtendInputHeld = False}
 
-            _ ->
-                let
-                    cooldown            = max 0.0 (_cooldown stoneFormSkillData - timeStep)
-                    stoneFormSkillData' = stoneFormSkillData
-                        { _cooldown   = cooldown
+                case _attack player of
+                    Just atk
+                        | atk `isAttackStoneForm` stoneFormSkill -> modify $ \d -> L.foldl' processHurtMsg d msgs
+                    _                                            -> modify $ \d -> d
+                        { _cooldown   = max 0.0 (_cooldown d - timeStep)
                         , _newDeflect = Nothing
                         }
-                in stoneFormSkill {_data = stoneFormSkillData'}
 
-            where stoneFormSkillData = _data stoneFormSkill
+        return $ stoneFormSkill {_data = stoneFormSkillData}
 
 drawStoneFormSkill :: (GraphicsReadWrite m, MonadIO m) => SecondarySkillDraw StoneFormSkillData m
 drawStoneFormSkill player stoneFormSkill = case _attack player of

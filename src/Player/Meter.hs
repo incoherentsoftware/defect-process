@@ -7,6 +7,7 @@ module Player.Meter
     , spendPlayerMeter
     , setPlayerMeterUpgradeCount
     , fillPlayerMeterFull
+    , isPlayerMeterFull
     ) where
 
 import Data.Aeson.Types (FromJSON)
@@ -70,3 +71,6 @@ setPlayerMeterUpgradeCount upgradeCount playerMeter = playerMeter
 
 fillPlayerMeterFull :: PlayerMeter -> PlayerMeter
 fillPlayerMeterFull playerMeter = playerMeter {_value = _maxValue playerMeter}
+
+isPlayerMeterFull :: PlayerMeter -> Bool
+isPlayerMeterFull playerMeter = _value playerMeter >= _maxValue playerMeter

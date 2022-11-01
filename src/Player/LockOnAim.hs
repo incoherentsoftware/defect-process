@@ -36,8 +36,9 @@ import Window.InputState
 import World.ZIndex
 import {-# SOURCE #-} Player
 
-lockOnAngleThreshold = toRadians 10.0 :: Radians
-lockOnReticleOpacity = Opacity 0.85   :: Opacity
+lockOnAngleThreshold         = toRadians 10.0 :: Radians
+lockOnAngleMaintainThreshold = toRadians 30.0 :: Radians
+lockOnReticleOpacity         = Opacity 0.85   :: Opacity
 
 lockOnReticleSprPathSuffixes = map pure ['a'..'p'] :: [FilePath]
 
@@ -182,6 +183,7 @@ switchLockOnTarget player lockOnAim = do
                     , _enemyVel                 = _enemyVel (lockOnData :: EnemyLockOnData)
                     , _lockOnPos                = hitboxBotCenter enemyHbx `vecAdd` _reticleOffset lockOnData
                     , _reticleScale             = _reticleScale (lockOnData :: EnemyLockOnData)
+                    , _source                   = CycleLockOnSource
                     , _prevSwitchTargetEnemyIds = enemyId `S.insert` prevSwitchTargetEnemyIds
                     }
             where
@@ -229,7 +231,8 @@ updateLockOnCursorTarget lockOnAim = do
                     , _enemyVel                 = _enemyVel (lockOnData :: EnemyLockOnData)
                     , _lockOnPos                = hitboxBotCenter enemyHbx `vecAdd` _reticleOffset lockOnData
                     , _reticleScale             = _reticleScale (lockOnData :: EnemyLockOnData)
-                    , _prevSwitchTargetEnemyIds = S.fromList [enemyId]
+                    , _source                   = CursorLockOnSource
+                    , _prevSwitchTargetEnemyIds = S.singleton enemyId
                     }
             | otherwise                               = selectTarget enLockOn lockOnDatas
             where enemyHbx = _enemyHitbox lockOnData
@@ -246,35 +249,49 @@ updateLockOnGamepadAxisTarget player lockOnAim = do
     inputState <- readInputState
 
     let
+        calcAimAngleDiff :: Pos2 -> Float
+        calcAimAngleDiff pos = if diff > pi then 2 * pi - diff else diff
+            where
+                Vec2 axisX axisY = axisVec inputState
+                axisAngle        = atan2 axisY axisX
+                aimAngle         = playerAimAngleWithPos player pos
+                diff             = abs $ aimAngle - axisAngle
+
         selectTarget :: Maybe PlayerEnemyLockOn -> EnemyLockOnData -> Maybe PlayerEnemyLockOn
         selectTarget enLockOn lockOnData
             | aimAngleDiff > lockOnAngleThreshold = enLockOn
             | otherwise                           = Just enLockOn'
             where
-                playerAimAngleWithPos' = \enPos -> playerAimAngleWithPos player enPos
-
-                Vec2 axisX axisY = axisVec inputState
-                axisAngle        = atan2 axisY axisX
-                enemyHbx         = _enemyHitbox lockOnData
-                enemyCenterPos   = hitboxCenter enemyHbx
-                enemyAngle       = playerAimAngleWithPos' enemyCenterPos
-                aimAngleDiff     = abs $ enemyAngle - axisAngle
-
-                enemyId   = _enemyId (lockOnData :: EnemyLockOnData)
-                enLockOn' = PlayerEnemyLockOn
-                    { _enemyId                  = enemyId
+                enHbx        = _enemyHitbox lockOnData
+                aimAngleDiff = calcAimAngleDiff $ hitboxCenter enHbx
+                enId         = _enemyId (lockOnData :: EnemyLockOnData)
+                enLockOn'    = PlayerEnemyLockOn
+                    { _enemyId                  = enId
                     , _enemyHealth              = _enemyHealth (lockOnData :: EnemyLockOnData)
                     , _enemyVel                 = _enemyVel (lockOnData :: EnemyLockOnData)
-                    , _lockOnPos                = hitboxBotCenter enemyHbx `vecAdd` _reticleOffset lockOnData
+                    , _lockOnPos                = hitboxBotCenter enHbx `vecAdd` _reticleOffset lockOnData
                     , _reticleScale             = _reticleScale (lockOnData :: EnemyLockOnData)
-                    , _prevSwitchTargetEnemyIds = S.fromList [enemyId]
+                    , _source                   = GamepadAxisLockOnSource
+                    , _prevSwitchTargetEnemyIds = S.singleton enId
                     }
 
-        enemyLockOn = _enemyLockOn (lockOnAim :: PlayerLockOnAim)
-        playerPos   = _pos player
-
-    enemyLockOn' <- L.foldl' selectTarget enemyLockOn . reverse . sortEnemyLockOnDataByDist playerPos <$>
+    newEnemyLockOn <-
+        L.foldl' selectTarget Nothing .
+        reverse .
+        sortEnemyLockOnDataByDist (_pos player) <$>
         readMsgsEnemyLockOnData
+
+    let
+        enemyLockOn  = _enemyLockOn (lockOnAim :: PlayerLockOnAim)
+        enemyLockOn' = case (enemyLockOn, newEnemyLockOn) of
+            (_, Just _)              -> newEnemyLockOn
+            (Nothing, Nothing)       -> Nothing
+            (Just enLockOn, Nothing) ->
+                let aimAngleDiff = calcAimAngleDiff $ _lockOnPos enLockOn
+                in if
+                    | aimAngleDiff <= lockOnAngleMaintainThreshold -> enemyLockOn
+                    | otherwise                                    -> Nothing
+
     return $ (lockOnAim :: PlayerLockOnAim) {_enemyLockOn = enemyLockOn'}
 
 updateLockOnTarget :: (InputRead m, MsgsRead UpdatePlayerMsgsPhase m) => Player -> PlayerLockOnAim -> m PlayerLockOnAim

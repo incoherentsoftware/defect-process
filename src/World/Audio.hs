@@ -86,7 +86,7 @@ processMessages worldAudio = foldlM processMsg worldAudio =<< readMsgs
                 layeredMusicMgr <- playPostBattleExplorationMusic $ _layeredMusicManager audio
                 return $ audio {_layeredMusicManager = layeredMusicMgr}
 
-            AudioMsgCycleJukeboxMusic jukeboxPos jukeboxType -> do
+            AudioMsgCycleJukeboxMusic jukeboxType -> do
                 let layeredMusicMgr = _layeredMusicManager audio
                 layeredMusicMgr'   <- case jukeboxType of
                     BattleJukeboxType -> do
@@ -98,11 +98,7 @@ processMessages worldAudio = foldlM processMsg worldAudio =<< readMsgs
                             , mkMsg ConsoleMsgSaveSettings
                             ]
 
-                        updateLayeredMusicManagerFromJukebox
-                            jukeboxPos
-                            jukeboxType
-                            battleMusicType'
-                            layeredMusicMgr
+                        updateLayeredMusicManagerFromJukebox jukeboxType battleMusicType' layeredMusicMgr
 
                     ExplorationJukeboxType -> do
                         let exploreMusicType = _type (_explorationMusic layeredMusicMgr :: LayeredMusic)
@@ -113,11 +109,7 @@ processMessages worldAudio = foldlM processMsg worldAudio =<< readMsgs
                             , mkMsg ConsoleMsgSaveSettings
                             ]
 
-                        updateLayeredMusicManagerFromJukebox
-                            jukeboxPos
-                            jukeboxType
-                            exploreMusicType'
-                            layeredMusicMgr
+                        updateLayeredMusicManagerFromJukebox jukeboxType exploreMusicType' layeredMusicMgr
 
                 return $ audio {_layeredMusicManager = layeredMusicMgr'}
 

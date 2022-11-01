@@ -130,6 +130,10 @@ processRoomMsgs room = foldlM processMsg room =<< readMsgs
                 { _triggers = [tr | tr <- _triggers r, _msgId (tr :: RoomTrigger) /= triggerId]
                 }
 
+            RoomMsgAddItemM mkItem -> do
+                item <- mkItem
+                return $ r {_items = item:_items r}
+
             RoomMsgRemoveItem itemId -> return $ r
                 { _items = [Some i | Some i <- _items r, RI._msgId i /= itemId]
                 }

@@ -44,7 +44,6 @@ import Msg
 import Particle.All.Simple
 import Util
 import Window.Graphics
-import World.Screenshake
 import World.Surface
 import World.ZIndex
 
@@ -52,10 +51,9 @@ debugWallHitboxColor         = Color 255 0 220 150   :: Color
 debugInactiveWallHitboxColor = Color 255 0 220 50    :: Color
 debugTriggerHitboxColor      = Color 200 200 200 150 :: Color
 
-wallsDrawScale                = Scaled 1.2               :: DrawScale
-markerDrawScale               = Scaled 1.3               :: DrawScale
-wallSplatScreenshakeMagnitude = ScreenshakeMagnitude 7.0 :: ScreenshakeMagnitude
-minEnemySpawnPosWallDist      = 131                      :: Distance
+wallsDrawScale           = Scaled 1.2 :: DrawScale
+markerDrawScale          = Scaled 1.3 :: DrawScale
+minEnemySpawnPosWallDist = 131        :: Distance
 
 packPath               = \p -> PackResourceFilePath "data/levels/level-arena.pack" p
 markerIdleSprPath      = packPath "arena-marker-idle.spr"      :: PackResourceFilePath
@@ -65,7 +63,6 @@ markerIdleSoundPath      = "event:/SFX Events/Level/arena-marker-idle-c"    :: F
 markerRippleSoundPath    = "event:/SFX Events/Level/arena-marker-ripple"    :: FilePath
 markerDisappearSoundPath = "event:/SFX Events/Level/arena-marker-disappear" :: FilePath
 wallAppearSoundPath      = "event:/SFX Events/Level/arena-wall-appear"      :: FilePath
-wallImpactSoundPath      = "event:/SFX Events/Level/arena-wall-impact"      :: FilePath
 
 enemyParticlesPackPath = "data/particles/particles-enemy.pack" :: FilePath
 
@@ -205,10 +202,7 @@ updateRoomArenaWalls arenaWalls = case status of
                         }
 
                 Just wallsSplatPos -> do
-                    writeMsgs
-                        [ mkMsg $ WorldMsgScreenshake wallSplatScreenshakeMagnitude
-                        , mkMsg $ AudioMsgPlaySound wallImpactSoundPath wallsSplatPos
-                        ]
+                    writeMsgs $ roomArenaWallsWallSplatMsgs wallsSplatPos
                     return $ arenaWalls
                         { _markerRipples = markerRipples
                         , _wallSprite    = wallHitSpr

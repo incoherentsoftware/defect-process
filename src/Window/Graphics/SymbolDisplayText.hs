@@ -43,13 +43,21 @@ weaponSymbolImagePath              = uiPackPath "symbol-weapon.image"           
 shootSymbolImagePath               = uiPackPath "symbol-shoot.image"                 :: PackResourceFilePath
 movementSkillSymbolImagePath       = uiPackPath "symbol-movement-skill.image"        :: PackResourceFilePath
 secondarySkillSymbolImagePath      = uiPackPath "symbol-secondary-skill.image"       :: PackResourceFilePath
+checkboxSymbolImagePath            = uiPackPath "symbol-checkbox.image"              :: PackResourceFilePath
+checkboxFilledSymbolImagePath      = uiPackPath "symbol-checkbox-filled.image"       :: PackResourceFilePath
 
-secondarySkillNeutralInputSymbolImagePath =
-    uiPackPath "symbol-secondary-skill-neutral-input.image" :: PackResourceFilePath
-secondarySkillUpInputSymbolImagePath      =
-    uiPackPath "symbol-secondary-skill-up-input.image"      :: PackResourceFilePath
-secondarySkillDownInputSymbolImagePath    =
-    uiPackPath "symbol-secondary-skill-down-input.image"    :: PackResourceFilePath
+secondarySkillNeutralInputSymbolImagePath     =
+    uiPackPath "symbol-secondary-skill-neutral-input.image"      :: PackResourceFilePath
+secondarySkillUpInputSymbolImagePath          =
+    uiPackPath "symbol-secondary-skill-up-input.image"           :: PackResourceFilePath
+secondarySkillDownInputSymbolImagePath        =
+    uiPackPath "symbol-secondary-skill-down-input.image"         :: PackResourceFilePath
+secondarySkillHoldNeutralInputSymbolImagePath =
+    uiPackPath "symbol-secondary-skill-hold-neutral-input.image" :: PackResourceFilePath
+secondarySkillHoldUpInputSymbolImagePath      =
+    uiPackPath "symbol-secondary-skill-hold-up-input.image"      :: PackResourceFilePath
+secondarySkillHoldDownInputSymbolImagePath    =
+    uiPackPath "symbol-secondary-skill-hold-down-input.image"    :: PackResourceFilePath
 
 imageReplacementSpacesText :: MonadIO m => Image -> Font -> m T.Text
 imageReplacementSpacesText img font = do
@@ -59,20 +67,25 @@ imageReplacementSpacesText img font = do
 
 parseLoadPrefixSymbolImage :: (FileCache m, GraphicsRead m, MonadIO m) => T.Text -> Font -> m (Maybe Image, T.Text)
 parseLoadPrefixSymbolImage txt font = case specialTxt of
-    "{GoldSymbol}"                       -> symbol goldSymbolImagePath
-    "{UnlocksCreditsSymbol}"             -> symbol unlocksCreditsSymbolImagePath
-    "{UnlocksCreditsLargeSymbol}"        -> symbol unlocksCreditsLargeSymbolImagePath
-    "{SlotsPlusSymbol}"                  -> symbol slotsPlusSymbolImagePath
-    "{SlotsMinusSymbol}"                 -> symbol slotsMinusSymbolImagePath
-    "{JumpSymbol}"                       -> symbol jumpSymbolImagePath
-    "{WeaponSymbol}"                     -> symbol weaponSymbolImagePath
-    "{ShootSymbol}"                      -> symbol shootSymbolImagePath
-    "{MovementSkillSymbol}"              -> symbol movementSkillSymbolImagePath
-    "{SecondarySkillSymbol}"             -> symbol secondarySkillSymbolImagePath
-    "{SecondarySkillNeutralInputSymbol}" -> symbol secondarySkillNeutralInputSymbolImagePath
-    "{SecondarySkillUpInputSymbol}"      -> symbol secondarySkillUpInputSymbolImagePath
-    "{SecondarySkillDownInputSymbol}"    -> symbol secondarySkillDownInputSymbolImagePath
-    _                                    -> return (Nothing, txt)
+    "{GoldSymbol}"                           -> symbol goldSymbolImagePath
+    "{UnlocksCreditsSymbol}"                 -> symbol unlocksCreditsSymbolImagePath
+    "{UnlocksCreditsLargeSymbol}"            -> symbol unlocksCreditsLargeSymbolImagePath
+    "{SlotsPlusSymbol}"                      -> symbol slotsPlusSymbolImagePath
+    "{SlotsMinusSymbol}"                     -> symbol slotsMinusSymbolImagePath
+    "{JumpSymbol}"                           -> symbol jumpSymbolImagePath
+    "{WeaponSymbol}"                         -> symbol weaponSymbolImagePath
+    "{ShootSymbol}"                          -> symbol shootSymbolImagePath
+    "{MovementSkillSymbol}"                  -> symbol movementSkillSymbolImagePath
+    "{SecondarySkillSymbol}"                 -> symbol secondarySkillSymbolImagePath
+    "{SecondarySkillNeutralInputSymbol}"     -> symbol secondarySkillNeutralInputSymbolImagePath
+    "{SecondarySkillUpInputSymbol}"          -> symbol secondarySkillUpInputSymbolImagePath
+    "{SecondarySkillDownInputSymbol}"        -> symbol secondarySkillDownInputSymbolImagePath
+    "{SecondarySkillHoldNeutralInputSymbol}" -> symbol secondarySkillHoldNeutralInputSymbolImagePath
+    "{SecondarySkillHoldUpInputSymbol}"      -> symbol secondarySkillHoldUpInputSymbolImagePath
+    "{SecondarySkillHoldDownInputSymbol}"    -> symbol secondarySkillHoldDownInputSymbolImagePath
+    "{CheckboxSymbol}"                       -> symbol checkboxSymbolImagePath
+    "{CheckboxFilledSymbol}"                 -> symbol checkboxFilledSymbolImagePath
+    _                                        -> return (Nothing, txt)
     where
         (specialTxt, remainderTxt)
             | "{" `T.isPrefixOf` txt = bimap (<> "}") (T.drop 1) (T.breakOn "}" txt)

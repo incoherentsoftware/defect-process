@@ -48,7 +48,7 @@ notificationTextPos   = Pos2 960.0 493.0      :: Pos2
 rebindPromptCenterTextPos@(Pos2 rebindPromptCenterTextX rebindPromptCenterTextY) = Pos2 1336.0 810.0 :: Pos2
 rebindPromptSpacerWidth                                                          = 30.0              :: Float
 
-rebindKeyText    = "Rebind Key: {MenuSelectAlias.1}" :: T.Text
+rebindKeyText    = "Rebind Key: {MenuSelectAlias.0}" :: T.Text
 clearKeyText     = "Clear Key: {MenuClearKeyAlias}"  :: T.Text
 cancelRebindText = "Cancel: {MenuAlias}"             :: T.Text
 

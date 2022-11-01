@@ -7,6 +7,7 @@ module Level
     ) where
 
 import Control.Monad.IO.Class (MonadIO)
+import qualified Data.Map as M
 
 import AppEnv
 import Level.Room
@@ -19,7 +20,14 @@ startingDangerValue = DangerValue 5 :: DangerValue
 intervalDangerValue = DangerValue 5 :: DangerValue
 
 mkLevel :: AppEnv SetupMsgsPhase Level
-mkLevel = Level startingDangerValue mkEmptyRoom <$> mkRoomChooser
+mkLevel = do
+    roomChooser <- mkRoomChooser
+    return $ Level
+        { _currentDangerValue = startingDangerValue
+        , _room               = mkEmptyRoom
+        , _roomChooser        = roomChooser
+        , _roomItemsOverride  = M.empty
+        }
 
 thinkLevel :: Level -> AppEnv ThinkLevelMsgsPhase ()
 thinkLevel level = thinkRoom $ _room level

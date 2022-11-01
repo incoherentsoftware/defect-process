@@ -29,7 +29,8 @@ import Window.Graphics
 import Window.InputState
 
 symbolInputAliasTextPos        = Pos2 1488.0 914.0 :: Pos2
-stoneFormSkillSlotTextPos      = Pos2 960.0 587.0  :: Pos2
+stoneFormSkillSlotText0Pos     = Pos2 795.0 593.0  :: Pos2
+stoneFormSkillSlotText1Pos     = Pos2 1125.0 593.0 :: Pos2
 flightSkillSlotTextPos         = Pos2 815.0 573.0  :: Pos2
 fastFallSkillSlotTextPos       = Pos2 811.0 605.0  :: Pos2
 stasisBlastSkillSlotTextPos    = Pos2 959.0 570.0  :: Pos2
@@ -89,11 +90,13 @@ generalInfoHelpPopupDescription = HelpPopupDescription
 
 mkLockOnTargetingHelpPosTexts :: MenuConfig -> [HelpPopupTextOverlayDescription]
 mkLockOnTargetingHelpPosTexts menuCfg =
-    [ mkDescMouseKb pos0 "Aim with mouse cursor"
-    , mkDescMouseKb pos1 "Set lock-on target: {LockOnCursorAlias}"
-    , mkDescMouseKb pos2 "Cycle lock-on target: {LockOnSwitchTargetAlias}"
-    , mkDescGamepad pos3 "Cycle lock-on target: {LockOnSwitchTargetAlias}"
-    , mkDescGamepad pos4 "Aim with right analog stick to set lock-on target"
+    [ mkDescMouseKb pos0 "Cycle lock-on target: {LockOnSwitchTargetAlias}"
+    , mkDescMouseKb pos1 "Clear lock-on target: {LockOnClearAlias}"
+    , mkDescMouseKb pos2 "Set lock-on target at mouse cursor: {LockOnCursorAlias.0}"
+    , mkDescMouseKb pos3 "{LockOnCursorAlias.1}"
+    , mkDescGamepad pos4 "Cycle lock-on target: {LockOnSwitchTargetAlias}"
+    , mkDescGamepad pos5 "Clear lock-on target: {LockOnClearAlias}"
+    , mkDescGamepad pos6 "Set lock-on target manually aiming right analog stick"
     ]
     where
         drawMouseKb :: (GraphicsReadWrite m, MonadIO m) => Pos2 -> HelpPopupTextOverlayDraw m
@@ -107,7 +110,7 @@ mkLockOnTargetingHelpPosTexts menuCfg =
         mkDescMouseKb = \pos txt -> HelpPopupTextOverlayDescription txt (drawMouseKb pos)
         mkDescGamepad = \pos txt -> HelpPopupTextOverlayDescription txt (drawGamepad pos)
 
-        (pos0, pos1, pos2, pos3, pos4) = _helpPopupTargetingTextPositions menuCfg
+        (pos0, pos1, pos2, pos3, pos4, pos5, pos6) = _helpPopupTargetingTextPositions menuCfg
 
 targetingInfoHelpPopupDescription :: MenuConfig -> HelpPopupDescription
 targetingInfoHelpPopupDescription menuCfg = HelpPopupDescription
@@ -331,6 +334,14 @@ mkSecondarySkillSlotInputTextDesc pos slot = HelpPopupTextOverlayDescription
         drawCentered popupTextOverlay =
             drawInputDisplayTextCentered pos menuOverZIndex (_inputDisplayText popupTextOverlay)
 
+mkSecondarySkillSlotHoldInputTextDesc :: Pos2 -> SecondarySkillSlot -> HelpPopupTextOverlayDescription
+mkSecondarySkillSlotHoldInputTextDesc pos slot = (mkSecondarySkillSlotInputTextDesc pos slot)
+    { _text = case slot of
+        SecondarySkillNeutralSlot -> "{SecondarySkillHoldNeutralInputSymbol}"
+        SecondarySkillUpSlot      -> "{SecondarySkillHoldUpInputSymbol}"
+        SecondarySkillDownSlot    -> "{SecondarySkillHoldDownInputSymbol}"
+    }
+
 secondarySkillTypeToHelpPopupDescription :: SecondarySkillType -> SecondarySkillSlot -> HelpPopupDescription
 secondarySkillTypeToHelpPopupDescription secondarySkillType slot = case secondarySkillType of
     StoneFormSkill -> HelpPopupDescription
@@ -339,7 +350,8 @@ secondarySkillTypeToHelpPopupDescription secondarySkillType slot = case secondar
             { _imagePath               = variousHelpPackPath "stone-form-help.image"
             , _textOverlayDescriptions =
                 [ mkSymbolInputAliasPosTextDesc SecondarySkillAlias
-                , mkSecondarySkillSlotInputTextDesc stoneFormSkillSlotTextPos slot
+                , mkSecondarySkillSlotInputTextDesc stoneFormSkillSlotText0Pos slot
+                , mkSecondarySkillSlotHoldInputTextDesc stoneFormSkillSlotText1Pos slot
                 ]
             }
         }

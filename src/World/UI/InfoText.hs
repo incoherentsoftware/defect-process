@@ -49,7 +49,7 @@ secondarySkillInfoBackdropPosY       = 150.0 :: PosY
 secondarySkillInfoText0PosY          = 173.0 :: PosY
 secondarySkillInfoTextOffsetY        = 56.0  :: OffsetY
 secondarySkillInfoText3OffsetY       = 20.0  :: OffsetY
-secondarySkillInfoBackdropBaseHeight = 75.0 :: Float
+secondarySkillInfoBackdropBaseHeight = 75.0  :: Float
 secondarySkillTextSpacerWidth        = 0.0   :: Float
 
 secondarySkillSymbolBackdropPosY   = 150.0 :: PosY
@@ -384,7 +384,7 @@ drawInfoTextUI infoTextUI = case _infoTextType infoTextUI of
     EquipmentInfoTextType _ line0InputDisplayTxt line1InputDisplayTxt ->
         drawEquipmentInfo line0InputDisplayTxt line1InputDisplayTxt
 
-    SecondarySkillInfoTextType _ text3InputDisplayTxt secondarySkillInfoTxts -> do
+    SecondarySkillInfoTextType _ text3InputDisplayTxt secondarySkillInfoTxts ->
         drawSecondarySkillInfo text3InputDisplayTxt secondarySkillInfoTxts infoTextUI
 
 resetInfoTextUIOnChangeWorldRoom :: InfoTextUI -> InfoTextUI

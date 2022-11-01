@@ -30,30 +30,24 @@ mkStartingShopRemoveItemsTrigger = do
     return $ (trigger :: RoomTrigger) {_think = think}
 
 think :: Monad m => RoomTriggerThink m
-think room trigger = return $ if
-    | _type (room :: Room) /= startingShopRoomType ->
-        let triggerId = _msgId (trigger :: RoomTrigger)
-        in [mkMsg $ RoomMsgRemoveTrigger triggerId]
+think room _ = return $ removeItemTypesMsgs ++ removeItemParticlesMsgs ++ roomPortalBarrierMsgs
+    where
+        itemTypeCounts     = M.fromListWith (+) [(RI._type ri, 1) | Some ri <- _items room]
+        itemTypesToRemove  =
+            [ riType
+            | riType <- removableItemTypes
+            , maybe False (== 1) (riType `M.lookup` itemTypeCounts)
+            ]
+        removeItemTypesMsgs = map (mkMsg . RoomMsgRemoveItemType) itemTypesToRemove
 
-    | otherwise ->
-        let
-            itemTypeCounts     = M.fromListWith (+) [(RI._type ri, 1) | Some ri <- _items room]
-            itemTypesToRemove  =
-                [ riType
-                | riType <- removableItemTypes
-                , maybe False (== 1) (riType `M.lookup` itemTypeCounts)
-                ]
-            removeItemTypesMsgs = map (mkMsg . RoomMsgRemoveItemType) itemTypesToRemove
+        removeItemParticlesMsgs =
+            [ mkMsg $ ParticleMsgAddM (loadSimpleParticle pos RightDir levelItemZIndex itemDisappearPath)
+            | Some ri <- _items room
+            , RI._type ri `elem` itemTypesToRemove
+            , let pos = hitboxBotCenter $ RI._hitbox ri
+            ]
 
-            removeItemParticlesMsgs =
-                [ mkMsg $ ParticleMsgAddM (loadSimpleParticle pos RightDir levelItemZIndex itemDisappearPath)
-                | Some ri <- _items room
-                , RI._type ri `elem` itemTypesToRemove
-                , let pos = hitboxBotCenter $ RI._hitbox ri
-                ]
-
-            weaponPickupCount           = M.findWithDefault 0 WeaponPickupItemType itemTypeCounts
-            roomPortalBarrierMsgs
-                | weaponPickupCount > 0 = [mkMsg RoomMsgKeepPortalBarrierAlive]
-                | otherwise             = []
-        in removeItemTypesMsgs ++ removeItemParticlesMsgs ++ roomPortalBarrierMsgs
+        weaponPickupCount           = M.findWithDefault 0 WeaponPickupItemType itemTypeCounts
+        roomPortalBarrierMsgs
+            | weaponPickupCount > 0 = [mkMsg RoomMsgKeepPortalBarrierAlive]
+            | otherwise             = []

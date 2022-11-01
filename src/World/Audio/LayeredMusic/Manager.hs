@@ -178,16 +178,15 @@ progressLayeredMusicManagerMusic layeredMusicManager = case _nowPlaying layeredM
 
 updateLayeredMusicManagerFromJukebox
     :: MonadIO m
-    => Pos2
-    -> JukeboxType
+    => JukeboxType
     -> LayeredMusicType
     -> LayeredMusicManager
     -> m LayeredMusicManager
-updateLayeredMusicManagerFromJukebox jukeboxPos jukeboxType layeredMusicType layeredMusicManager = do
+updateLayeredMusicManagerFromJukebox jukeboxType layeredMusicType layeredMusicManager = do
     stopFmodMusicWorld
 
     jukeboxMusic <- mkLayeredMusic layeredMusicType
-    fadeInLayeredMusicJukebox jukeboxPos jukeboxMusic
+    fadeInLayeredMusicJukebox jukeboxMusic
 
     return $ case jukeboxType of
         BattleJukeboxType -> layeredMusicManager

@@ -49,8 +49,9 @@ itemPickupRemoveMessage :: RoomItem ItemPickupData -> Msg ThinkLevelMsgsPhase
 itemPickupRemoveMessage item = mkMsg $ RoomMsgRemoveItem (RI._msgId item)
 
 itemPickupBuyMessages :: MsgsRead ThinkLevelMsgsPhase m => RoomItem ItemPickupData -> m [Msg ThinkLevelMsgsPhase]
-itemPickupBuyMessages item = msgsByPayload <$> readPlayerEquipmentInfo
+itemPickupBuyMessages item = buyMessages <$> readPlayerEquipmentInfo
     where
+        roomType      = _roomType $ RI._data item
         itemPos       = hitboxCenter $ RI._hitbox item
         itemRemoveMsg = itemPickupRemoveMessage item
         buyMsgPayload = _buyMsgPayload $ RI._data item
@@ -59,10 +60,11 @@ itemPickupBuyMessages item = msgsByPayload <$> readPlayerEquipmentInfo
             , mkMsg $ AudioMsgPlaySound buySoundPath itemPos
             ]
 
-        msgsByPayload :: PlayerEquipmentInfo -> [Msg ThinkLevelMsgsPhase]
-        msgsByPayload playerEquipment = (commonMsgs ++) $ if
-            | _roomType (_data item) == startingShopRoomType -> [itemRemoveMsg]
-            | otherwise                                      -> case buyMsgPayload of
+        buyMessages :: PlayerEquipmentInfo -> [Msg ThinkLevelMsgsPhase]
+        buyMessages playerEquipment = (commonMsgs ++) $ if
+            | roomType == startingShopRoomType -> [itemRemoveMsg]
+            | roomType == tutorialRoomType     -> [itemRemoveMsg]
+            | otherwise                        -> case buyMsgPayload of
                 PlayerMsgBuyWeapon _ _ ->
                     let weaponCount = length (_weaponTypes playerEquipment) + 1
                     in

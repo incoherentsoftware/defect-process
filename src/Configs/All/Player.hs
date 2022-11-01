@@ -4,6 +4,7 @@ module Configs.All.Player
 
 import Data.Aeson.Types (FromJSON, genericParseJSON, parseJSON)
 import GHC.Generics     (Generic)
+import qualified Data.Map as M
 
 import Util
 import Window.Graphics.Opacity
@@ -52,6 +53,9 @@ data PlayerConfig = PlayerConfig
     , _backAimRearShoulderHipsOffset :: Pos2
     , _backAimLeadShoulderHipsOffset :: Pos2
     , _backAimLegsHipsOffset         :: Pos2
+
+    , _chargeOverlaySprOffset    :: Pos2
+    , _chargeOverlaySprOffsetMap :: M.Map String [Pos2]
     }
     deriving Generic
 

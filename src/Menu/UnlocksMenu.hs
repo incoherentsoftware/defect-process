@@ -50,7 +50,7 @@ insufficientGoldFadeMultiplier = 2.0                              :: Float
 maxDisplayedTotalGoldValue     = GoldValue 999999                 :: GoldValue
 unlocksText                    = "Unlocks"                        :: T.Text
 unavailableText                = "Unavailable"                    :: T.Text
-viewInfoText                   = "View Info: {MenuSelectAlias.1}" :: T.Text
+viewInfoText                   = "View Info: {MenuSelectAlias.0}" :: T.Text
 unlocksCreditsColor            = Color 158 207 206 255            :: Color
 
 mkLockedCostSymbolDisplayText :: (FileCache m, GraphicsRead m, MonadIO m) => GoldValue -> m SymbolDisplayText
@@ -62,7 +62,7 @@ mkLockedUnlockInputDisplayText
     => a
     -> m InputDisplayText
 mkLockedUnlockInputDisplayText entryType =
-    mkInputDisplayText ("Unlock " <> prettyShow entryType <> ": {MenuSelectAlias.1}") Font26 whiteColor
+    mkInputDisplayText ("Unlock " <> prettyShow entryType <> ": {MenuSelectAlias.0}") Font26 whiteColor
 
 mkUnlockedTitleDisplayText :: (GraphicsRead m, MonadIO m, PrettyShow a) => a -> m DisplayText
 mkUnlockedTitleDisplayText entryType = mkDisplayText (prettyShow entryType) Font32 whiteColor

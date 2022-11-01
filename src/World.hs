@@ -13,6 +13,7 @@ module World
 
 import Control.Concurrent     (threadDelay)
 import Control.Monad.IO.Class (MonadIO, liftIO)
+import qualified Data.Map as M
 import qualified Data.Set as S
 
 import AppEnv
@@ -126,10 +127,15 @@ changeWorldRoomInternal roomType playerOffsetY changeRoomBehavior world = do
             OnMissingRoomError -> error $ show e
             OnMissingRoomSkip  -> loadRoom' $ nextRoomChooserRoomTypeSkipTransition roomChooser
 
-    level'          <- changeLevelRoom room level
-    let roomChooser' = _roomChooser level'
+    let
+        room' = case _type (room :: Room) `M.lookup` (_roomItemsOverride level) of
+            Nothing -> room
+            Just ri -> room {_items = ri}
+    level' <- changeLevelRoom room' level
 
-    let nextRoomType = nextRoomChooserRoomType roomChooser'
+    let
+        roomChooser' = _roomChooser level'
+        nextRoomType = nextRoomChooserRoomType roomChooser'
     writeAsyncRequest $ PreloadRoomFgBgPackFilesRequest nextRoomType
     writeAsyncSignal DoMainThreadLoadsSignal
 
@@ -137,12 +143,12 @@ changeWorldRoomInternal roomType playerOffsetY changeRoomBehavior world = do
         roomTextures        = \r ->
             map ((_texture :: Image -> Texture) . (_image :: RoomImageLayer -> Image)) (_imageLayers r)
         prevRoomTextures    = S.fromList . roomTextures . _room $ _level (world :: World)
-        currentRoomTextures = S.fromList $ roomTextures room
+        currentRoomTextures = S.fromList $ roomTextures room'
         oldTextures         = S.filter (`S.notMember` currentRoomTextures) prevRoomTextures
     freeTextures oldTextures
 
     let
-        player           = resetPlayerOnChangeWorldRoom room playerOffsetY (_player (world :: World))
+        player           = resetPlayerOnChangeWorldRoom room' playerOffsetY (_player (world :: World))
         numVisitedArenas = S.size $ _visitedArenaRoomNames roomChooser'
         numArenas        = _numArenas roomChooser'
         currentRoomType  = _currentRoomType roomChooser'

@@ -1,11 +1,11 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.34.4.
+-- This file has been generated from package.yaml by hpack version 0.35.0.
 --
 -- see: https://github.com/sol/hpack
 
 name:           defect-process
-version:        0.9.1
+version:        0.9.5
 synopsis:       2d hack n' slash game
 category:       Game
 author:         Garrick Chin
@@ -198,6 +198,8 @@ executable defect-process
       Level.Room.Item.Pickup.Util
       Level.Room.Item.RefreshStation
       Level.Room.Item.RefreshStation.Types
+      Level.Room.Item.TutorialSign
+      Level.Room.Item.TutorialSign.Types
       Level.Room.Item.Types
       Level.Room.JSON
       Level.Room.MovingPlatform
@@ -218,7 +220,27 @@ executable defect-process
       Level.Room.Trigger.All.StartingShopItemPickupIndicator
       Level.Room.Trigger.All.StartingShopMoveControlsInfo
       Level.Room.Trigger.All.StartingShopRemoveItems
+      Level.Room.Trigger.All.TutorialInstructions
+      Level.Room.Trigger.All.TutorialInstructions.StepsData
+      Level.Room.Trigger.All.TutorialInstructions.StepsFakeProjectile
+      Level.Room.Trigger.All.TutorialInstructions.Util
+      Level.Room.Trigger.All.TutorialListener
+      Level.Room.Trigger.All.TutorialListener.IndicatorFakeProjectile
+      Level.Room.Trigger.All.TutorialSetup
       Level.Room.Trigger.Types
+      Level.Room.Trigger.Util
+      Level.Room.Tutorial.SandbagAir
+      Level.Room.Tutorial.SandbagAir.AI
+      Level.Room.Tutorial.SandbagAir.AI.Run
+      Level.Room.Tutorial.SandbagAir.Behavior
+      Level.Room.Tutorial.SandbagAir.Data
+      Level.Room.Tutorial.SandbagAir.Sprites
+      Level.Room.Tutorial.SandbagGround
+      Level.Room.Tutorial.SandbagGround.AI
+      Level.Room.Tutorial.SandbagGround.AI.Run
+      Level.Room.Tutorial.SandbagGround.Behavior
+      Level.Room.Tutorial.SandbagGround.Data
+      Level.Room.Tutorial.SandbagGround.Sprites
       Level.Room.Types
       Level.Room.Util
       Level.Types

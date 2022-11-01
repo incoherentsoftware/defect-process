@@ -15,6 +15,7 @@ import Attack.Hit
 import Attack.Projectile
 import Collision.Hitbox
 import Configs
+import Configs.All.Player
 import Configs.All.PlayerWeapon
 import Configs.All.PlayerWeapon.Sword
 import Constants
@@ -120,13 +121,13 @@ thinkSwordAttack _ Nothing _                 = []
 thinkSwordAttack swordData (Just atk) player
     | atk `attackIn` [chargeRelease, airChargeRelease] && isAtkChargeReleaseFrame && atkFrameChanged =
         let
-            pos'                = offsetPos $ _chargeOverlaySprOffset cfg
+            pos'                = offsetPos . _chargeOverlaySprOffset $ _config (player :: Player)
             mkChargeReleaseProj = mkPlayerAttackProjectile pos' dir chargeReleaseProjAtkDesc
         in [mkMsg $ NewThinkProjectileMsgAddM mkChargeReleaseProj]
 
     | atk `attackIs` summonAtkOrb && isSummonFrame && atkFrameChanged =
         let
-            pos'         = offsetPos $ _summonAttackOrbOffset cfg
+            pos'         = offsetPos . _summonAttackOrbOffset $ _config (swordData :: SwordData)
             mkAttackOrb' = mkAttackOrb pos' dir swordData
         in [mkMsg $ EnemyMsgAddM mkAttackOrb']
 
@@ -141,7 +142,6 @@ thinkSwordAttack swordData (Just atk) player
         atkFrameChanged         = attackFrameChanged atk
         isAtkChargeReleaseFrame = releaseFrameTagName `isAttackFrameTag` atk
         isSummonFrame           = summonFrameTagName `isAttackFrameTag` atk
-        cfg                     = _config (swordData :: SwordData)
 
         wpnAtkDescs              = _attackDescriptions swordData
         chargeRelease            = _chargeRelease wpnAtkDescs
@@ -395,13 +395,13 @@ drawSwordChargeOverlay WeaponDrawOverlayForeground player _ sword =
         dir              = _dir (player :: Player)
         pos              = _pos (player :: Player)
         chargeOverlaySpr = _chargeOverlaySpr swordData
-        cfg              = _config (swordData :: SwordData)
+        playerCfg        = _config (player :: Player)
 
-        offset = fromMaybe (_chargeOverlaySprOffset cfg) $ do
+        offset = fromMaybe (_chargeOverlaySprOffset playerCfg) $ do
             spr            <-
                 playerAttackSprite player <|> playerMovementSkillSprite player <|> Just (_sprite (player :: Player))
             let sprFileName = takeBaseName $ _filePath (spr :: Sprite)
-            offsets        <- M.lookup sprFileName (_chargeOverlaySprOffsetMap cfg)
+            offsets        <- M.lookup sprFileName (_chargeOverlaySprOffsetMap playerCfg)
             listToMaybe (drop (_int (_frameIndex spr :: FrameIndex)) offsets) <|> maybeLast offsets
 
         pos' = pos `vecAdd` (offset `vecFlip` dir)

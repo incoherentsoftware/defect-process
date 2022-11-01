@@ -15,9 +15,8 @@ mkStartingShopItemPickupIndicator  = do
 
 think :: Monad m => RoomTriggerThink m
 think room trigger = return $ if
-    | _type (room :: Room) /= startingShopRoomType -> [removeTriggerMsg]
-    | isRoomPortalBarrierPlayerClose room          -> [mkMsg RoomMsgShowPickupItemIndicator, removeTriggerMsg]
-    | otherwise                                    -> []
+    | isRoomPortalBarrierPlayerClose room -> [mkMsg RoomMsgShowPickupItemIndicator, removeTriggerMsg]
+    | otherwise                           -> []
     where
         triggerId        = _msgId (trigger :: RoomTrigger)
         removeTriggerMsg = mkMsg $ RoomMsgRemoveTrigger triggerId

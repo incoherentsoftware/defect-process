@@ -22,7 +22,7 @@ refreshStationWidth          = 86.0   :: Float
 refreshStationHeight         = 315.0  :: Float
 refreshStationOverlayOffsetY = -171.0 :: PosY
 
-overlayText               = "Refill meter {InteractAlias}"                       :: T.Text
+overlayText               = "Refill meter: {InteractAlias}"                      :: T.Text
 overlayBackdropColor      = Color 0 0 0 200                                      :: Color
 overlayBackdropBorderSize = 20.0                                                 :: Float
 overlayBackdropOffsetY    = -415.0                                               :: PosY

@@ -52,6 +52,8 @@ import Level.Room.Item.Pickup.All.WeaponItemPickups
 import Level.Room.Item.Types
 import Level.Room.JSON
 import Level.Room.Parse
+import Level.Room.Tutorial.SandbagAir
+import Level.Room.Tutorial.SandbagGround
 import Msg.Phase
 import Particle.All.Simple
 import Particle.Manager
@@ -82,6 +84,7 @@ import World.ZIndex
 
 consoleCommands =
     [ (["spawn", "s"], spawnCmd)
+    , (["spawnSandbag", "ss"], spawnSandbagCmd)
     , (["item", "i"], itemCmd)
     , (["rmEnemy", "rm"], removeEnemyCmd)
     , (["show"], showCmd)
@@ -173,6 +176,7 @@ spawnCmd args world =
 
         spawnEnemy :: Pos2 -> AppEnv ConsoleMsgsPhase (Maybe ConsoleCommandResult)
         spawnEnemy pos = mkEnemyFromName pos <&> \case
+            Nothing           -> Nothing
             Just (Some enemy) ->
                 let
                     debugArg
@@ -188,7 +192,6 @@ spawnCmd args world =
                     enemyManager'      = enemyManager {_enemies = Some enemy':enemies} :: EnemyManager
                     world'             = world {_enemyManager = enemyManager'}
                 in Just $ UpdateWorldResult output world'
-            Nothing    -> Nothing
     in do
         mousePos <- _mouseWorldPos <$> readInputState
 
@@ -208,6 +211,47 @@ spawnCmd args world =
         case targetPos' of
             Nothing  -> return $ NoUpdateResult "invalid coordinates"
             Just pos -> fromMaybe (NoUpdateResult "unknown spawn") <$> spawnEnemy pos
+
+spawnSandbagCmd :: ConsoleCommand (AppEnv ConsoleMsgsPhase)
+spawnSandbagCmd args world =
+    let
+        name = args0 args
+
+        mkSandbagFromName :: Pos2 -> AppEnv p (Maybe (Some Enemy))
+        mkSandbagFromName pos@(Pos2 x _) = maybe (return Nothing) (\f -> Just <$> f pos dir) mkF
+            where
+                playerX           = vecX $ _pos (_player (world :: World) :: Player)
+                dir
+                    | x < playerX = RightDir
+                    | otherwise   = LeftDir
+
+                mkF
+                    | name `elem` ["ground", "g"] = Just mkSandbagGround
+                    | name `elem` ["air", "a"]    = Just mkSandbagAir
+                    | otherwise                   = Nothing
+
+        spawnSandbag :: Pos2 -> AppEnv ConsoleMsgsPhase (Maybe ConsoleCommandResult)
+        spawnSandbag pos = mkSandbagFromName pos <&> \case
+            Nothing           -> Nothing
+            Just (Some sandbag) ->
+                let
+                    output        = "spawned sandbag at " <> formatPos2Int pos
+                    enemyManager  = _enemyManager world
+                    enemies       = _enemies (enemyManager :: EnemyManager)
+                    enemyManager' = enemyManager {_enemies = Some sandbag:enemies} :: EnemyManager
+                    world'        = world {_enemyManager = enemyManager'}
+                in Just $ UpdateWorldResult output world'
+    in do
+        mousePos <- _mouseWorldPos <$> readInputState
+        let
+            targetPos = case (args1 args, args2 args) of
+                ("", _) -> Just mousePos
+                (_, "") -> Just mousePos
+                (x, y)  -> Pos2 <$> (readMaybe' x :: Maybe Float) <*> (readMaybe' y :: Maybe Float)
+
+        case targetPos of
+            Nothing  -> return $ NoUpdateResult "invalid coordinates"
+            Just pos -> fromMaybe (NoUpdateResult "unknown spawn") <$> spawnSandbag pos
 
 itemCmd :: ConsoleCommand (AppEnv ConsoleMsgsPhase)
 itemCmd args world = do

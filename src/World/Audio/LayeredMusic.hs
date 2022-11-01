@@ -23,7 +23,6 @@ import qualified Data.Vector as V
 import Audio.Fmod
 import Configs
 import Configs.All.Progress
-import Util
 import World.Audio.LayeredMusic.Types
 
 isBattleMusicType :: LayeredMusicType -> Bool
@@ -81,10 +80,10 @@ fadeInLayeredMusicEx volumeMultiplier layeredMusic = sequenceA_ $ do
     musicIndex <- currentMusicIndex layeredMusic
     Just $ fadeInFmodMusicWorld musicIndex volumeMultiplier
 
-fadeInLayeredMusicJukebox :: MonadIO m => Pos2 -> LayeredMusic -> m ()
-fadeInLayeredMusicJukebox jukeboxPos layeredMusic = sequenceA_ $ do
+fadeInLayeredMusicJukebox :: MonadIO m => LayeredMusic -> m ()
+fadeInLayeredMusicJukebox layeredMusic = sequenceA_ $ do
     musicIndex <- currentMusicIndex layeredMusic
-    Just $ fadeInFmodMusicWorldJukebox musicIndex jukeboxPos
+    Just $ fadeInFmodMusicWorldJukebox musicIndex
 
 canProgressLayeredMusic :: LayeredMusic -> Bool
 canProgressLayeredMusic layeredMusic = _int layerIndex + 1 < V.length (_layers layeredMusic)

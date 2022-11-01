@@ -71,7 +71,7 @@ foreign import ccall "updateSoundWorldPosition" c_updateSoundWorldPosition :: CI
 foreign import ccall "playOrResumeMusicMenu" c_playOrResumeMusicMenu :: CInt -> IO CInt
 foreign import ccall "playMusicWorld" c_playMusicWorld :: CInt -> IO CInt
 foreign import ccall "fadeInMusicWorld" c_fadeInMusicWorld :: CInt -> CFloat -> IO CInt
-foreign import ccall "fadeInMusicWorldJukebox" c_fadeInMusicWorldJukebox :: CInt -> CFloat -> IO CInt
+foreign import ccall "fadeInMusicWorldJukebox" c_fadeInMusicWorldJukebox :: CInt -> IO CInt
 foreign import ccall "muteMusic" c_muteMusic :: CInt -> IO CInt
 foreign import ccall "setSoundVolume" c_setSoundVolume :: CFloat -> IO CInt
 foreign import ccall "setMusicVolume" c_setMusicVolume :: CFloat -> IO CInt
@@ -183,11 +183,10 @@ fadeInFmodMusicWorld FmodMusicIndexInvalid _                      = return ()
 fadeInFmodMusicWorld (FmodMusicIndex musicIndex) volumeMultiplier =
     void . liftIO $ c_fadeInMusicWorld (fromIntegral musicIndex) (realToFrac volumeMultiplier)
 
-fadeInFmodMusicWorldJukebox :: MonadIO m => FmodMusicIndex -> Pos2 -> m ()
-fadeInFmodMusicWorldJukebox FmodMusicIndexInvalid _                = return ()
-fadeInFmodMusicWorldJukebox (FmodMusicIndex musicIndex) jukeboxPos =
-    void . liftIO $ c_fadeInMusicWorldJukebox (fromIntegral musicIndex) jukeboxX
-    where jukeboxX = realToFrac $ vecX jukeboxPos
+fadeInFmodMusicWorldJukebox :: MonadIO m => FmodMusicIndex -> m ()
+fadeInFmodMusicWorldJukebox FmodMusicIndexInvalid       = return ()
+fadeInFmodMusicWorldJukebox (FmodMusicIndex musicIndex) =
+    void . liftIO $ c_fadeInMusicWorldJukebox (fromIntegral musicIndex)
 
 muteFmodMusic :: MonadIO m => Bool -> m ()
 muteFmodMusic mute = void $ liftIO (c_muteMusic mute')

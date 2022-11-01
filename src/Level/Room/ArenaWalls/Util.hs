@@ -7,6 +7,7 @@ module Level.Room.ArenaWalls.Util
     , roomArenaWallsLeftWallPos
     , roomArenaWallsRightWallPos
     , roomArenaWallsDisappearMsgs
+    , roomArenaWallsWallSplatMsgs
     ) where
 
 import qualified Data.List.NonEmpty as NE
@@ -21,15 +22,18 @@ import Msg
 import Particle.All.Simple
 import Util
 import World.GoldDrop
+import World.Screenshake
 import World.Surface
 import World.Util
 import World.ZIndex
 
-wallSprHitboxOffset = Pos2 55.0 0.0 :: Pos2
+wallSprHitboxOffset           = Pos2 55.0 0.0            :: Pos2
+wallSplatScreenshakeMagnitude = ScreenshakeMagnitude 7.0 :: ScreenshakeMagnitude
 
 wallDisappearSprPath   =
     PackResourceFilePath "data/levels/level-arena.pack" "arena-wall-disappear.spr" :: PackResourceFilePath
 wallDisappearSoundPath = "event:/SFX Events/Level/arena-wall-disappear"            :: FilePath
+wallImpactSoundPath    = "event:/SFX Events/Level/arena-wall-impact"               :: FilePath
 
 roomArenaWallsMarkerPos :: RoomArenaWalls -> Pos2
 roomArenaWallsMarkerPos arenaWalls = Pos2 (hitboxLeft triggerHbx) (hitboxBot triggerHbx)
@@ -79,3 +83,12 @@ roomArenaWallsDisappearMsgs arenaWalls = goldMsg:(audioMsgs ++ particleMsgs)
         centerPos = Pos2 (leftWallX + (rightWallX - leftWallX) / 2.0) leftWallY
         goldValue = _goldValue (arenaWalls :: RoomArenaWalls)
         goldMsg   = mkMsg $ NewThinkProjectileMsgAddsM (mkArenaGoldDrops centerPos goldValue)
+
+roomArenaWallsWallSplatMsgs
+    :: (AllowMsgWrite p AudioMsgPayload, AllowMsgWrite p WorldMsgPayload)
+    => Pos2
+    -> [Msg p]
+roomArenaWallsWallSplatMsgs pos =
+    [ mkMsg $ WorldMsgScreenshake wallSplatScreenshakeMagnitude
+    , mkMsg $ AudioMsgPlaySound wallImpactSoundPath pos
+    ]

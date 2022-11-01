@@ -8,7 +8,7 @@
 
 #define MAX_BANK_EVENT_DESCRIPTION_PATH_SIZE 128
 #define MAX_CHANNELS 64
-#define MAX_SOUNDS 310
+#define MAX_SOUNDS 315
 #define MAX_MUSIC_TIMESTAMPS 8
 #define MAX_MUSICS 32
 #define MUSIC_MENU_FADE_IN_SECS 5.0f
@@ -99,7 +99,6 @@ MusicMenuMode musicMenuMode = PLAY_MUSIC_MENU_INACTIVE;
 MusicWorldMode musicWorldMode = PLAY_MUSIC_WORLD_INACTIVE;
 int musicMuted;
 float musicWorldNextFadeInVolumeMultiplier = 1.0f;
-float musicWorldJukeboxPosVecX = 0.0f;
 FMOD_SOUND* musicMenuSound;
 FMOD_SOUND* musicWorldSound;
 FMOD_CHANNEL* musicMenuChannel;
@@ -506,10 +505,6 @@ int playMusicWorldJukeboxFadeIn() {
         return -1;
     }
 
-    float pan = calculateSoundPan(musicWorldJukeboxPosVecX);
-    if (FMOD_Channel_SetPan(musicWorldChannel, pan) != FMOD_OK)
-        return -1;
-
     if (FMOD_Channel_SetPaused(musicWorldChannel, 0) != FMOD_OK)
         return -1;
 
@@ -532,11 +527,6 @@ int updateMusicWorld() {
             break;
 
         case PLAY_MUSIC_WORLD_JUKEBOX_ACTIVE:
-            {
-                float pan = calculateSoundPan(musicWorldJukeboxPosVecX);
-                if (FMOD_Channel_SetPan(musicWorldChannel, pan) != FMOD_OK)
-                    return -1;
-            }
             break;
 
         case PLAY_MUSIC_WORLD_START:
@@ -1110,7 +1100,6 @@ int fadeInMusicWorldJukebox(int musicIndex, float jukeboxPosVecX) {
     musicWorldSound = musicInfos[musicIndex].sound;
     musicWorldMode = PLAY_MUSIC_WORLD_JUKEBOX_FADE_IN;
     musicWorldNextFadeInVolumeMultiplier = 1.0f;
-    musicWorldJukeboxPosVecX = jukeboxPosVecX;
 
     return 0;
 }

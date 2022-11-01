@@ -31,7 +31,7 @@ data RoomType
     | ToTransitionRoomType RoomName
     | ChallengeRoomType RoomName
     | SpecialRoomType RoomName
-    deriving (Eq, Show)
+    deriving (Eq, Ord, Show)
     deriving anyclass PrettyShow
 
 data Room = Room

@@ -1,5 +1,6 @@
 module Level.Room.Item.Pickup.All.GunItemPickups
     ( module Player.Gun.All
+    , mkFreeRevolverItemPickup
     , mkRevolverItemPickup
     ) where
 
@@ -186,6 +187,13 @@ mkGunItemPickupData typ buyMsgPayload cost imgFileName roomType =
 
 mkGunItemPickup :: MonadIO m => Pos2 -> ItemPickupData -> m (Some RoomItem)
 mkGunItemPickup pos itemData = mkItemPickup pos GunPickupItemType itemData
+
+mkFreeRevolverItemPickup :: RoomType -> Pos2 -> AppEnv p (Some RoomItem)
+mkFreeRevolverItemPickup roomType pos = do
+    let freeCost    = GoldValue 0
+    buyMsgPayload  <- PlayerMsgBuyGun <$> mkRevolverGun <*> pure freeCost
+    itemPickupData <- mkGunItemPickupData RevolverGun buyMsgPayload freeCost revolverPickupImgFileName roomType
+    mkGunItemPickup pos itemPickupData
 
 mkRevolverItemPickup :: RoomType -> Pos2 -> AppEnv p (Some RoomItem)
 mkRevolverItemPickup roomType pos = do
