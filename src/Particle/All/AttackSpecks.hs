@@ -58,6 +58,8 @@ calculateSpeckInitialOffsets specksType cfg = case specksType of
     RicochetSpecksType     -> (_ricochetSpeckInitialOffsetLow cfg, _ricochetSpeckInitialOffsetHigh cfg)
     GrenadeSpecksType      -> (_grenadeSpeckInitialOffsetLow cfg, _grenadeSpeckInitialOffsetHigh cfg)
     MineSpecksType         -> (_mineSpeckInitialOffsetLow cfg, _mineSpeckInitialOffsetHigh cfg)
+    GoldSpecksType         -> (_goldSpeckInitialOffsetLow cfg, _goldSpeckInitialOffsetHigh cfg)
+    GrappleSpecksType      -> (_grappleSpeckInitialOffsetLow cfg, _grappleSpeckInitialOffsetHigh cfg)
 
 data Speck = Speck
     { _pos         :: Pos2
@@ -153,8 +155,8 @@ data ParticleData = ParticleData
     }
 
 mkAttackSpecksParticle :: (ConfigsRead m, FileCache m, GraphicsRead m, MonadIO m) => AttackHit -> m (Some Particle)
-mkAttackSpecksParticle atkHit = mkAttackSpecksParticleEx atkHit hitEffectType
-    where hitEffectType = _hitEffectType (atkHit :: AttackHit)
+mkAttackSpecksParticle attackHit = mkAttackSpecksParticleEx attackHit hitEffectType
+    where hitEffectType = _hitEffectType (attackHit :: AttackHit)
 
 mkAttackSpecksParticleEx
     :: (ConfigsRead m, FileCache m, GraphicsRead m, MonadIO m)

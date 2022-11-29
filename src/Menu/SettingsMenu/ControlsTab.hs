@@ -38,6 +38,7 @@ audioBtnImgPath              = settingsMenuPack "audio-button-inactive.image"   
 gameBtnImgPath               = settingsMenuPack "game-button-inactive.image"          :: PackResourceFilePath
 creditsBtnImgPath            = settingsMenuPack "credits-button-inactive.image"       :: PackResourceFilePath
 backgroundImgPath            = settingsMenuPack "controls-background.image"           :: PackResourceFilePath
+cursorLockOnOverlayImgPath   = settingsMenuPack "cursor-lock-on-overlay.image"        :: PackResourceFilePath
 showMouseKbButtonImgPath     = settingsMenuPack "controls-show-mouse-kb-button.image" :: PackResourceFilePath
 showGamepadButtonImgPath     = settingsMenuPack "controls-show-gamepad-button.image"  :: PackResourceFilePath
 restoreDefaultsButtonImgPath = settingsMenuPack "restore-default-controls.image"      :: PackResourceFilePath
@@ -57,9 +58,10 @@ mkSettingsControlsTab = do
     tabBtns <-
         mkSettingsTabButtons controlsBtnImgPath graphicsBtnImgPath audioBtnImgPath gameBtnImgPath creditsBtnImgPath
 
-    backgroundImg     <- loadPackImage backgroundImgPath
-    mouseKbKeyButtons <- loadControlsKeyButtons MouseKbInputType
-    gamepadKeyButtons <- loadControlsKeyButtons GamepadInputType
+    backgroundImg          <- loadPackImage backgroundImgPath
+    cursorLockOnOverlayImg <- loadPackImage cursorLockOnOverlayImgPath
+    mouseKbKeyButtons      <- loadControlsKeyButtons MouseKbInputType
+    gamepadKeyButtons      <- loadControlsKeyButtons GamepadInputType
 
     menuCfg             <- readConfig _settings (_menu :: SettingsConfig -> MenuConfig)
     let showToggleBtnPos = _settingsControlsTabShowToggleButtonPos menuCfg
@@ -77,6 +79,7 @@ mkSettingsControlsTab = do
     return $ SettingsControlsTab
         { _buttons                      = tabBtns
         , _backgroundImage              = backgroundImg
+        , _cursorLockOnOverlayImage     = cursorLockOnOverlayImg
         , _isInitialUpdate              = True
         , _showToggleButtonType         = MouseKbInputType
         , _mouseKbKeyButtonsMap         = mouseKbKeyButtons
@@ -153,8 +156,8 @@ updateSelections selection controlsTab = do
             ControlsKeyButtonSubSelection idx ->
                 let
                     keyBtnsMap = case _showToggleButtonType controlsTab of
-                        MouseKbInputType -> _mouseKbKeyButtonsMap controlsTab
-                        GamepadInputType -> _gamepadKeyButtonsMap controlsTab
+                        MouseKbInputType -> _gamepadKeyButtonsMap controlsTab
+                        GamepadInputType -> _mouseKbKeyButtonsMap controlsTab
                 in case keyBtnsMap IM.!? idx of
                     Just keyBtn
                         | upPressed ->
@@ -347,6 +350,8 @@ updateSettingsControlsTab selection tabBtns settingsMenuData =
 drawSettingsControlsTab :: (ConfigsRead m, GraphicsReadWrite m, InputRead m, MonadIO m) => SettingsControlsTab -> m ()
 drawSettingsControlsTab controlsTab = do
     drawImage zeroPos2 RightDir menuOverZIndex (_backgroundImage (controlsTab :: SettingsControlsTab))
+    when (_showToggleButtonType controlsTab == GamepadInputType) $
+        drawImage zeroPos2 RightDir menuOverZIndex (_cursorLockOnOverlayImage controlsTab)
 
     let
         (controlsKeyBtnsMap, showToggleBtn) = case _showToggleButtonType controlsTab of

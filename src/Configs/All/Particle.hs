@@ -44,6 +44,10 @@ data ParticleConfig = ParticleConfig
     , _grenadeSpeckInitialOffsetHigh      :: Distance
     , _mineSpeckInitialOffsetLow          :: Distance
     , _mineSpeckInitialOffsetHigh         :: Distance
+    , _goldSpeckInitialOffsetLow          :: Distance
+    , _goldSpeckInitialOffsetHigh         :: Distance
+    , _grappleSpeckInitialOffsetLow       :: Distance
+    , _grappleSpeckInitialOffsetHigh      :: Distance
     }
     deriving Generic
 

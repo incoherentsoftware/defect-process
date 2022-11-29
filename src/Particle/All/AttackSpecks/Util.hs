@@ -79,6 +79,18 @@ mineParticlePaths = NE.fromList $ map packPath
     , "mine-c.spr"
     ] :: NE.NonEmpty PackResourceFilePath
 
+goldParticlePaths = NE.fromList $ map packPath
+    [ "gold-a.spr"
+    , "gold-b.spr"
+    , "gold-c.spr"
+    ] :: NE.NonEmpty PackResourceFilePath
+
+grappleParticlePaths = NE.fromList $ map packPath
+    [ "grapple-a.spr"
+    , "grapple-b.spr"
+    , "grapple-c.spr"
+    ] :: NE.NonEmpty PackResourceFilePath
+
 attackSpecksParticlePaths :: AttackSpecksType -> NE.NonEmpty PackResourceFilePath
 attackSpecksParticlePaths = \case
     SwordSpecksType        -> swordParticlePaths
@@ -93,6 +105,8 @@ attackSpecksParticlePaths = \case
     RicochetSpecksType     -> ricochetParticlePaths
     GrenadeSpecksType      -> grenadeParticlePaths
     MineSpecksType         -> mineParticlePaths
+    GoldSpecksType         -> goldParticlePaths
+    GrappleSpecksType      -> grappleParticlePaths
 
 toAttackSpecksDirection :: Maybe Direction -> AttackSpecksDirection
 toAttackSpecksDirection = \case

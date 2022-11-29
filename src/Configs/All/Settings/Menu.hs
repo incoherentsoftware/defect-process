@@ -34,6 +34,7 @@ data MenuConfig = MenuConfig
     , _settingsCloseButtonPos    :: Pos2
 
     , _settingsControlsTabControlsKeyButtons                :: [ControlsKeyButtonJSON]
+    , _settingsControlsTabMouseKbControlsKeyButtons         :: [ControlsKeyButtonJSON]
     , _settingsControlsTabControlsKeyButtonsTopDefaultIndex :: Int
     , _settingsControlsTabControlsKeyButtonsBotDefaultIndex :: Int
     , _settingsControlsTabControlsKeyButtonsValueOffset     :: Pos2

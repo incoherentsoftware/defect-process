@@ -10,6 +10,7 @@ import AppEnv
 import Attack
 import Collision
 import Configs
+import Configs.All.Player
 import Configs.All.Settings
 import Configs.All.Settings.Debug
 import Msg.Phase
@@ -24,7 +25,22 @@ import Util
 import Window
 import World.ZIndex
 
+gamepadAimLineOffsetLength = 0.0 :: Float
+
 debugHitboxColor = Color 200 200 200 155 :: Color
+
+drawGamepadAimLine :: (GraphicsReadWrite m, MonadIO m) => Player -> m ()
+drawGamepadAimLine player =
+    let
+        visualAimPos@(Pos2 visualAimX visualAimY) = calculateGamepadVisualAimPos player
+        shoulderPos@(Pos2 shoulderX shoulderY)    = playerShoulderPos player
+        aimVec                                    = vecNormalize $ visualAimPos `vecSub` shoulderPos
+        visualStartPos                            = shoulderPos `vecAdd` (aimVec `vecMul` gamepadAimLineOffsetLength)
+        aimAngle                                  = atan2 (visualAimY - shoulderY) (visualAimX - shoulderX)
+        gamepadAimLineImg                         = _gamepadAimLine $ _images (player :: Player)
+        isGamepadAimLineEnabled                   = _isGamepadAimLineEnabled $ _config player
+    in when isGamepadAimLineEnabled $
+        drawImageRotated visualStartPos RightDir playerAimOverlayZIndex aimAngle gamepadAimLineImg
 
 drawPlayer :: Player -> AppEnv DrawMsgsPhase ()
 drawPlayer player
@@ -78,7 +94,9 @@ drawPlayer player
                     let
                         visualAimPos    = calculateGamepadVisualAimPos player
                         aimCrosshairImg = _aimCrosshair $ _images (player :: Player)
-                    in drawImage visualAimPos RightDir playerAimOverlayZIndex aimCrosshairImg
+                    in do
+                        drawGamepadAimLine player
+                        drawImage visualAimPos RightDir playerAimOverlayZIndex aimCrosshairImg
 
     where
         pos = _pos (player :: Player)

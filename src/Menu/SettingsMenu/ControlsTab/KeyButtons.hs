@@ -107,9 +107,13 @@ loadControlsKeyButtons
     => InputType
     -> m (IM.IntMap ControlsKeyButton)
 loadControlsKeyButtons keyBtnType = do
-    keyBtnJSONs <- readSettingsConfig _menu _settingsControlsTabControlsKeyButtons
-    keyBtns     <-
-        for keyBtnJSONs $ \keyBtnJSON -> do
+    keyBtnJSONs  <- readSettingsConfig _menu _settingsControlsTabControlsKeyButtons
+    keyBtnJSONs' <- case keyBtnType of
+        GamepadInputType -> return keyBtnJSONs
+        MouseKbInputType -> (keyBtnJSONs ++) <$> readSettingsConfig _menu _settingsControlsTabMouseKbControlsKeyButtons
+
+    keyBtns <-
+        for keyBtnJSONs' $ \keyBtnJSON -> do
             keyBtn <- mkControlsKeyButton keyBtnType keyBtnJSON
             return (_index keyBtn, keyBtn)
     return $ IM.fromList keyBtns

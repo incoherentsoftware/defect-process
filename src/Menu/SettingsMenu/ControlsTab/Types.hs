@@ -22,6 +22,7 @@ data ControlsSubSelection
 data SettingsControlsTab = SettingsControlsTab
     { _buttons                      :: SettingsTabButtons
     , _backgroundImage              :: Image
+    , _cursorLockOnOverlayImage     :: Image
     , _isInitialUpdate              :: Bool
     , _showToggleButtonType         :: InputType
     , _mouseKbKeyButtonsMap         :: IM.IntMap ControlsKeyButton

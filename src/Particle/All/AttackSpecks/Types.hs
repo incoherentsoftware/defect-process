@@ -20,6 +20,8 @@ data AttackSpecksType
     | RicochetSpecksType
     | GrenadeSpecksType
     | MineSpecksType
+    | GoldSpecksType
+    | GrappleSpecksType
     deriving (FromJSON, Generic)
 
 data AttackSpecksPosition

@@ -20,6 +20,7 @@ import Level.Room.Event.SlotMachine.TextParticle
 import Level.Room.Event.SlotMachine.Util
 import Level.Room.Item as RI
 import Msg
+import Particle.All.Simple
 import Util
 import Window.Graphics
 import Window.InputState
@@ -36,9 +37,11 @@ interactOverlayBackdropOffsetY    = -247.0                                :: Off
 interactOverlayBackdropHeight     = 47.0                                  :: Float
 interactOverlayTextOffsetY        = interactOverlayBackdropOffsetY + 24.0 :: OffsetY
 
-packPath           = \f -> PackResourceFilePath "data/levels/level-items.pack" f
-signImagePath      = packPath "slot-machine-sign.image"      :: PackResourceFilePath
-selectionImagePath = packPath "slot-machine-selection.image" :: PackResourceFilePath
+packPath                  = \f -> PackResourceFilePath "data/levels/level-items.pack" f
+signImagePath             = packPath "slot-machine-sign.image"            :: PackResourceFilePath
+selectionImagePath        = packPath "slot-machine-selection.image"       :: PackResourceFilePath
+minusLeftEffectSpritePath = packPath "slot-machine-minus-left-effect.spr" :: PackResourceFilePath
+plusRightEffectSpritePath = packPath "slot-machine-plus-right-effect.spr" :: PackResourceFilePath
 
 activateSoundPath   = "event:/SFX Events/Level/event-activator"    :: FilePath
 cursorMoveSoundPath = "event:/SFX Events/Level/gamble-cursor-move" :: FilePath
@@ -172,15 +175,28 @@ thinkSlotMachine slotMachine =
                     [mkMsg RoomMsgAddPortalBarrier]
                 | Just symbolDisplayTxt <- readSelectionSymbolDisplayText slotMachineData ->
                     let
-                        setSlotMachineDone = \sm -> sm {_data = (_data sm) {_state = SlotMachineDone}}
-                        selectionTxt       = _text (symbolDisplayTxt :: SymbolDisplayText)
-                        resultSoundPath    = if
-                            | isSlotsChoiceTextPlus selectionTxt -> goldGainSoundPath
-                            | otherwise                          -> goldLossSoundPath
+                        setSlotMachineDone  = \sm -> sm {_data = (_data sm) {_state = SlotMachineDone}}
+                        loadSimpleParticle' = \dir sprPath -> loadSimpleParticle pos dir worldEffectZIndex sprPath
+                        selectionTxt        = _text (symbolDisplayTxt :: SymbolDisplayText)
+
+                        mkEffectParticles
+                            | isSlotsChoiceTextPlus selectionTxt = do
+                                leftEffect  <- loadSimpleParticle' LeftDir plusRightEffectSpritePath
+                                rightEffect <- loadSimpleParticle' RightDir plusRightEffectSpritePath
+                                return [leftEffect, rightEffect]
+                            | otherwise                          = do
+                                leftEffect  <- loadSimpleParticle' RightDir minusLeftEffectSpritePath
+                                rightEffect <- loadSimpleParticle' LeftDir minusLeftEffectSpritePath
+                                return [leftEffect, rightEffect]
+
+                        resultSoundPath
+                            | isSlotsChoiceTextPlus selectionTxt = goldGainSoundPath
+                            | otherwise                          = goldLossSoundPath
                     in
                         [ mkMsgTo (RoomMsgUpdateItem setSlotMachineDone) (_msgId slotMachine)
                         , mkMsg $ PlayerMsgUpdateGold (parseFormattedSlotsChoice selectionTxt)
-                        , mkMsg $ ParticleMsgAddM (mkSlotMachineTextParticle symbolDisplayTxt)
+                        , mkMsg $ ParticleMsgAddM (mkSlotMachineTextParticle pos symbolDisplayTxt)
+                        , mkMsg $ ParticleMsgAddsM mkEffectParticles
                         , mkMsg $ AudioMsgPlaySound resultSoundPath pos
                         ]
 

@@ -5,5 +5,6 @@ module Player.Images.Types
 import Window.Graphics
 
 data PlayerImages = PlayerImages
-    { _aimCrosshair :: Image
+    { _aimCrosshair   :: Image
+    , _gamepadAimLine :: Image
     }

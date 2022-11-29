@@ -43,7 +43,6 @@ height          = 78.0                        :: Float
 minAngle        = toRadians $ Degrees (-75.0) :: Radians
 maxAngle        = toRadians $ Degrees 75.0    :: Radians
 noDropOpacity   = Opacity 0.4                 :: Opacity
-roomTopOffsetY  = 178.0                       :: PosY
 
 data BouncingBallData = BouncingBallData
     { _ttl          :: Secs
@@ -95,16 +94,15 @@ bouncingBallHitbox bouncingBall
         isAppearSpr      = maybe False (== appearSpr) (E._sprite bouncingBall)
         pos              = E._pos bouncingBall
 
-readIsAtRoomTopBounds :: MsgsRead ThinkEnemyMsgsPhase m => Enemy BouncingBallData -> m Bool
-readIsAtRoomTopBounds bouncingBall = processMsgs <$> readMsgs
-    where
-        processMsgs :: [InfoMsgPayload] -> Bool
-        processMsgs []     = False
-        processMsgs (p:ps) = case p of
-            InfoMsgRoomTopBounds topBounds -> hitboxTop (bouncingBallHitbox bouncingBall) < topBounds + roomTopOffsetY
-            _                              -> processMsgs ps
+calcIsAtRoomTopBounds :: (GraphicsReadWrite m, MonadIO m) => Enemy BouncingBallData -> m Bool
+calcIsAtRoomTopBounds bouncingBall = do
+    cameraSpace <- getCameraSpace
+    setCameraSpace CameraWorldSpace
+    y <- vecY <$> cameraTransformPos (E._pos bouncingBall)
+    setCameraSpace cameraSpace
+    return $ y - height / 2.0 <= 0.0
 
-thinkBouncingBall :: MsgsRead ThinkEnemyMsgsPhase m => EnemyThinkAI BouncingBallData m
+thinkBouncingBall :: (GraphicsReadWrite m, MonadIO m) => EnemyThinkAI BouncingBallData m
 thinkBouncingBall bouncingBall = do
     let
         pos               = E._pos bouncingBall
@@ -121,7 +119,7 @@ thinkBouncingBall bouncingBall = do
                 ]
             | otherwise   = [mkMsg RoomMsgKeepPortalBarrierAlive]
 
-    isAtRoomTopBounds <- readIsAtRoomTopBounds bouncingBall
+    isAtRoomTopBounds <- calcIsAtRoomTopBounds bouncingBall
 
     let
         update = \e ->

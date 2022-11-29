@@ -12,6 +12,7 @@ import qualified Data.List.NonEmpty as NE
 import qualified Data.Set  as S
 
 import Attack.Hit
+import Attack.Util
 import Collision
 import Constants
 import FileCache
@@ -20,6 +21,7 @@ import Level.Room.Item as RI
 import Level.Room.Item.GoldChunk.JSON
 import Level.Room.Item.GoldChunk.Types
 import Msg
+import Particle.All.AttackSpecks
 import Particle.All.Simple
 import Util
 import Window.Graphics
@@ -149,16 +151,26 @@ damageGoldChunk
     :: HashedId
     -> RoomItem GoldChunkData
     -> ([Msg UpdateLevelMsgsPhase], RoomItem GoldChunkData -> RoomItem GoldChunkData)
-damageGoldChunk atkId goldChunk
-    | atkId `S.member` RI._hitByHashedIds goldChunk = ([], id)
-    | otherwise                                     =
+damageGoldChunk atkHashedId goldChunk
+    | atkHashedId `S.member` RI._hitByHashedIds goldChunk = ([], id)
+    | otherwise                                           =
         let
             pos            = hitboxCenter $ RI._hitbox goldChunk
             goldChunkData  = _data goldChunk
-            hitAudioMsg    = mkMsg $ AudioMsgPlaySound hitSoundFilePath pos
-            hitEffectMsg   = mkMsg $ ParticleMsgAddM (loadSimpleParticle pos RightDir worldEffectZIndex hitEffectPath)
-            hitMsgs        = [hitAudioMsg, hitEffectMsg]
             dropGoldValues = _dropGoldValues goldChunkData
+
+            goldFakeAtkHit = (mkAttackHitEmpty NullId pos)
+                { _hitEffectType   = NormalHitEffect
+                , _specksType      = Just GoldSpecksType
+                , _specksPos       = Just SpecksAtkIntersectPos
+                , _specksDirection = Just SpecksAnyDir
+                }
+
+            hitMsgs =
+                [ mkMsg $ AudioMsgPlaySound hitSoundFilePath pos
+                , mkMsg $ ParticleMsgAddM (loadSimpleParticle pos RightDir worldEffectZIndex hitEffectPath)
+                , mkMsg $ ParticleMsgAddM (mkAttackSpecksParticle goldFakeAtkHit)
+                ]
         in case _damagedImages goldChunkData of
             [] ->
                 let
@@ -179,7 +191,7 @@ damageGoldChunk atkId goldChunk
                             , _damagedImages  = damagedImgs
                             , _dropGoldValues = drop n dropGoldValues
                             }
-                        , _hitByHashedIds = atkId `S.insert` RI._hitByHashedIds gc
+                        , _hitByHashedIds = atkHashedId `S.insert` RI._hitByHashedIds gc
                         }
                 in (dropGoldMsg:hitMsgs, update)
 

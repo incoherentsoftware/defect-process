@@ -12,7 +12,7 @@ import Util
 import Window.Graphics
 import World.ZIndex
 
-screenPos           = Pos2 1870.0 105.0 :: Pos2
+offset              = Pos2 0.0 (-480.0) :: Pos2
 opacityDecreaseRate = 0.35              :: Float
 lingerSecs          = 5.0               :: Secs
 
@@ -22,36 +22,33 @@ data TextParticleData = TextParticleData
     , _symbolDisplayText :: SymbolDisplayText
     }
 
-mkSlotMachineTextParticle :: (FileCache m, GraphicsRead m, MonadIO m) => SymbolDisplayText -> m (Some Particle)
-mkSlotMachineTextParticle symbolDisplayTxt = do
+mkSlotMachineTextParticle :: (FileCache m, GraphicsRead m, MonadIO m) => Pos2 -> SymbolDisplayText -> m (Some Particle)
+mkSlotMachineTextParticle pos symbolDisplayTxt = do
     let
         txt  = _text (symbolDisplayTxt :: SymbolDisplayText)
         txt' = T.takeWhileEnd (/= '}') txt
     symbolDisplayTxt' <- updateSymbolDisplayText txt' symbolDisplayTxt
 
     let
-        textParticleData  = TextParticleData
+        textParticleData = TextParticleData
             { _opacity           = Opacity 1.0
             , _lingerTtl         = lingerSecs
             , _symbolDisplayText = symbolDisplayTxt'
             }
+        pos'             = pos `vecAdd` offset
 
-    return . Some $ (mkParticle textParticleData screenPos maxSecs)
+    return . Some $ (mkParticle textParticleData pos' maxSecs)
         { _draw   = draw
         , _update = update
         }
 
 draw :: (GraphicsReadWrite m, MonadIO m) => ParticleDraw TextParticleData m
-draw textParticle =
-    let
+draw textParticle = drawSymbolDisplayTextCenteredEx pos uiFrontZIndex NonScaled opacity symbolDisplayTxt
+    where
         pos              = P._pos textParticle
         textParticleData = _data textParticle
         opacity          = _opacity textParticleData
         symbolDisplayTxt = _symbolDisplayText textParticleData
-    in do
-        setCameraSpace CameraScreenSpace
-        drawSymbolDisplayTextRightAlignedEx pos uiFrontZIndex NonScaled opacity symbolDisplayTxt
-        setCameraSpace CameraWorldSpace
 
 update :: ParticleUpdate TextParticleData
 update textParticle = textParticle

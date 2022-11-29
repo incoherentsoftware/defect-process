@@ -12,4 +12,6 @@ import Window.Graphics
 mkPlayerImages :: (FileCache m, GraphicsRead m, MonadIO m) => m PlayerImages
 mkPlayerImages =
     PlayerImages <$>
-    loadPackImage (PackResourceFilePath "data/ui/ui.pack" "crosshair.image")
+    loadPackImg "crosshair.image" <*>
+    loadPackImg "gamepad-aim-line.image"
+    where loadPackImg = \f -> loadPackImage $ PackResourceFilePath "data/ui/ui.pack" f
