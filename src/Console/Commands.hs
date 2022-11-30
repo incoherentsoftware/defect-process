@@ -262,34 +262,29 @@ itemCmd args world = do
     pos <- _mouseWorldPos <$> readInputState
 
     item <- case T.toLower name of
-        -- NOTE: this is modified from the full source since only sword is included in this repo
         "sword"       -> Just <$> mkSwordItemPickup roomType pos
-        "gauntlets"   -> Just <$> mkSwordItemPickup roomType pos
-        "scythe"      -> Just <$> mkSwordItemPickup roomType pos
-        "staff"       -> Just <$> mkSwordItemPickup roomType pos
-        "spiritblade" -> Just <$> mkSwordItemPickup roomType pos
+        "gauntlets"   -> Just <$> mkGauntletsItemPickup roomType pos
+        "scythe"      -> Just <$> mkScytheItemPickup roomType pos
+        "staff"       -> Just <$> mkStaffItemPickup roomType pos
+        "spiritblade" -> Just <$> mkSpiritBladeItemPickup roomType pos
 
-        -- NOTE: this is modified from the full source since only revolver is included in this repo
         "revolver"        -> Just <$> mkRevolverItemPickup roomType pos
-        "shotgun"         -> Just <$> mkRevolverItemPickup roomType pos
-        "shardgun"        -> Just <$> mkRevolverItemPickup roomType pos
-        "grenadelauncher" -> Just <$> mkRevolverItemPickup roomType pos
-        "spikegun"        -> Just <$> mkRevolverItemPickup roomType pos
-        "ricochetgun"     -> Just <$> mkRevolverItemPickup roomType pos
+        "shotgun"         -> Just <$> mkShotgunItemPickup roomType pos
+        "shardgun"        -> Just <$> mkShardGunItemPickup roomType pos
+        "grenadelauncher" -> Just <$> mkGrenadeLauncherItemPickup roomType pos
+        "spikegun"        -> Just <$> mkSpikeGunItemPickup roomType pos
+        "ricochetgun"     -> Just <$> mkRicochetGunItemPickup roomType pos
 
-
-        -- NOTE: this is modified from the full source since only dash is included in this repo
         "dash"     -> Just <$> mkDashItemPickup roomType pos
-        "teleport" -> Just <$> mkDashItemPickup roomType pos
-        "grapple"  -> Just <$> mkDashItemPickup roomType pos
+        "teleport" -> Just <$> mkTeleportItemPickup roomType pos
+        "grapple"  -> Just <$> mkGrappleItemPickup roomType pos
 
-        -- NOTE: this is modified from the full source since only stoneForm is included in this repo
         "stoneform"      -> Just <$> mkStoneFormItemPickup roomType pos
-        "flight"         -> Just <$> mkStoneFormItemPickup roomType pos
-        "fastfall"       -> Just <$> mkStoneFormItemPickup roomType pos
-        "stasisblast"    -> Just <$> mkStoneFormItemPickup roomType pos
-        "markrecall"     -> Just <$> mkStoneFormItemPickup roomType pos
-        "summonplatform" -> Just <$> mkStoneFormItemPickup roomType pos
+        "flight"         -> Just <$> mkFlightItemPickup roomType pos
+        "fastfall"       -> Just <$> mkFastFallItemPickup roomType pos
+        "stasisblast"    -> Just <$> mkStasisBlastItemPickup roomType pos
+        "markrecall"     -> Just <$> mkMarkRecallItemPickup roomType pos
+        "summonplatform" -> Just <$> mkSummonPlatformItemPickup roomType pos
 
         "doublejump"    -> Just <$> mkDoubleJumpUpgradeItemPickup roomType pos
         "movementskill" -> Just <$> mkMovementSkillUpgradeItemPickup roomType pos
@@ -642,12 +637,11 @@ giveWeaponCmd args world = do
     let player = _player (world :: World)
 
     wpn <- case T.toLower (args0 args) of
-        -- NOTE: this is modified from the full source since only sword is included in this repo
         "sword"       -> Just <$> mkSwordWeapon
-        "gauntlets"   -> Just <$> mkSwordWeapon
-        "staff"       -> Just <$> mkSwordWeapon
-        "scythe"      -> Just <$> mkSwordWeapon
-        "spiritblade" -> Just <$> mkSwordWeapon
+        "gauntlets"   -> Just <$> mkGauntletsWeapon
+        "staff"       -> Just <$> mkStaffWeapon
+        "scythe"      -> Just <$> mkScytheWeapon
+        "spiritblade" -> Just <$> mkSpiritBladeWeapon
         "random"      -> case filter (`notElem` playerWeaponTypes player) allWeaponTypes of
             []     -> return Nothing
             (t:ts) ->
@@ -672,13 +666,12 @@ giveGunCmd args world = do
     let player = _player (world :: World)
 
     gun <- case T.toLower (args0 args) of
-        -- NOTE: this is modified from the full source since only revolver is included in this repo
         "revolver"        -> Just <$> mkRevolverGun
-        "shotgun"         -> Just <$> mkRevolverGun
-        "grenadelauncher" -> Just <$> mkRevolverGun
-        "shardgun"        -> Just <$> mkRevolverGun
-        "spikegun"        -> Just <$> mkRevolverGun
-        "ricochetgun"     -> Just <$> mkRevolverGun
+        "shotgun"         -> Just <$> mkShotgunGun
+        "grenadelauncher" -> Just <$> mkGrenadeLauncherGun
+        "shardgun"        -> Just <$> mkShardGun
+        "spikegun"        -> Just <$> mkSpikeGun
+        "ricochetgun"     -> Just <$> mkRicochetGun
         "random"          -> case filter (`notElem` playerGunTypes player) allGunTypes of
             []     -> return Nothing
             (t:ts) ->
@@ -703,10 +696,9 @@ giveMovementSkillCmd args world = do
     let player = _player (world :: World)
 
     movementSkill <- case args0 args of
-        -- NOTE: this is modified from the full source since only stoneForm is included in this repo
         "dash"     -> Just <$> mkDashSkill
-        "teleport" -> Just <$> mkDashSkill
-        "grapple"  -> Just <$> mkDashSkill
+        "teleport" -> Just <$> mkTeleportSkill
+        "grapple"  -> Just <$> mkGrappleSkill
         "random"   ->
             let
                 moveSkillTypes = case playerMovementSkillType player of
@@ -734,13 +726,12 @@ giveMovementSkillCmd args world = do
 giveSecondarySkillCmd :: ConsoleCommand (AppEnv ConsoleMsgsPhase)
 giveSecondarySkillCmd args world = do
     secondarySkill <- case T.toLower (args0 args) of
-        -- NOTE: this is modified from the full source since only stoneForm is included in this repo
         "stoneform"      -> Just <$> mkStoneFormSkill
-        "flight"         -> Just <$> mkStoneFormSkill
-        "fastfall"       -> Just <$> mkStoneFormSkill
-        "stasisblast"    -> Just <$> mkStoneFormSkill
-        "markrecall"     -> Just <$> mkStoneFormSkill
-        "summonplatform" -> Just <$> mkStoneFormSkill
+        "flight"         -> Just <$> mkFlightSkill
+        "fastfall"       -> Just <$> mkFastFallSkill
+        "stasisblast"    -> Just <$> mkStasisBlastSkill
+        "markrecall"     -> Just <$> mkMarkRecallSkill
+        "summonplatform" -> Just <$> mkSummonPlatformSkill
 
         name
             | Just t <- readMaybe' name -> Just <$> mkSecondarySkillFromType t

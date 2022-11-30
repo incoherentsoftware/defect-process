@@ -31,4 +31,4 @@ This assumes you've purchased a copy of the [game on Steam](https://store.steamp
    - Copy `<steam game directory>/*.dll` into `<project root>/`
 1. From `<project root>` run `defect-process.exe`
 
-Heavy use of the the in-game dev console is needed to try out most things, due to the omitted code. See [docs/dev-console-reference.pdf](https://github.com/incoherentsoftware/defect-process/blob/main/docs/dev-console-reference.pdf) for what commands are available. It's recommended to play the game normally on Steam for a bit to get a feel for how it works.
+See [docs/dev-console-reference.pdf](https://github.com/incoherentsoftware/defect-process/blob/main/docs/dev-console-reference.pdf) for what dev console commands are available.

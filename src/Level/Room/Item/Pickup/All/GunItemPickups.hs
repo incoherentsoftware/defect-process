@@ -2,6 +2,11 @@ module Level.Room.Item.Pickup.All.GunItemPickups
     ( module Player.Gun.All
     , mkFreeRevolverItemPickup
     , mkRevolverItemPickup
+    , mkShotgunItemPickup
+    , mkShardGunItemPickup
+    , mkGrenadeLauncherItemPickup
+    , mkSpikeGunItemPickup
+    , mkRicochetGunItemPickup
     ) where
 
 import Control.Monad.IO.Class (MonadIO)
@@ -27,8 +32,12 @@ import Window.InputState
 import World.Util
 import World.ZIndex
 
--- NOTE: this is modified from the full source since only revolver is included in this repo
-revolverPickupImgFileName = "revolver-pickup.image" :: FileName
+revolverPickupImgFileName        = "revolver-pickup.image"         :: FileName
+shotgunPickupImgFileName         = "shotgun-pickup.image"          :: FileName
+shardGunPickupImgFileName        = "shard-gun-pickup.image"        :: FileName
+grenadeLauncherPickupImgFileName = "grenade-launcher-pickup.image" :: FileName
+spikeGunPickupImgFileName        = "spike-gun-pickup.image"        :: FileName
+ricochetGunPickupImgFileName     = "ricochet-gun-pickup.image"     :: FileName
 
 gunInfoBackdropOffsetY = -340.0 :: OffsetY
 replaceTextOffsetY     = -293.0 :: OffsetY
@@ -200,4 +209,45 @@ mkRevolverItemPickup roomType pos = do
     revolverCost   <- readConfig _level _itemPickupGunGoldValue
     buyMsgPayload  <- PlayerMsgBuyGun <$> mkRevolverGun <*> pure revolverCost
     itemPickupData <- mkGunItemPickupData RevolverGun buyMsgPayload revolverCost revolverPickupImgFileName roomType
+    mkGunItemPickup pos itemPickupData
+
+mkShotgunItemPickup :: RoomType -> Pos2 -> AppEnv p (Some RoomItem)
+mkShotgunItemPickup roomType pos = do
+    shotgunCost    <- readConfig _level _itemPickupGunGoldValue
+    buyMsgPayload  <- PlayerMsgBuyGun <$> mkShotgunGun <*> pure shotgunCost
+    itemPickupData <- mkGunItemPickupData ShotgunGun buyMsgPayload shotgunCost shotgunPickupImgFileName roomType
+    mkGunItemPickup pos itemPickupData
+
+mkShardGunItemPickup :: RoomType -> Pos2 -> AppEnv p (Some RoomItem)
+mkShardGunItemPickup roomType pos = do
+    shardGunCost   <- readConfig _level _itemPickupGunGoldValue
+    buyMsgPayload  <- PlayerMsgBuyGun <$> mkShardGun <*> pure shardGunCost
+    itemPickupData <- mkGunItemPickupData ShardGun buyMsgPayload shardGunCost shardGunPickupImgFileName roomType
+    mkGunItemPickup pos itemPickupData
+
+mkGrenadeLauncherItemPickup :: RoomType -> Pos2 -> AppEnv p (Some RoomItem)
+mkGrenadeLauncherItemPickup roomType pos = do
+    grenadeLauncherCost <- readConfig _level _itemPickupGunGoldValue
+    buyMsgPayload       <- PlayerMsgBuyGun <$> mkGrenadeLauncherGun <*> pure grenadeLauncherCost
+    itemPickupData      <- mkGunItemPickupData
+        GrenadeLauncherGun
+        buyMsgPayload
+        grenadeLauncherCost
+        grenadeLauncherPickupImgFileName
+        roomType
+    mkGunItemPickup pos itemPickupData
+
+mkSpikeGunItemPickup :: RoomType -> Pos2 -> AppEnv p (Some RoomItem)
+mkSpikeGunItemPickup roomType pos = do
+    spikeGunCost   <- readConfig _level _itemPickupGunGoldValue
+    buyMsgPayload  <- PlayerMsgBuyGun <$> mkSpikeGun <*> pure spikeGunCost
+    itemPickupData <- mkGunItemPickupData SpikeGun buyMsgPayload spikeGunCost spikeGunPickupImgFileName roomType
+    mkGunItemPickup pos itemPickupData
+
+mkRicochetGunItemPickup :: RoomType -> Pos2 -> AppEnv p (Some RoomItem)
+mkRicochetGunItemPickup roomType pos = do
+    ricochetGunCost <- readConfig _level _itemPickupGunGoldValue
+    buyMsgPayload   <- PlayerMsgBuyGun <$> mkRicochetGun <*> pure ricochetGunCost
+    itemPickupData  <-
+        mkGunItemPickupData RicochetGun buyMsgPayload ricochetGunCost ricochetGunPickupImgFileName roomType
     mkGunItemPickup pos itemPickupData

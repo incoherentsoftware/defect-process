@@ -51,40 +51,36 @@ maxChooseMovementSkills = 2 :: Int
 
 transitionGoldChunkCountChoices = NE.fromList (map GoldChunkCount [1, 1, 1, 2, 2, 2, 3]) :: NE.NonEmpty GoldChunkCount
 
--- NOTE: this is modified from the full source since only sword is included in this repo
 allInitWeaponRoomItems =
     [ (SwordWeapon, mkSwordItemPickup)
-    , (GauntletsWeapon, mkSwordItemPickup)
-    , (ScytheWeapon, mkSwordItemPickup)
-    , (StaffWeapon, mkSwordItemPickup)
-    , (SpiritBladeWeapon, mkSwordItemPickup)
+    , (GauntletsWeapon, mkGauntletsItemPickup)
+    , (ScytheWeapon, mkScytheItemPickup)
+    , (StaffWeapon, mkStaffItemPickup)
+    , (SpiritBladeWeapon, mkSpiritBladeItemPickup)
     ] :: [(WeaponType, RoomType -> RoomItemInit p)]
 
--- NOTE: this is modified from the full source since only revolver is included in this repo
 allInitGunRoomItems =
     [ (RevolverGun, mkRevolverItemPickup)
-    , (ShotgunGun, mkRevolverItemPickup)
-    , (ShardGun, mkRevolverItemPickup)
-    , (GrenadeLauncherGun, mkRevolverItemPickup)
-    , (SpikeGun, mkRevolverItemPickup)
-    , (RicochetGun, mkRevolverItemPickup)
+    , (ShotgunGun, mkShotgunItemPickup)
+    , (ShardGun, mkShardGunItemPickup)
+    , (GrenadeLauncherGun, mkGrenadeLauncherItemPickup)
+    , (SpikeGun, mkSpikeGunItemPickup)
+    , (RicochetGun, mkRicochetGunItemPickup)
     ] :: [(GunType, RoomType -> RoomItemInit p)]
 
--- NOTE: this is modified from the full source since only dash is included in this repo
 allInitMovementSkillRoomItems =
     [ (DashSkill, mkDashItemPickup)
-    , (TeleportSkill, mkDashItemPickup)
-    , (GrappleSkill, mkDashItemPickup)
+    , (TeleportSkill, mkTeleportItemPickup)
+    , (GrappleSkill, mkGrappleItemPickup)
     ] :: [(MovementSkillType, RoomType -> RoomItemInit p)]
 
--- NOTE: this is modified from the full source since only stoneForm is included in this repo
 allInitSecondarySkillRoomItems =
     [ (StoneFormSkill, mkStoneFormItemPickup)
-    , (FlightSkill, mkStoneFormItemPickup)
-    , (FastFallSkill, mkStoneFormItemPickup)
-    , (StasisBlastSkill, mkStoneFormItemPickup)
-    , (SummonPlatformSkill, mkStoneFormItemPickup)
-    , (MarkRecallSkill, mkStoneFormItemPickup)
+    , (FlightSkill, mkFlightItemPickup)
+    , (FastFallSkill, mkFastFallItemPickup)
+    , (StasisBlastSkill, mkStasisBlastItemPickup)
+    , (SummonPlatformSkill, mkSummonPlatformItemPickup)
+    , (MarkRecallSkill, mkMarkRecallItemPickup)
     ] :: [(SecondarySkillType, RoomType -> RoomItemInit p)]
 
 allInitUpgradeRoomItems =

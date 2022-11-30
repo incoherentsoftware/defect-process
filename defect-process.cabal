@@ -119,6 +119,154 @@ executable defect-process
       Enemy.All.Axe.Behavior
       Enemy.All.Axe.Data
       Enemy.All.Axe.Sprites
+      Enemy.All.Bat
+      Enemy.All.Bat.AI
+      Enemy.All.Bat.AI.Run
+      Enemy.All.Bat.AttackDescriptions
+      Enemy.All.Bat.Behavior
+      Enemy.All.Bat.Data
+      Enemy.All.Bat.Sprites
+      Enemy.All.Blob
+      Enemy.All.Blob.AI
+      Enemy.All.Blob.AI.Run
+      Enemy.All.Blob.AttackDescriptions
+      Enemy.All.Blob.Behavior
+      Enemy.All.Blob.Data
+      Enemy.All.Blob.Sprites
+      Enemy.All.Bomb
+      Enemy.All.Bomb.AI
+      Enemy.All.Bomb.AI.Run
+      Enemy.All.Bomb.AttackDescriptions
+      Enemy.All.Bomb.Behavior
+      Enemy.All.Bomb.Data
+      Enemy.All.Bomb.Sprites
+      Enemy.All.Boss
+      Enemy.All.Boss.AI
+      Enemy.All.Boss.AI.Run
+      Enemy.All.Boss.AttackDescriptions
+      Enemy.All.Boss.Behavior
+      Enemy.All.Boss.BlobProjectile
+      Enemy.All.Boss.Data
+      Enemy.All.Boss.FlyingProjectile
+      Enemy.All.Boss.HopProjectile
+      Enemy.All.Boss.Images
+      Enemy.All.Boss.LankyProjectile
+      Enemy.All.Boss.SeekWallDummyProjectile
+      Enemy.All.Boss.SpearProjectile
+      Enemy.All.Boss.Sprites
+      Enemy.All.Boss.SummonFlyingSpawnerProjectile
+      Enemy.All.Boss.SummonSpearsSpawnerProjectile
+      Enemy.All.Boss.SummonWallSpawnerProjectile
+      Enemy.All.Boss.TurretProjectile
+      Enemy.All.Boss.Util
+      Enemy.All.Boss.WallProjectile
+      Enemy.All.BubbleTurret
+      Enemy.All.BubbleTurret.AI
+      Enemy.All.BubbleTurret.AI.Run
+      Enemy.All.BubbleTurret.AttackDescriptions
+      Enemy.All.BubbleTurret.Behavior
+      Enemy.All.BubbleTurret.BubbleProjectile
+      Enemy.All.BubbleTurret.Data
+      Enemy.All.BubbleTurret.Sprites
+      Enemy.All.Claws
+      Enemy.All.Claws.AI
+      Enemy.All.Claws.AI.Run
+      Enemy.All.Claws.AttackDescriptions
+      Enemy.All.Claws.Behavior
+      Enemy.All.Claws.Data
+      Enemy.All.Claws.Projectile
+      Enemy.All.Claws.Sprites
+      Enemy.All.Dog
+      Enemy.All.Dog.AI
+      Enemy.All.Dog.AI.Run
+      Enemy.All.Dog.AttackDescriptions
+      Enemy.All.Dog.Behavior
+      Enemy.All.Dog.Data
+      Enemy.All.Dog.Projectile
+      Enemy.All.Dog.Sprites
+      Enemy.All.Flail
+      Enemy.All.Flail.AI
+      Enemy.All.Flail.AI.Run
+      Enemy.All.Flail.AttackDescriptions
+      Enemy.All.Flail.AttackDescriptions.Types
+      Enemy.All.Flail.Behavior
+      Enemy.All.Flail.Data
+      Enemy.All.Flail.Data.Types
+      Enemy.All.Flail.Sprites
+      Enemy.All.Flying
+      Enemy.All.Flying.AI
+      Enemy.All.Flying.AI.Run
+      Enemy.All.Flying.AttackDescriptions
+      Enemy.All.Flying.Behavior
+      Enemy.All.Flying.Data
+      Enemy.All.Flying.Projectile
+      Enemy.All.Flying.Sprites
+      Enemy.All.Giant
+      Enemy.All.Giant.AI
+      Enemy.All.Giant.AI.Run
+      Enemy.All.Giant.AttackDescriptions
+      Enemy.All.Giant.Behavior
+      Enemy.All.Giant.Data
+      Enemy.All.Giant.Sprites
+      Enemy.All.Hammer
+      Enemy.All.Hammer.AI
+      Enemy.All.Hammer.AI.Run
+      Enemy.All.Hammer.AttackDescriptions
+      Enemy.All.Hammer.Behavior
+      Enemy.All.Hammer.Data
+      Enemy.All.Hammer.Sprites
+      Enemy.All.Hop
+      Enemy.All.Hop.AI
+      Enemy.All.Hop.AI.Run
+      Enemy.All.Hop.AttackDescriptions
+      Enemy.All.Hop.Behavior
+      Enemy.All.Hop.Data
+      Enemy.All.Hop.Projectile
+      Enemy.All.Hop.Sprites
+      Enemy.All.Lanky
+      Enemy.All.Lanky.AI
+      Enemy.All.Lanky.AI.Run
+      Enemy.All.Lanky.AttackDescriptions
+      Enemy.All.Lanky.AttackType
+      Enemy.All.Lanky.Behavior
+      Enemy.All.Lanky.Data
+      Enemy.All.Lanky.Projectile
+      Enemy.All.Lanky.Sprites
+      Enemy.All.Spear
+      Enemy.All.Spear.AI
+      Enemy.All.Spear.AI.Run
+      Enemy.All.Spear.AttackDescriptions
+      Enemy.All.Spear.AttackType
+      Enemy.All.Spear.Behavior
+      Enemy.All.Spear.Data
+      Enemy.All.Spear.Projectile
+      Enemy.All.Spear.Sprites
+      Enemy.All.Turret
+      Enemy.All.Turret.AI
+      Enemy.All.Turret.AI.Run
+      Enemy.All.Turret.AttackDescriptions
+      Enemy.All.Turret.AttackProjectile
+      Enemy.All.Turret.Behavior
+      Enemy.All.Turret.Data
+      Enemy.All.Turret.Sprites
+      Enemy.All.Wall
+      Enemy.All.Wall.AI
+      Enemy.All.Wall.AI.Run
+      Enemy.All.Wall.AttackDescriptions
+      Enemy.All.Wall.Behavior
+      Enemy.All.Wall.Data
+      Enemy.All.Wall.Sprites
+      Enemy.All.Wall.WallProjectile
+      Enemy.All.Zombie
+      Enemy.All.Zombie.AI
+      Enemy.All.Zombie.AI.Run
+      Enemy.All.Zombie.AttackDescriptions
+      Enemy.All.Zombie.AttackDescriptions.Types
+      Enemy.All.Zombie.Behavior
+      Enemy.All.Zombie.Data
+      Enemy.All.Zombie.Data.Types
+      Enemy.All.Zombie.Projectile
+      Enemy.All.Zombie.Sprites
       Enemy.DeathEffectData
       Enemy.DeathEffectData.Types
       Enemy.DebugText
@@ -304,10 +452,40 @@ executable defect-process
       Player.Flags
       Player.Gun
       Player.Gun.All
+      Player.Gun.All.GrenadeLauncher
+      Player.Gun.All.GrenadeLauncher.Data
+      Player.Gun.All.GrenadeLauncher.Grenade
+      Player.Gun.All.GrenadeLauncher.Mine
       Player.Gun.All.Revolver
       Player.Gun.All.Revolver.Data
       Player.Gun.All.Revolver.Shot
       Player.Gun.All.Revolver.Util
+      Player.Gun.All.RicochetGun
+      Player.Gun.All.RicochetGun.Data
+      Player.Gun.All.RicochetGun.Shot
+      Player.Gun.All.RicochetGun.Shot.Data
+      Player.Gun.All.RicochetGun.Util
+      Player.Gun.All.ShardGun
+      Player.Gun.All.ShardGun.BlinkStrike
+      Player.Gun.All.ShardGun.Data
+      Player.Gun.All.ShardGun.Data.Types
+      Player.Gun.All.ShardGun.Shard
+      Player.Gun.All.ShardGun.Shot
+      Player.Gun.All.ShardGun.Util
+      Player.Gun.All.Shotgun
+      Player.Gun.All.Shotgun.BurnFlame
+      Player.Gun.All.Shotgun.BurnShot
+      Player.Gun.All.Shotgun.Data
+      Player.Gun.All.Shotgun.Data.Types
+      Player.Gun.All.Shotgun.Shot
+      Player.Gun.All.SpikeGun
+      Player.Gun.All.SpikeGun.AttackDescriptions
+      Player.Gun.All.SpikeGun.Data
+      Player.Gun.All.SpikeGun.SpikeBarrage
+      Player.Gun.All.SpikeGun.SpikeBarrage.Data
+      Player.Gun.All.SpikeGun.SpikeBarrage.Spike
+      Player.Gun.All.SpikeGun.Sprites
+      Player.Gun.All.SpikeGun.Util
       Player.Gun.FireDrawAngle
       Player.Gun.FireDrawData
       Player.Gun.FireDrawState
@@ -331,6 +509,18 @@ executable defect-process
       Player.MovementSkill
       Player.MovementSkill.All
       Player.MovementSkill.All.DashSkill
+      Player.MovementSkill.All.GrappleSkill
+      Player.MovementSkill.All.GrappleSkill.Data
+      Player.MovementSkill.All.GrappleSkill.EnemyPullDummyProjectile
+      Player.MovementSkill.All.GrappleSkill.GunFireDrawDatas
+      Player.MovementSkill.All.GrappleSkill.Projectile
+      Player.MovementSkill.All.GrappleSkill.Projectile.Data
+      Player.MovementSkill.All.GrappleSkill.Projectile.Pull
+      Player.MovementSkill.All.GrappleSkill.Projectile.Towards
+      Player.MovementSkill.All.GrappleSkill.Projectile.Util
+      Player.MovementSkill.All.GrappleSkill.Util
+      Player.MovementSkill.All.TeleportSkill
+      Player.MovementSkill.All.TeleportSkill.DummyCollisionProjectile
       Player.MovementSkill.Status
       Player.MovementSkill.Types
       Player.Overlay.All
@@ -342,7 +532,13 @@ executable defect-process
       Player.RoomInfo
       Player.SecondarySkill
       Player.SecondarySkill.All
+      Player.SecondarySkill.All.FastFallSkill
+      Player.SecondarySkill.All.FlightSkill
+      Player.SecondarySkill.All.MarkRecallSkill
+      Player.SecondarySkill.All.StasisBlastSkill
       Player.SecondarySkill.All.StoneFormSkill
+      Player.SecondarySkill.All.SummonPlatformSkill
+      Player.SecondarySkill.All.SummonPlatformSkill.Platform
       Player.SecondarySkill.Manager
       Player.SecondarySkill.Manager.Types
       Player.SecondarySkill.Manager.Util
@@ -358,6 +554,20 @@ executable defect-process
       Player.Util
       Player.Weapon
       Player.Weapon.All
+      Player.Weapon.All.Gauntlets
+      Player.Weapon.All.Gauntlets.Data
+      Player.Weapon.All.Scythe
+      Player.Weapon.All.Scythe.Data
+      Player.Weapon.All.Scythe.FloatingAttack
+      Player.Weapon.All.Scythe.RecallSlashProjectile
+      Player.Weapon.All.SpiritBlade
+      Player.Weapon.All.SpiritBlade.CheckWallOffsetDummyProj
+      Player.Weapon.All.SpiritBlade.Data
+      Player.Weapon.All.SpiritBlade.SpiritFormProjectile
+      Player.Weapon.All.SpiritBlade.Util
+      Player.Weapon.All.Staff
+      Player.Weapon.All.Staff.Data
+      Player.Weapon.All.Staff.WindProjectile
       Player.Weapon.All.Sword
       Player.Weapon.All.Sword.AttackOrb
       Player.Weapon.All.Sword.Data

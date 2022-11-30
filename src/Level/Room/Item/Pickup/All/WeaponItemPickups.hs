@@ -1,5 +1,9 @@
 module Level.Room.Item.Pickup.All.WeaponItemPickups
     ( mkSwordItemPickup
+    , mkGauntletsItemPickup
+    , mkScytheItemPickup
+    , mkStaffItemPickup
+    , mkSpiritBladeItemPickup
     ) where
 
 import Control.Monad.IO.Class (MonadIO)
@@ -25,8 +29,11 @@ import Window.InputState
 import World.Util
 import World.ZIndex
 
--- NOTE: this is modified from the full source since only sword is included in this repo
-swordPickupImgFileName = "sword-pickup.image" :: FileName
+swordPickupImgFileName       = "sword-pickup.image"        :: FileName
+gauntletsPickupImgFileName   = "gauntlets-pickup.image"    :: FileName
+scythePickupImgFileName      = "scythe-pickup.image"       :: FileName
+staffPickupImgFileName       = "staff-pickup.image"        :: FileName
+spiritBladePickupImgFileName = "spirit-blade-pickup.image" :: FileName
 
 wpnInfoBackdropOffsetY = -340.0 :: OffsetY
 replaceTextOffsetY     = -293.0 :: OffsetY
@@ -191,4 +198,34 @@ mkSwordItemPickup roomType pos = do
     swordCost      <- readConfig _level _itemPickupWeaponGoldValue
     buyMsgPayload  <- PlayerMsgBuyWeapon <$> mkSwordWeapon <*> pure swordCost
     itemPickupData <- mkWeaponItemPickupData SwordWeapon buyMsgPayload swordCost swordPickupImgFileName roomType
+    mkWeaponItemPickup pos itemPickupData
+
+mkGauntletsItemPickup :: RoomType -> Pos2 -> AppEnv p (Some RoomItem)
+mkGauntletsItemPickup roomType pos = do
+    gauntletsCost  <- readConfig _level _itemPickupWeaponGoldValue
+    buyMsgPayload  <- PlayerMsgBuyWeapon <$> mkGauntletsWeapon <*> pure gauntletsCost
+    itemPickupData <-
+        mkWeaponItemPickupData GauntletsWeapon buyMsgPayload gauntletsCost gauntletsPickupImgFileName roomType
+    mkWeaponItemPickup pos itemPickupData
+
+mkScytheItemPickup :: RoomType -> Pos2 -> AppEnv p (Some RoomItem)
+mkScytheItemPickup roomType pos = do
+    scytheCost     <- readConfig _level _itemPickupWeaponGoldValue
+    buyMsgPayload  <- PlayerMsgBuyWeapon <$> mkScytheWeapon <*> pure scytheCost
+    itemPickupData <- mkWeaponItemPickupData ScytheWeapon buyMsgPayload scytheCost scythePickupImgFileName roomType
+    mkWeaponItemPickup pos itemPickupData
+
+mkStaffItemPickup :: RoomType -> Pos2 -> AppEnv p (Some RoomItem)
+mkStaffItemPickup roomType pos = do
+    staffCost      <- readConfig _level _itemPickupWeaponGoldValue
+    buyMsgPayload  <- PlayerMsgBuyWeapon <$> mkStaffWeapon <*> pure staffCost
+    itemPickupData <- mkWeaponItemPickupData StaffWeapon buyMsgPayload staffCost staffPickupImgFileName roomType
+    mkWeaponItemPickup pos itemPickupData
+
+mkSpiritBladeItemPickup :: RoomType -> Pos2 -> AppEnv p (Some RoomItem)
+mkSpiritBladeItemPickup roomType pos = do
+    spiritBladeCost <- readConfig _level _itemPickupWeaponGoldValue
+    buyMsgPayload   <- PlayerMsgBuyWeapon <$> mkSpiritBladeWeapon <*> pure spiritBladeCost
+    itemPickupData  <-
+        mkWeaponItemPickupData SpiritBladeWeapon buyMsgPayload spiritBladeCost spiritBladePickupImgFileName roomType
     mkWeaponItemPickup pos itemPickupData

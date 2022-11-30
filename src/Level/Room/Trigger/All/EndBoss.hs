@@ -11,7 +11,7 @@ import Configs.All.Level
 import Configs.All.Settings
 import Configs.All.Settings.Debug
 import Constants
-import Enemy.All.Axe
+import Enemy.All.Boss
 import FileCache
 import Id
 import Level.Room.Trigger
@@ -58,11 +58,10 @@ thinkMusic _ trigger = do
         , spawnParticlesAudioMsg trigger
         ]
 
--- NOTE: this is modified from the full source since only the axe enemy is included in this repo
 thinkSpawn :: Monad m => Secs -> RoomTriggerThink m
 thinkSpawn waitTtl _ trigger = return $ if
     | waitTtl <= 0.0 ->
-        [ mkMsg $ EnemyMsgAddM (mkAxeEnemy spawnPos spawnDir)
+        [ mkMsg $ EnemyMsgAddM (mkBossEnemy spawnPos spawnDir)
         , updateTriggerThinkMessage thinkAlive trigger
         ]
     | otherwise      ->

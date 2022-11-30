@@ -1,5 +1,10 @@
 module Level.Room.Item.Pickup.All.SecondarySkillItemPickups
     ( mkStoneFormItemPickup
+    , mkFlightItemPickup
+    , mkFastFallItemPickup
+    , mkStasisBlastItemPickup
+    , mkMarkRecallItemPickup
+    , mkSummonPlatformItemPickup
     ) where
 
 import Control.Monad          (when)
@@ -27,8 +32,12 @@ import Window.InputState
 import World.Util
 import World.ZIndex
 
--- NOTE: this is modified from the full source since only stoneForm is included in this repo
-stoneFormImgFileName = "stone-form-pickup.image" :: FileName
+stoneFormImgFileName      = "stone-form-pickup.image"      :: FileName
+flightImgFileName         = "flight-pickup.image"          :: FileName
+fastFallImgFileName       = "fast-fall-pickup.image"       :: FileName
+stasisBlastImgFileName    = "stasis-blast-pickup.image"    :: FileName
+markRecallImgFileName     = "mark-recall-pickup.image"     :: FileName
+summonPlatformImgFileName = "summon-platform-pickup.image" :: FileName
 
 secondarySkillInfoBackdropOffsetY = -366.0        :: OffsetY
 secondarySkillInfoImageOffsetY    = -316.0        :: OffsetY
@@ -294,4 +303,47 @@ mkStoneFormItemPickup roomType pos = do
     buyMsgPayload <- PlayerMsgBuySecondarySkill <$> mkStoneFormSkill <*> pure stoneFormCost
     itemData      <-
         mkSecondarySkillItemPickupData StoneFormSkill buyMsgPayload stoneFormCost stoneFormImgFileName roomType
+    mkSecondarySkillItemPickup pos itemData
+
+mkFlightItemPickup :: RoomType -> Pos2 -> AppEnv p (Some RoomItem)
+mkFlightItemPickup roomType pos = do
+    flightCost    <- readConfig _level _itemPickupFlightSkillGoldValue
+    buyMsgPayload <- PlayerMsgBuySecondarySkill <$> mkFlightSkill <*> pure flightCost
+    itemData      <- mkSecondarySkillItemPickupData FlightSkill buyMsgPayload flightCost flightImgFileName roomType
+    mkSecondarySkillItemPickup pos itemData
+
+mkFastFallItemPickup :: RoomType -> Pos2 -> AppEnv p (Some RoomItem)
+mkFastFallItemPickup roomType pos = do
+    fastFallCost  <- readConfig _level _itemPickupFastFallSkillGoldValue
+    buyMsgPayload <- PlayerMsgBuySecondarySkill <$> mkFastFallSkill <*> pure fastFallCost
+    itemData      <-
+        mkSecondarySkillItemPickupData FastFallSkill buyMsgPayload fastFallCost fastFallImgFileName roomType
+    mkSecondarySkillItemPickup pos itemData
+
+mkStasisBlastItemPickup :: RoomType -> Pos2 -> AppEnv p (Some RoomItem)
+mkStasisBlastItemPickup roomType pos = do
+    stasisBlastCost <- readConfig _level _itemPickupStasisBlastSkillGoldValue
+    buyMsgPayload   <- PlayerMsgBuySecondarySkill <$> mkStasisBlastSkill <*> pure stasisBlastCost
+    itemData        <-
+        mkSecondarySkillItemPickupData StasisBlastSkill buyMsgPayload stasisBlastCost stasisBlastImgFileName roomType
+    mkSecondarySkillItemPickup pos itemData
+
+mkMarkRecallItemPickup :: RoomType -> Pos2 -> AppEnv p (Some RoomItem)
+mkMarkRecallItemPickup roomType pos = do
+    markRecallCost <- readConfig _level _itemPickupMarkRecallSkillGoldValue
+    buyMsgPayload  <- PlayerMsgBuySecondarySkill <$> mkMarkRecallSkill <*> pure markRecallCost
+    itemData       <-
+        mkSecondarySkillItemPickupData MarkRecallSkill buyMsgPayload markRecallCost markRecallImgFileName roomType
+    mkSecondarySkillItemPickup pos itemData
+
+mkSummonPlatformItemPickup :: RoomType -> Pos2 -> AppEnv p (Some RoomItem)
+mkSummonPlatformItemPickup roomType pos = do
+    summonPlatformCost <- readConfig _level _itemPickupSummonPlatformSkillGoldValue
+    buyMsgPayload      <- PlayerMsgBuySecondarySkill <$> mkSummonPlatformSkill <*> pure summonPlatformCost
+    itemData           <- mkSecondarySkillItemPickupData
+        SummonPlatformSkill
+        buyMsgPayload
+        summonPlatformCost
+        summonPlatformImgFileName
+        roomType
     mkSecondarySkillItemPickup pos itemData

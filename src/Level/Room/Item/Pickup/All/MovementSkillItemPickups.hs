@@ -1,6 +1,8 @@
 module Level.Room.Item.Pickup.All.MovementSkillItemPickups
     ( module Player.MovementSkill.All
     , mkDashItemPickup
+    , mkTeleportItemPickup
+    , mkGrappleItemPickup
     ) where
 
 import Control.Monad.IO.Class (MonadIO)
@@ -25,8 +27,9 @@ import Window.InputState
 import World.Util
 import World.ZIndex
 
--- NOTE: this is modified from the full source since only dash is included in this repo
-dashPickupImgFileName = "dash-pickup.image" :: FileName
+dashPickupImgFileName     = "dash-pickup.image"     :: FileName
+teleportPickupImgFileName = "teleport-pickup.image" :: FileName
+grapplePickupImgFileName  = "grapple-pickup.image"  :: FileName
 
 moveSkillInfoBackdropOffsetY = -248.0 :: OffsetY
 replaceTextOffsetY           = -223.0 :: OffsetY
@@ -137,4 +140,28 @@ mkDashItemPickup roomType pos = do
     dashCost       <- readConfig _level _itemPickupMovementSkillGoldValue
     buyMsgPayload  <- PlayerMsgBuyMovementSkill <$> mkDashSkill <*> pure dashCost
     itemPickupData <- mkMovementSkillItemPickupData DashSkill buyMsgPayload dashCost dashPickupImgFileName roomType
+    mkMovementSkillItemPickup pos itemPickupData
+
+mkTeleportItemPickup
+    :: (ConfigsRead m, FileCache m, GraphicsRead m, InputRead m, MonadIO m)
+    => RoomType
+    -> Pos2
+    -> m (Some RoomItem)
+mkTeleportItemPickup roomType pos = do
+    teleportCost   <- readConfig _level _itemPickupMovementSkillGoldValue
+    buyMsgPayload  <- PlayerMsgBuyMovementSkill <$> mkTeleportSkill <*> pure teleportCost
+    itemPickupData <-
+        mkMovementSkillItemPickupData TeleportSkill buyMsgPayload teleportCost teleportPickupImgFileName roomType
+    mkMovementSkillItemPickup pos itemPickupData
+
+mkGrappleItemPickup
+    :: (ConfigsRead m, FileCache m, GraphicsRead m, InputRead m, MonadIO m)
+    => RoomType
+    -> Pos2
+    -> m (Some RoomItem)
+mkGrappleItemPickup roomType pos = do
+    grappleCost    <- readConfig _level _itemPickupMovementSkillGoldValue
+    buyMsgPayload  <- PlayerMsgBuyMovementSkill <$> mkGrappleSkill <*> pure grappleCost
+    itemPickupData <-
+        mkMovementSkillItemPickupData GrappleSkill buyMsgPayload grappleCost grapplePickupImgFileName roomType
     mkMovementSkillItemPickup pos itemPickupData
