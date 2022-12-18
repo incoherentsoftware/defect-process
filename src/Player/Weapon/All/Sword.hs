@@ -388,9 +388,7 @@ updateSword WeaponUpdateForeground player _ sword = do
 drawSwordChargeOverlay :: (GraphicsReadWrite m, MonadIO m) => WeaponDrawOverlay SwordData m
 drawSwordChargeOverlay WeaponDrawOverlayBackground _ _ _          = return ()
 drawSwordChargeOverlay WeaponDrawOverlayForeground player _ sword =
-    when (_chargeStatus swordData == SwordFullChargeStatus) $
-        drawSprite pos' dir playerWeaponOverlayZIndex chargeOverlaySpr
-    where
+    let
         swordData        = _data sword
         dir              = _dir (player :: Player)
         pos              = _pos (player :: Player)
@@ -405,3 +403,6 @@ drawSwordChargeOverlay WeaponDrawOverlayForeground player _ sword =
             listToMaybe (drop (_int (_frameIndex spr :: FrameIndex)) offsets) <|> maybeLast offsets
 
         pos' = pos `vecAdd` (offset `vecFlip` dir)
+    in when (_chargeStatus swordData == SwordFullChargeStatus) $ do
+        lerpOffset <- playerLerpOffset player
+        drawSprite (pos' `vecAdd` lerpOffset) dir playerWeaponOverlayZIndex chargeOverlaySpr

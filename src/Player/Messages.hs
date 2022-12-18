@@ -6,6 +6,7 @@ import Control.Monad.IO.Class (MonadIO)
 import Control.Monad.State    (StateT, execStateT, get, gets, lift, modify, put, when)
 import Data.Dynamic           (toDyn)
 import Data.Foldable          (foldlM)
+import Data.Functor           ((<&>))
 import Data.Typeable          (Typeable)
 import qualified Data.List as L
 import qualified Data.Set as S
@@ -264,6 +265,7 @@ processPlayerMsgs player = foldlM processMsg player =<< readMsgs
             PlayerMsgResetAirStallAttacksCounter        -> return resetPlayerAirStall
             PlayerMsgResetPlatformDropping              -> return $ p {_flags = flags {_platformDropping = False}}
             PlayerMsgResetPrevHitbox                    -> return $ p {_flags = flags {_resetPrevHitbox = True}}
+            PlayerMsgResetMovementSkillNumCharges       -> return resetPlayerMovementSkillNumCharges
             PlayerMsgForceInAir                         -> return forcePlayerInAir
             PlayerMsgWarpOut                            -> return $ p {_flags = flags {_warpingOut = True}}
             PlayerMsgTouchingInfoSign                   -> return $ p {_flags = flags {_touchingInfoSign = True}}
@@ -293,8 +295,14 @@ processPlayerMsgs player = foldlM processMsg player =<< readMsgs
                     atk <- maybe (return Nothing) (fmap Just . update) (_attack p)
                     return $ p {_attack = atk}
 
-                resetPlayerRisingJump = p {_flags = flags {_risingJump = PlayerNotRisingJumpFlag}}
-                resetPlayerAirStall   = p {_timersCounters = (_timersCounters p) {_airStallAttacksCounter = 0}}
+                resetPlayerRisingJump              = p {_flags = flags {_risingJump = PlayerNotRisingJumpFlag}}
+                resetPlayerAirStall                = p
+                    { _timersCounters = (_timersCounters p) {_airStallAttacksCounter = 0}
+                    }
+                resetPlayerMovementSkillNumCharges = p
+                    { _movementSkill = _movementSkill p <&> \(Some ms) ->
+                        Some $ ms {_numCharges = playerMovementSkillMaxNumCharges p}
+                    }
 
                 forcePlayerInAir = p
                     { _flags          = flags {_touchingGround = False}

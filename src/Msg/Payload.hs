@@ -171,59 +171,60 @@ data ParticleMsgPayload
     | ParticleMsgAddsM (AppEnv UpdateParticleMsgsPhase [Some Particle])
 
 data PlayerMsgPayload where
-    PlayerMsgSetVelocity                 :: Vel2 -> PlayerMsgPayload
-    PlayerMsgUpdateVelocity              :: (Vel2 -> Vel2) -> PlayerMsgPayload
-    PlayerMsgSetDirection                :: Direction -> PlayerMsgPayload
-    PlayerMsgSetPosition                 :: Pos2 -> PlayerMsgPayload
-    PlayerMsgUpdatePosition              :: (Pos2 -> Pos2) -> PlayerMsgPayload
-    PlayerMsgPushbackOffset              :: OffsetX -> PlayerMsgPayload
-    PlayerMsgUsedMovementSkill           :: PlayerMsgPayload
-    PlayerMsgUpdateMovementSkill         :: Typeable d => (MovementSkill d -> MovementSkill d) -> PlayerMsgPayload
-    PlayerMsgCancelMovementSkill         :: PlayerMsgPayload
+    PlayerMsgSetVelocity                  :: Vel2 -> PlayerMsgPayload
+    PlayerMsgUpdateVelocity               :: (Vel2 -> Vel2) -> PlayerMsgPayload
+    PlayerMsgSetDirection                 :: Direction -> PlayerMsgPayload
+    PlayerMsgSetPosition                  :: Pos2 -> PlayerMsgPayload
+    PlayerMsgUpdatePosition               :: (Pos2 -> Pos2) -> PlayerMsgPayload
+    PlayerMsgPushbackOffset               :: OffsetX -> PlayerMsgPayload
+    PlayerMsgUsedMovementSkill            :: PlayerMsgPayload
+    PlayerMsgUpdateMovementSkill          :: Typeable d => (MovementSkill d -> MovementSkill d) -> PlayerMsgPayload
+    PlayerMsgCancelMovementSkill          :: PlayerMsgPayload
     PlayerMsgUpdateSecondarySkill
         :: Typeable d
         => SecondarySkillSlot
         -> (SecondarySkill d -> SecondarySkill d)
         -> PlayerMsgPayload
-    PlayerMsgFiredGun                    :: PlayerMsgPayload
-    PlayerMsgUpdateGun                   :: Typeable d => (Gun d -> Gun d) -> PlayerMsgPayload
-    PlayerMsgUpdateWeapon                :: Typeable d => (Weapon d -> Weapon d) -> PlayerMsgPayload
-    PlayerMsgSetPhased                   :: PlayerMsgPayload
-    PlayerMsgUpdateGold                  :: (GoldValue -> GoldValue) -> PlayerMsgPayload
-    PlayerMsgClearAttack                 :: PlayerMsgPayload
-    PlayerMsgSetAttack                   :: Attack -> PlayerMsgPayload
-    PlayerMsgSetAttackDesc               :: AttackDescription -> PlayerMsgPayload
-    PlayerMsgSetAttackDescEx             :: Pos2 -> Direction -> AttackDescription -> PlayerMsgPayload
-    PlayerMsgUpdateAttack                :: (Attack -> Attack) -> PlayerMsgPayload
-    PlayerMsgUpdateAttackM               :: (Attack -> AppEnv UpdatePlayerMsgsPhase Attack) -> PlayerMsgPayload
-    PlayerMsgForceNewAttackId            :: PlayerMsgPayload
-    PlayerMsgInteract                    :: GoldValue -> PlayerMsgPayload
-    PlayerMsgBuyWeapon                   :: Some Weapon -> GoldValue -> PlayerMsgPayload
-    PlayerMsgBuyGun                      :: Some Gun -> GoldValue -> PlayerMsgPayload
-    PlayerMsgBuyMovementSkill            :: Some MovementSkill -> GoldValue -> PlayerMsgPayload
-    PlayerMsgBuySecondarySkill           :: Some SecondarySkill -> GoldValue -> PlayerMsgPayload
-    PlayerMsgBuyUpgrade                  :: PlayerUpgradeType -> GoldValue -> PlayerMsgPayload
-    PlayerMsgBuyHealth                   :: GoldValue -> PlayerMsgPayload
-    PlayerMsgClearWeapon                 :: WeaponType -> PlayerMsgPayload
-    PlayerMsgClearGun                    :: GunType -> PlayerMsgPayload
-    PlayerMsgClearSecondarySkill         :: SecondarySkillType -> PlayerMsgPayload
+    PlayerMsgFiredGun                     :: PlayerMsgPayload
+    PlayerMsgUpdateGun                    :: Typeable d => (Gun d -> Gun d) -> PlayerMsgPayload
+    PlayerMsgUpdateWeapon                 :: Typeable d => (Weapon d -> Weapon d) -> PlayerMsgPayload
+    PlayerMsgSetPhased                    :: PlayerMsgPayload
+    PlayerMsgUpdateGold                   :: (GoldValue -> GoldValue) -> PlayerMsgPayload
+    PlayerMsgClearAttack                  :: PlayerMsgPayload
+    PlayerMsgSetAttack                    :: Attack -> PlayerMsgPayload
+    PlayerMsgSetAttackDesc                :: AttackDescription -> PlayerMsgPayload
+    PlayerMsgSetAttackDescEx              :: Pos2 -> Direction -> AttackDescription -> PlayerMsgPayload
+    PlayerMsgUpdateAttack                 :: (Attack -> Attack) -> PlayerMsgPayload
+    PlayerMsgUpdateAttackM                :: (Attack -> AppEnv UpdatePlayerMsgsPhase Attack) -> PlayerMsgPayload
+    PlayerMsgForceNewAttackId             :: PlayerMsgPayload
+    PlayerMsgInteract                     :: GoldValue -> PlayerMsgPayload
+    PlayerMsgBuyWeapon                    :: Some Weapon -> GoldValue -> PlayerMsgPayload
+    PlayerMsgBuyGun                       :: Some Gun -> GoldValue -> PlayerMsgPayload
+    PlayerMsgBuyMovementSkill             :: Some MovementSkill -> GoldValue -> PlayerMsgPayload
+    PlayerMsgBuySecondarySkill            :: Some SecondarySkill -> GoldValue -> PlayerMsgPayload
+    PlayerMsgBuyUpgrade                   :: PlayerUpgradeType -> GoldValue -> PlayerMsgPayload
+    PlayerMsgBuyHealth                    :: GoldValue -> PlayerMsgPayload
+    PlayerMsgClearWeapon                  :: WeaponType -> PlayerMsgPayload
+    PlayerMsgClearGun                     :: GunType -> PlayerMsgPayload
+    PlayerMsgClearSecondarySkill          :: SecondarySkillType -> PlayerMsgPayload
     PlayerMsgSetSecondarySkillSlots
         :: Maybe SecondarySkillType
         -> Maybe SecondarySkillType
         -> Maybe SecondarySkillType
         -> PlayerMsgPayload
-    PlayerMsgClearInputBuffer            :: S.Set PlayerInput -> PlayerMsgPayload
-    PlayerMsgGainMeter                   :: Id Attack -> MeterValue -> PlayerMsgPayload
-    PlayerMsgSpendMeter                  :: MeterValue -> PlayerMsgPayload
-    PlayerMsgFillMeterFull               :: PlayerMsgPayload
-    PlayerMsgResetRisingJump             :: PlayerMsgPayload
-    PlayerMsgResetDoubleJump             :: PlayerMsgPayload
-    PlayerMsgResetAirStallAttacksCounter :: PlayerMsgPayload
-    PlayerMsgResetPlatformDropping       :: PlayerMsgPayload
-    PlayerMsgResetPrevHitbox             :: PlayerMsgPayload
-    PlayerMsgForceInAir                  :: PlayerMsgPayload
-    PlayerMsgWarpOut                     :: PlayerMsgPayload
-    PlayerMsgTouchingInfoSign            :: PlayerMsgPayload
+    PlayerMsgClearInputBuffer             :: S.Set PlayerInput -> PlayerMsgPayload
+    PlayerMsgGainMeter                    :: Id Attack -> MeterValue -> PlayerMsgPayload
+    PlayerMsgSpendMeter                   :: MeterValue -> PlayerMsgPayload
+    PlayerMsgFillMeterFull                :: PlayerMsgPayload
+    PlayerMsgResetRisingJump              :: PlayerMsgPayload
+    PlayerMsgResetDoubleJump              :: PlayerMsgPayload
+    PlayerMsgResetAirStallAttacksCounter  :: PlayerMsgPayload
+    PlayerMsgResetPlatformDropping        :: PlayerMsgPayload
+    PlayerMsgResetPrevHitbox              :: PlayerMsgPayload
+    PlayerMsgResetMovementSkillNumCharges :: PlayerMsgPayload
+    PlayerMsgForceInAir                   :: PlayerMsgPayload
+    PlayerMsgWarpOut                      :: PlayerMsgPayload
+    PlayerMsgTouchingInfoSign             :: PlayerMsgPayload
 
 data ProjectileMsgPayload where
     ProjectileMsgSetVelocity     :: Vel2 -> ProjectileMsgPayload

@@ -339,9 +339,7 @@ updateStaff WeaponUpdateForeground player _ staff = do
 drawStaffChargeOverlay :: (GraphicsReadWrite m, MonadIO m) => WeaponDrawOverlay StaffData m
 drawStaffChargeOverlay WeaponDrawOverlayBackground _ _ _          = return ()
 drawStaffChargeOverlay WeaponDrawOverlayForeground player _ staff =
-    when (_chargeStatus staffData == StaffFullChargeStatus) $
-        drawSprite pos' dir playerWeaponOverlayZIndex chargeOverlaySpr
-    where
+    let
         staffData        = _data staff
         dir              = _dir (player :: Player)
         pos              = _pos (player :: Player)
@@ -356,3 +354,6 @@ drawStaffChargeOverlay WeaponDrawOverlayForeground player _ staff =
             listToMaybe (drop (_int (_frameIndex spr :: FrameIndex)) offsets) <|> maybeLast offsets
 
         pos' = pos `vecAdd` (offset `vecFlip` dir)
+    in when (_chargeStatus staffData == StaffFullChargeStatus) $ do
+        lerpOffset <- playerLerpOffset player
+        drawSprite (pos' `vecAdd` lerpOffset) dir playerWeaponOverlayZIndex chargeOverlaySpr

@@ -134,6 +134,7 @@ springLauncherPlayerCollision springLauncher
             , mkMsgEx PlayerMsgClearAttack MsgFrontOrder
             , mkMsgEx PlayerMsgCancelMovementSkill MsgFrontOrder
             , mkMsgEx PlayerMsgResetDoubleJump MsgFrontOrder
+            , mkMsgEx PlayerMsgResetMovementSkillNumCharges MsgFrontOrder
             , mkMsgTo (RoomMsgUpdateSpringLauncher update) (_msgId springLauncher)
             , mkMsg $ AudioMsgPlaySound activateSoundPath pos
             ]

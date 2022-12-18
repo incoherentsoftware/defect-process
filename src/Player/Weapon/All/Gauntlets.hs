@@ -363,11 +363,15 @@ drawGauntletsChargeFlashIndicator player atk gauntlets = do
             atkDir = _dir (atk' :: Attack)
         Just $ drawSpriteRotated atkPos atkDir playerWeaponOverlayZIndex (_angle atk') spr
 
+drawGauntletsChargeOverlay
+    :: (GraphicsReadWrite m, MonadIO m)
+    => WeaponDrawOverlayStatus
+    -> Player
+    -> Weapon GauntletsData
+    -> m ()
 drawGauntletsChargeOverlay WeaponDrawOverlayBackground _ _              = return ()
 drawGauntletsChargeOverlay WeaponDrawOverlayForeground player gauntlets =
-    when (isReleasableAtkConditionsMet gauntletsData) $
-        drawSprite pos' dir playerUnderBodyZIndex chargeOverlaySpr
-    where
+    let
         gauntletsData    = _data gauntlets
         dir              = _dir (player :: Player)
         pos              = _pos (player :: Player)
@@ -382,3 +386,6 @@ drawGauntletsChargeOverlay WeaponDrawOverlayForeground player gauntlets =
             listToMaybe (drop (_int (_frameIndex spr :: FrameIndex)) offsets) <|> maybeLast offsets
 
         pos' = pos `vecAdd` (offset `vecFlip` dir)
+    in when (isReleasableAtkConditionsMet gauntletsData) $ do
+        lerpOffset <- playerLerpOffset player
+        drawSprite (pos' `vecAdd` lerpOffset) dir playerUnderBodyZIndex chargeOverlaySpr

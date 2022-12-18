@@ -71,8 +71,8 @@ mkShard intersectPos shot enemy = do
         , _draw    = drawShard
         }
 
-setShardExplode :: Projectile ShardData -> Projectile ShardData
-setShardExplode shard = shard {_think = thinkExplode}
+setShardExplode :: Pos2 -> Projectile ShardData -> Projectile ShardData
+setShardExplode (Pos2 playerX _) shard = shard {_think = thinkExplode}
     where
         thinkExplode :: Monad m => ProjectileThink ShardData m
         thinkExplode s = return
@@ -82,11 +82,15 @@ setShardExplode shard = shard {_think = thinkExplode}
             , mkMsg $ AudioMsgPlaySound shardExplodeSoundFilePath pos
             ]
             where
-                sId                  = P._msgId s
-                pos                  = hitboxTopLeft $ projectileHitbox s
+                sId                    = P._msgId s
+                pos@(Pos2 shardX _)    = hitboxTopLeft $ projectileHitbox s
+                dir
+                    | shardX < playerX = LeftDir
+                    | otherwise        = RightDir
+
                 explosionAtkDesc     = _explosionAtkDesc $ P._data shard
-                explosion            = mkPlayerAttackProjectile pos RightDir explosionAtkDesc
-                mkExplosionHitEffect = loadSimpleParticle pos RightDir playerAttackEffectZIndex explosionHitEffectPath
+                explosion            = mkPlayerAttackProjectile pos dir explosionAtkDesc
+                mkExplosionHitEffect = loadSimpleParticle pos dir playerAttackEffectZIndex explosionHitEffectPath
 
 updateShard :: MsgsRead UpdateProjectileMsgsPhase m => ProjectileUpdate ShardData m
 updateShard shard = update <$> readMsgs <*> pure shard

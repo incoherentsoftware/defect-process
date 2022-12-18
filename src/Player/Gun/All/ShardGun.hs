@@ -181,6 +181,7 @@ thinkShardGun gunStatus player shardGun =
         shardGunData           = _data shardGun
         active                 = isGunStatusActive gunStatus
         canShoot               = gunStatus == ActiveStatus Shootable
+        playerPos              = _pos (player :: Player)
         cfg                    = _config (shardGunData :: ShardGunData)
         shotMeterCost          = _shotMeterCost (cfg :: ShardGunConfig)
         cantSpendMeterShot     = not $ canSpendPlayerMeter shotMeterCost player
@@ -207,7 +208,7 @@ thinkShardGun gunStatus player shardGun =
             []
                 -- explode shards
                 | shootDownPressed && active -> do
-                    shardsMsgs <- map (mkMsgTo $ ProjectileMsgUpdate setShardExplode) <$>
+                    shardsMsgs <- map (mkMsgTo $ ProjectileMsgUpdate (setShardExplode playerPos)) <$>
                         getShardsMsgIds shardGunData
                     return $ clearBufferedInputsMsg:shardsMsgs
 
@@ -231,7 +232,6 @@ thinkShardGun gunStatus player shardGun =
                                 { _data = (_data g) {_aimAngle = playerAimAngle player} :: ShardGunData
                                 }
                             shotLine   = mkShotLine (_data shardGun) player
-                            playerPos  = _pos (player :: Player)
                         in
                             [ mkMsg $ PlayerMsgUpdateGun updateFire
                             , mkMsg $ PlayerMsgFiredGun
