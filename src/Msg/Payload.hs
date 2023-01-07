@@ -241,6 +241,7 @@ data ProjectileMsgPayload where
 
 data NewThinkProjectileMsgPayload where
     NewThinkProjectileMsgAdd   :: Some Projectile -> NewThinkProjectileMsgPayload
+    NewThinkProjectileMsgAdds  :: [Some Projectile] -> NewThinkProjectileMsgPayload
     NewThinkProjectileMsgAddM  :: AppEnv ThinkProjectileMsgsPhase (Some Projectile) -> NewThinkProjectileMsgPayload
     NewThinkProjectileMsgAddsM :: AppEnv ThinkProjectileMsgsPhase [Some Projectile] -> NewThinkProjectileMsgPayload
 

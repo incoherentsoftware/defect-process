@@ -13,9 +13,14 @@ import Player.Gun.All.ShardGun.Data
 import Util
 import World.ZIndex
 
-packPath                   = \f -> PackResourceFilePath "data/player/player-guns.pack" f
-blinkStrikePath            = packPath "shard-blink-strike-effect.spr"                      :: PackResourceFilePath
-blinkStrikeHitEffectPath   = packPath "shard-blink-strike-hit-effect.spr"                  :: PackResourceFilePath
+packPath                  = \f -> PackResourceFilePath "data/player/player-guns.pack" f
+blinkStrikePath           = packPath "shard-blink-strike-effect.spr" :: PackResourceFilePath
+blinkStrikeHitEffectPaths = NE.fromList $ map packPath
+    [ "shard-blink-strike-hit-effect-a.spr"
+    , "shard-blink-strike-hit-effect-b.spr"
+    , "shard-blink-strike-hit-effect-c.spr"
+    ] :: NE.NonEmpty PackResourceFilePath
+
 blinkStrikeImpactSoundPath = "event:/SFX Events/Player/Guns/shard-gun-blink-strike-impact" :: FilePath
 
 mkBlinkStrikeAttack :: MonadIO m => Pos2 -> ShardGunData -> m Attack
@@ -28,7 +33,9 @@ blinkStrikeMsgs :: MonadIO m => ShardGunData -> Pos2 -> MsgId -> m [Msg ThinkPla
 blinkStrikeMsgs shardGunData projPos projId =
     let
         mkEffect    = loadSimpleParticle projPos RightDir playerAttackEffectZIndex blinkStrikePath
-        mkHitEffect = loadSimpleParticle projPos RightDir playerAttackEffectZIndex blinkStrikeHitEffectPath
+        mkHitEffect = do
+            hitEffectPath <- randomChoice blinkStrikeHitEffectPaths
+            loadSimpleParticle projPos RightDir playerAttackEffectZIndex hitEffectPath
     in do
         blinkStrikeAtk <- mkBlinkStrikeAttack projPos shardGunData
         return

@@ -13,6 +13,7 @@ import Player
 import Player.Gun
 import Player.Gun.All.SpikeGun.Data
 import Player.Gun.All.SpikeGun.SpikeBarrage
+import Player.Gun.All.SpikeGun.SpikeRing
 import Player.Gun.All.SpikeGun.Util
 import Util
 import Window.Graphics
@@ -64,70 +65,90 @@ progressSpikeGunSummonSprite spikeGun = spikeGun
         spikesSummon3 = _spikesSummon3 sprs
         spikesSummon4 = _spikesSummon4 sprs
 
-thinkSpikeGun :: InputRead m => GunThink SpikeGunData m
-thinkSpikeGun gunStatus player spikeGun = think <$> readInputState
-    where
-        think :: InputState -> [Msg ThinkPlayerMsgsPhase]
-        think inputState
-            | notShootHold && numSpikes <= 0 && not isPartialSummon =
-                let updateSummon = \g -> g {_data = (_data g) {_summonSpr = Nothing}}
-                in [mkMsg $ PlayerMsgUpdateGun updateSummon]
+thinkSpikeGun :: (ConfigsRead m, InputRead m, MonadIO m, MsgsRead ThinkPlayerMsgsPhase m) => GunThink SpikeGunData m
+thinkSpikeGun gunStatus player spikeGun = do
+    inputState <- readInputState
+    let
+        spikeGunData = _data spikeGun
+        shootHold    = ShootAlias `aliasHold` inputState && not (_isSummonBlocked spikeGunData)
+        notShootHold = ShootAlias `aliasNotHold` inputState
+        active       = isGunStatusActive gunStatus
 
-            | notShootHold && active && numSpikes > 0 =
-                let
-                    updateRelease = \g -> g
-                        { _data = (_data g)
-                            { _numSpikes = 0
-                            , _summonSpr = Nothing
-                            }
+        spikeRing       = _ring spikeGunData
+        isPartialSummon = isPartialSpikesSummon spikeGunData
+        cfg             = _config (spikeGunData :: SpikeGunData)
+        meterCost       = _summonMeterCost cfg
+        numSpikes       = _numSpikes spikeGunData
+        canSpendMeter   = canSpendPlayerMeter meterCost player
+        playerPos       = _pos (player :: Player)
+
+        audioMsg =
+            let hashedId = hashId $ _summonSoundId spikeGunData
+            in mkMsg $ AudioMsgPlaySoundContinuous spikeSummonSoundFilePath hashedId playerPos
+
+        summonSpikesMsgs =
+            [ mkMsg $ PlayerMsgUpdateGun progressSpikeGunSummonSprite
+            , mkMsg $ PlayerMsgSpendMeter meterCost
+            ]
+
+    fromInputMsgs <- if
+        | isSpikeRingActive spikeRing && shootHold && active ->
+            let
+                (shootMsgs, spikeRing') = shootSpikeRing playerPos spikeRing
+                updateShootRing         = \g -> g
+                    { _data = (_data g)
+                        { _ring            = spikeRing'
+                        , _isSummonBlocked = True
                         }
+                    }
+            in return $ mkMsg (PlayerMsgUpdateGun updateShootRing):shootMsgs
 
-                    -- refund meter for any incomplete spike
-                    meterRefundMsgs = case _summonSpr spikeGunData of
-                        Just spr
-                            | not (spriteIsLastFrameIndex spr) -> [mkMsg $ PlayerMsgGainMeter NullId meterCost]
-                        _                                      -> []
-                in
-                    [ mkMsg $ PlayerMsgUpdateGun updateRelease
-                    , mkMsg $ NewThinkProjectileMsgAddM (mkSpikeBarrage spikeGunData player)
-                    , mkMsg $ ParticleMsgAddM (mkSpikeGunDematerializeParticle spikeGunData player)
-                    ] ++ meterRefundMsgs
+        | notShootHold && numSpikes <= 0 && not isPartialSummon ->
+            let updateSummon = \g -> g {_data = (_data g) {_summonSpr = Nothing}}
+            in return [mkMsg $ PlayerMsgUpdateGun updateSummon]
 
-            | shootHold && active && numSpikes < maxSpikes = case _summonSpr spikeGunData of
-                Nothing
-                    | canSpendMeter  -> audioMsg:summonSpikesMsgs
-                    | numSpikes == 0 -> [mkMsg $ UiMsgInsufficientMeter meterCost False]
-                    | otherwise      -> []
+        | notShootHold && active && numSpikes > 0 ->
+            let
+                updateRelease = \g -> g
+                    { _data = (_data g)
+                        { _numSpikes = 0
+                        , _summonSpr = Nothing
+                        }
+                    }
 
-                Just summonSpr
-                    | spriteFinished summonSpr && isPartialSummon && canSpendMeter -> audioMsg:summonSpikesMsgs
-                    | not (spriteFinished summonSpr)                               -> [audioMsg]
-                    | otherwise                                                    -> []
+                -- refund meter for any incomplete spike
+                meterRefundMsgs = case _summonSpr spikeGunData of
+                    Just spr
+                        | not (spriteIsLastFrameIndex spr) -> [mkMsg $ PlayerMsgGainMeter NullId meterCost]
+                    _                                      -> []
+            in do
+                releaseMsgs <- if
+                    | DownAlias `aliasHold` inputState -> do
+                        (ringMsgs, spikeRing') <- activateSpikeRing numSpikes player spikeRing
+                        let updateActivateRing  = \g -> g {_data = (_data g) {_ring = spikeRing'}}
+                        return $ mkMsg (PlayerMsgUpdateGun updateActivateRing):ringMsgs
 
-            | otherwise = []
+                    | otherwise -> return
+                        [ mkMsg $ NewThinkProjectileMsgAddM (mkSpikeBarrage spikeGunData player)
+                        , mkMsg $ ParticleMsgAddM (mkSpikeGunDematerializeParticle spikeGunData player)
+                        ]
 
-            where
-                shootHold    = ShootAlias `aliasHold` inputState
-                notShootHold = ShootAlias `aliasNotHold` inputState
-                active       = isGunStatusActive gunStatus
+                return $ mkMsg (PlayerMsgUpdateGun updateRelease):releaseMsgs ++ meterRefundMsgs
 
-                spikeGunData    = _data spikeGun
-                isPartialSummon = isPartialSpikesSummon spikeGunData
-                cfg             = _config (spikeGunData :: SpikeGunData)
-                meterCost       = _summonMeterCost cfg
-                numSpikes       = _numSpikes spikeGunData
-                canSpendMeter   = canSpendPlayerMeter meterCost player
+        | shootHold && active && numSpikes < maxSpikes -> return $ case _summonSpr spikeGunData of
+            Nothing
+                | canSpendMeter  -> audioMsg:summonSpikesMsgs
+                | numSpikes == 0 -> [mkMsg $ UiMsgInsufficientMeter meterCost False]
+                | otherwise      -> []
 
-                audioMsg =
-                    let
-                        hashedId = hashId $ _summonSoundId spikeGunData
-                        pos      = _pos (player :: Player)
-                    in mkMsg $ AudioMsgPlaySoundContinuous spikeSummonSoundFilePath hashedId pos
+            Just summonSpr
+                | spriteFinished summonSpr && isPartialSummon && canSpendMeter -> audioMsg:summonSpikesMsgs
+                | not (spriteFinished summonSpr)                               -> [audioMsg]
+                | otherwise                                                    -> []
 
-                summonSpikesMsgs =
-                    [ mkMsg $ PlayerMsgUpdateGun progressSpikeGunSummonSprite
-                    , mkMsg $ PlayerMsgSpendMeter meterCost
-                    ]
+        | otherwise -> return []
+
+    (fromInputMsgs ++) <$> thinkSpikeRing player spikeRing
 
 numSpikesFromSummonSprite :: Maybe Sprite -> SpikeGunSprites -> Int
 numSpikesFromSummonSprite summonSpr sprs = case summonSpr of
@@ -139,7 +160,7 @@ numSpikesFromSummonSprite summonSpr sprs = case summonSpr of
         | spr == _spikesSummon5 sprs -> if spriteIsLastFrameIndex spr then 5 else 4
     _                                -> 0
 
-updateSpikeGun :: MonadIO m => GunUpdate SpikeGunData m
+updateSpikeGun :: (InputRead m, MonadIO m) => GunUpdate SpikeGunData m
 updateSpikeGun spikeGun =
     let
         spikeGunData      = _data spikeGun
@@ -149,29 +170,32 @@ updateSpikeGun spikeGun =
         sprs              = _sprites (spikeGunData :: SpikeGunData)
         numSpikes         = numSpikesFromSummonSprite summonSpr sprs
     in do
+        inputState    <- readInputState
         summonSoundId <- if
             | numSpikes /= prevNumSpikes && numSpikes < maxSpikes -> newId
             | otherwise                                           -> return prevSummonSoundId
 
         return $ spikeGun
             { _data = spikeGunData
-                { _numSpikes     = numSpikes
-                , _summonSoundId = summonSoundId
-                , _summonSpr     = summonSpr
+                { _numSpikes       = numSpikes
+                , _ring            = updateSpikeRing $ _ring spikeGunData
+                , _isSummonBlocked = _isSummonBlocked spikeGunData && ShootAlias `aliasHold` inputState
+                , _summonSoundId   = summonSoundId
+                , _summonSpr       = summonSpr
                 }
             }
 
 drawSpikeGunOverlay :: (GraphicsReadWrite m, MonadIO m) => GunDrawOverlay SpikeGunData m
-drawSpikeGunOverlay player spikeGun =
+drawSpikeGunOverlay status player spikeGun =
     let
         spikeGunData = _data spikeGun
         cfg          = _config (spikeGunData :: SpikeGunData)
-        dir          = _dir (player :: Player)
-        summonOffset = vecFlip (_summonOffset cfg) dir
-    in do
-        playerPos    <- (_pos (player :: Player) `vecAdd`) <$> playerLerpOffset player
-        let summonPos = playerPos `vecAdd` summonOffset
+        summonOffset = vecFlip (_summonOffset cfg) RightDir
+    in case status of
+        GunDrawOverlayForeground
+            | Just summonSpr <- _summonSpr spikeGunData -> do
+                playerPos   <- (_pos (player :: Player) `vecAdd`) <$> playerLerpOffset player
+                let summonPos = playerPos `vecAdd` summonOffset
+                drawSprite summonPos RightDir playerGunOverlayZIndex summonSpr
 
-        case _summonSpr spikeGunData of
-            Just summonSpr -> drawSprite summonPos dir playerGunOverlayZIndex summonSpr
-            _              -> return ()
+        _ -> drawSpikeRing player (_ring spikeGunData)

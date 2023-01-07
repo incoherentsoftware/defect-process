@@ -1,8 +1,9 @@
-module Player.Gun.All.SpikeGun.SpikeBarrage.Spike
+module Player.Gun.All.SpikeGun.Spike
     ( mkSpike
     ) where
 
 import Control.Monad.IO.Class (MonadIO)
+import qualified Data.List.NonEmpty as NE
 import qualified Data.Set as S
 
 import Attack
@@ -26,8 +27,13 @@ import Window.Graphics
 import World.ZIndex
 
 packPath               = \f -> PackResourceFilePath "data/player/player-guns.pack" f
-spikeShatterEffectPath = packPath "spike-shatter.spr"               :: PackResourceFilePath
-spikeHitEffectPath     = packPath "spike-hit-effect.spr"            :: PackResourceFilePath
+spikeShatterEffectPath = packPath "spike-shatter.spr" :: PackResourceFilePath
+spikeHitEffectPaths    = NE.fromList $ map packPath
+    [ "spike-hit-effect-a.spr"
+    , "spike-hit-effect-b.spr"
+    , "spike-hit-effect-c.spr"
+    ] :: NE.NonEmpty PackResourceFilePath
+
 spikeHitSoundFilePath  = "event:/SFX Events/Player/Guns/spike-hit"  :: FilePath
 spikeMissSoundFilePath = "event:/SFX Events/Player/Guns/spike-miss" :: FilePath
 
@@ -126,12 +132,15 @@ spikeEntityCollision enemy spike =
     , mkMsg $ AudioMsgPlaySound spikeHitSoundFilePath spikeCenterPos
     ]
         where
-            enemyId          = collisionEntityMsgId enemy
-            spikeId          = P._msgId spike
-            spikeAtk         = _spikeAttack $ P._data spike
-            spikeCenterPos   = hitboxCenter $ projectileHitbox spike
-            spikeAtkHit      = mkAttackHitEx spikeCenterPos spikeAtk
-            mkSpikeHitEffect = loadSimpleParticle spikeCenterPos RightDir playerAttackEffectZIndex spikeHitEffectPath
+            enemyId        = collisionEntityMsgId enemy
+            spikeId        = P._msgId spike
+            spikeAtk       = _spikeAttack $ P._data spike
+            spikeCenterPos = hitboxCenter $ projectileHitbox spike
+            spikeAtkHit    = mkAttackHitEx spikeCenterPos spikeAtk
+
+            mkSpikeHitEffect = do
+                hitEffectPath <- randomChoice spikeHitEffectPaths
+                loadSimpleParticle spikeCenterPos RightDir playerAttackEffectZIndex hitEffectPath
 
 updateSpike :: Monad m => ProjectileUpdate SpikeData m
 updateSpike spike = return $ spike {P._hitbox = const hitbox'}

@@ -1,5 +1,6 @@
 module Player.Gun
     ( module Player.Gun.Types
+    , module Player.Gun.DrawOverlayStatus
     , module Player.Gun.Status
     , mkGun
     ) where
@@ -7,6 +8,7 @@ module Player.Gun
 import Data.Dynamic  (fromDynamic)
 import Data.Typeable (Typeable)
 
+import Player.Gun.DrawOverlayStatus
 import Player.Gun.Status
 import Player.Gun.Types
 
@@ -15,7 +17,7 @@ mkGun gunData gunType = Gun
     { _data          = gunData
     , _type          = gunType
     , _fireDrawData  = Nothing
-    , _drawOverlay   = \_ _ -> return ()
+    , _drawOverlay   = \_ _ _ -> return ()
     , _think         = \_ _ _ -> return []
     , _update        = return . id
     , _updateDynamic = updateDynamic

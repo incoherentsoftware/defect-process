@@ -1,6 +1,8 @@
 module Player.Util
     ( playerLerpOffset
+    , readPlayerLerpOffset
     , playerShoulderPos
+    , playerChargeOverlayOffset
     , playerRawAimTargetWithAngle
     , playerAimTarget
     , playerAimPos
@@ -25,12 +27,16 @@ module Player.Util
     , updatePlayerBufferedInputInHitlag
     ) where
 
+import Control.Applicative    ((<|>))
 import Control.Monad.IO.Class (MonadIO)
-import Data.Maybe             (fromMaybe)
+import Data.Maybe             (fromMaybe, listToMaybe)
+import System.FilePath        (takeBaseName)
+import qualified Data.Map as M
 
-import Attack.Types
+import Attack
 import Configs
 import Configs.All.Player
+import InfoMsg.Util
 import Level.Room.Types
 import Level.Room.Util
 import Msg
@@ -48,20 +54,51 @@ import Player.Types
 import Util
 import Window.Graphics
 import Window.InputState
+import {-# SOURCE #-} Player
+
+calculatePlayerLerpOffset :: (GraphicsRead m, MonadIO m) => Vel2 -> Bool -> Bool -> m Pos2
+calculatePlayerLerpOffset (Vel2 velX velY) touchingWall touchingGround = graphicsLerpOffset $ Vel2 velX' velY'
+    where
+        velX' = if touchingWall then 0.0 else velX
+        velY' = if touchingGround then 0.0 else velY
 
 playerLerpOffset :: (GraphicsRead m, MonadIO m) => Player -> m Pos2
-playerLerpOffset player = graphicsLerpOffset (Vel2 velX' velY')
+playerLerpOffset player = calculatePlayerLerpOffset vel touchingWall touchingGround
     where
-        Vel2 velX velY = _vel (player :: Player)
+        vel            = _vel (player :: Player)
         flags          = _flags (player :: Player)
-        velX'          = if _touchingWall flags then 0.0 else velX
-        velY'          = if _touchingGround flags then 0.0 else velY
+        touchingWall   = _touchingWall (flags :: PlayerFlags)
+        touchingGround = _touchingGround (flags :: PlayerFlags)
+
+readPlayerLerpOffset :: (AllowMsgRead p InfoMsgPayload, GraphicsRead m, MonadIO m, MsgsRead p m) => m Pos2
+readPlayerLerpOffset = processMsgs =<< readMsgs
+    where
+        processMsgs :: (GraphicsRead m1, MonadIO m1) => [InfoMsgPayload] -> m1 Pos2
+        processMsgs []     = return zeroPos2
+        processMsgs (p:ps) = case p of
+            InfoMsgPlayer playerInfo ->
+                let
+                    vel            = _vel (playerInfo :: PlayerInfo)
+                    touchingWall   = _touchingWall (playerInfo :: PlayerInfo)
+                    touchingGround = _touchingGround (playerInfo :: PlayerInfo)
+                in calculatePlayerLerpOffset vel touchingWall touchingGround
+            _                        -> processMsgs ps
 
 playerShoulderPos :: Player -> Pos2
 playerShoulderPos player = calculateShoulderPos playerCfg pos
     where
         pos       = _pos (player :: Player)
         playerCfg = _config (player :: Player)
+
+playerChargeOverlayOffset :: Player -> Pos2
+playerChargeOverlayOffset player =
+    let cfg = _config (player :: Player)
+    in fromMaybe (_chargeOverlaySprOffset cfg) $ do
+        spr            <-
+            playerAttackSprite player <|> playerMovementSkillSprite player <|> Just (_sprite (player :: Player))
+        let sprFileName = takeBaseName $ _filePath (spr :: Sprite)
+        offsets        <- M.lookup sprFileName (_chargeOverlaySprOffsetMap cfg)
+        listToMaybe (drop (_int (_frameIndex spr :: FrameIndex)) offsets) <|> maybeLast offsets
 
 playerRawAimTarget :: Player -> Float -> Pos2
 playerRawAimTarget player distance = playerRawAimTargetWithPos player distance aimPos
@@ -123,7 +160,7 @@ playerOpacity player
         cfg               = _config (player :: Player)
 
 canSpendPlayerMeter :: MeterValue -> Player -> Bool
-canSpendPlayerMeter meterVal player = meterVal <= playerMeterValue (_meter player)
+canSpendPlayerMeter meterVal player = meterVal <= playerMeterValue (_meter (player :: Player))
 
 isPlayerAttackVelAirStall :: Vel2 -> Player -> Bool
 isPlayerAttackVelAirStall (Vel2 _ atkVelY) player = atkVelY >= 0.0 && atkVelY < airStallThresholdVelY

@@ -32,6 +32,12 @@ import qualified Player.Gun.All.Revolver.Util as Revolver
 
 shardGunSoundPath = "event:/SFX Events/Player/Guns/shard-gun" :: FilePath
 
+shardGunMuzzleFlashSprFileNames = NE.fromList
+    [ "shard-gun-muzzle-flash-a.spr"
+    , "shard-gun-muzzle-flash-b.spr"
+    , "shard-gun-muzzle-flash-c.spr"
+    ] :: NE.NonEmpty FileName
+
 loadShardGunSprite :: (FileCache m, GraphicsRead m, MonadIO m) => FilePath -> m Sprite
 loadShardGunSprite fileName = loadPackSprite $ PackResourceFilePath "data/player/player-guns.pack" fileName
 
@@ -46,9 +52,9 @@ loadLegsSprites =
 
 loadMuzzleFlash :: (FileCache m, GraphicsRead m, MonadIO m) => ShardGunConfig -> m MuzzleFlash
 loadMuzzleFlash cfg = do
-    muzzleFlashSpr       <- loadShardGunSprite "shard-gun-muzzle-flash.spr"
+    muzzleFlashSprs      <- traverse loadShardGunSprite shardGunMuzzleFlashSprFileNames
     let muzzleFlashOffset = _muzzleFlashOffset (cfg :: ShardGunConfig)
-    return $ mkMuzzleFlash LeadArmMuzzleFlash muzzleFlashOffset (muzzleFlashSpr NE.:| [])
+    return $ mkMuzzleFlash LeadArmMuzzleFlash muzzleFlashOffset muzzleFlashSprs
 
 mkFireDrawData :: forall m. (ConfigsRead m, FileCache m, GraphicsRead m, MonadIO m) => m GunFireDrawData
 mkFireDrawData =

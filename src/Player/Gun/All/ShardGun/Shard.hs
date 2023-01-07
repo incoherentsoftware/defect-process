@@ -4,6 +4,7 @@ module Player.Gun.All.ShardGun.Shard
     ) where
 
 import Control.Monad.IO.Class (MonadIO)
+import qualified Data.List.NonEmpty as NE
 
 import Attack
 import Attack.Projectile
@@ -22,9 +23,14 @@ import Util
 import Window.Graphics
 import World.ZIndex
 
-explosionHitEffectPath    =
-    PackResourceFilePath "data/player/player-guns.pack" "shard-explosion-hit-effect.spr" :: PackResourceFilePath
-shardExplodeSoundFilePath = "event:/SFX Events/Player/Guns/shard-explode"                :: FilePath
+packPath                = \f -> PackResourceFilePath "data/player/player-guns.pack" f
+explosionHitEffectPaths = NE.fromList $ map packPath
+    [ "shard-explosion-hit-effect-a.spr"
+    , "shard-explosion-hit-effect-b.spr"
+    , "shard-explosion-hit-effect-c.spr"
+    ] :: NE.NonEmpty PackResourceFilePath
+
+shardExplodeSoundFilePath = "event:/SFX Events/Player/Guns/shard-explode" :: FilePath
 
 data ShardData = ShardData
     { _enemyMsgId       :: MsgId
@@ -90,7 +96,9 @@ setShardExplode (Pos2 playerX _) shard = shard {_think = thinkExplode}
 
                 explosionAtkDesc     = _explosionAtkDesc $ P._data shard
                 explosion            = mkPlayerAttackProjectile pos dir explosionAtkDesc
-                mkExplosionHitEffect = loadSimpleParticle pos dir playerAttackEffectZIndex explosionHitEffectPath
+                mkExplosionHitEffect = do
+                    hitEffectPath <- randomChoice explosionHitEffectPaths
+                    loadSimpleParticle pos dir playerAttackEffectZIndex hitEffectPath
 
 updateShard :: MsgsRead UpdateProjectileMsgsPhase m => ProjectileUpdate ShardData m
 updateShard shard = update <$> readMsgs <*> pure shard

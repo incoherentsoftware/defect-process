@@ -45,6 +45,7 @@ mkNewThinkProjectiles = foldlM processMsg [] =<< readMsgs
             -> AppEnv ThinkProjectileMsgsPhase [Some Projectile]
         processMsg !ps d = case d of
             NewThinkProjectileMsgAdd proj    -> return $ proj:ps
+            NewThinkProjectileMsgAdds projs  -> return $ projs ++ ps
             NewThinkProjectileMsgAddM proj   -> (:ps) <$> proj
             NewThinkProjectileMsgAddsM projs -> (++ ps) <$> projs
 

@@ -12,8 +12,8 @@ import Id
 import Msg
 import Player
 import Player.Gun.All.SpikeGun.Data
+import Player.Gun.All.SpikeGun.Spike
 import Player.Gun.All.SpikeGun.SpikeBarrage.Data
-import Player.Gun.All.SpikeGun.SpikeBarrage.Spike
 import Player.Gun.All.SpikeGun.Util
 import Projectile as P
 import Util

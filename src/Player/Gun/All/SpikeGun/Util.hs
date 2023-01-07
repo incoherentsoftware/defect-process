@@ -58,10 +58,10 @@ mkSpikeGunDematerializeParticle
     => SpikeGunData
     -> Player
     -> m (Some Particle)
-mkSpikeGunDematerializeParticle spikeGunData player = loadSimpleParticle pos dir playerGunOverlayZIndex sprPath
+mkSpikeGunDematerializeParticle spikeGunData player = loadSimpleParticle pos RightDir playerGunOverlayZIndex sprPath
     where
-        pos     = calculateSpikeBarragePos spikeGunData player
-        dir     = _dir (player :: Player)
+        player' = player {_dir = RightDir} :: Player
+        pos     = calculateSpikeBarragePos spikeGunData player'
         sprPath = case _numSpikes (spikeGunData :: SpikeGunData) of
             5 -> spikesDematerialize5SprPath
             4 -> spikesDematerialize4SprPath

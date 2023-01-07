@@ -2,18 +2,14 @@ module Player.Weapon.All.Gauntlets
     ( mkGauntletsWeapon
     ) where
 
-import Control.Applicative    ((<|>))
 import Control.Monad          (guard, when)
 import Control.Monad.IO.Class (MonadIO)
 import Data.Foldable          (sequenceA_)
-import Data.Maybe             (fromMaybe, listToMaybe)
-import System.FilePath        (takeBaseName)
 import qualified Data.Map as M
 
 import Attack
 import Attack.Projectile
 import Configs
-import Configs.All.Player
 import Configs.All.PlayerWeapon.Gauntlets
 import FileCache
 import Msg
@@ -376,16 +372,8 @@ drawGauntletsChargeOverlay WeaponDrawOverlayForeground player gauntlets =
         dir              = _dir (player :: Player)
         pos              = _pos (player :: Player)
         chargeOverlaySpr = _chargeOverlaySprite gauntletsData
-        playerCfg        = _config (player :: Player)
-
-        offset = fromMaybe (_chargeOverlaySprOffset playerCfg) $ do
-            spr            <-
-                playerAttackSprite player <|> playerMovementSkillSprite player <|> Just (_sprite (player :: Player))
-            let sprFileName = takeBaseName $ _filePath (spr :: Sprite)
-            offsets        <- M.lookup sprFileName (_chargeOverlaySprOffsetMap playerCfg)
-            listToMaybe (drop (_int (_frameIndex spr :: FrameIndex)) offsets) <|> maybeLast offsets
-
-        pos' = pos `vecAdd` (offset `vecFlip` dir)
+        offset           = playerChargeOverlayOffset player
+        pos'             = pos `vecAdd` (offset `vecFlip` dir)
     in when (isReleasableAtkConditionsMet gauntletsData) $ do
         lerpOffset <- playerLerpOffset player
         drawSprite (pos' `vecAdd` lerpOffset) dir playerUnderBodyZIndex chargeOverlaySpr

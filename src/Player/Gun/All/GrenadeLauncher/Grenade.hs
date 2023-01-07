@@ -4,6 +4,7 @@ module Player.Gun.All.GrenadeLauncher.Grenade
 
 import Control.Monad.IO.Class (MonadIO)
 import qualified Data.List as L
+import qualified Data.List.NonEmpty as NE
 import qualified Data.Set as S
 
 import Attack
@@ -26,22 +27,26 @@ import Window.Graphics
 import World.ZIndex
 
 packPath       = \p -> PackResourceFilePath "data/player/player-guns.pack" p
-projectilePath = packPath "grenade-launcher-projectile.image"         :: PackResourceFilePath
-explosionPath  = packPath "grenade-launcher-projectile-explosion.atk" :: PackResourceFilePath
+projectilePath = packPath "grenade-launcher-projectile.image" :: PackResourceFilePath
+explosionPaths = NE.fromList $ map packPath
+    [ "grenade-launcher-projectile-explosion-a.atk"
+    , "grenade-launcher-projectile-explosion-b.atk"
+    , "grenade-launcher-projectile-explosion-c.atk"
+    ] :: NE.NonEmpty PackResourceFilePath
 
 debugHitboxColor = Color 0 155 30 155 :: Color
 
 data GrenadeData = GrenadeData
-    { _playerHitbox     :: Hitbox
-    , _explosionAtkDesc :: AttackDescription
-    , _config           :: GrenadeLauncherConfig
+    { _playerHitbox      :: Hitbox
+    , _explosionAtkDescs :: NE.NonEmpty AttackDescription
+    , _config            :: GrenadeLauncherConfig
     }
 
 mkGrenadeData :: (ConfigsRead m, FileCache m, GraphicsRead m, MonadIO m) => Player -> m GrenadeData
 mkGrenadeData player =
     GrenadeData <$>
     pure (playerHitbox player) <*>
-    loadPackAttackDescription explosionPath <*>
+    traverse loadPackAttackDescription explosionPaths <*>
     readConfig _playerGun _grenadeLauncher
 
 mkGrenade :: (ConfigsRead m, FileCache m, GraphicsRead m, MonadIO m) => Player -> m (Some Projectile)
@@ -125,8 +130,9 @@ grenadeCollision grenade =
             grenadeId        = P._msgId grenade
             grenadeCenterPos = hitboxCenter $ projectileHitbox grenade
             grenadeData      = P._data grenade
-            explosionAtkDesc = _explosionAtkDesc grenadeData
-            mkExplosion      = mkPlayerAttackProjectile grenadeCenterPos RightDir explosionAtkDesc
+            mkExplosion      = do
+                explosionAtkDesc <- randomChoice $ _explosionAtkDescs grenadeData
+                mkPlayerAttackProjectile grenadeCenterPos RightDir explosionAtkDesc
 
             playerHbx               = _playerHitbox grenadeData
             playerHbxCenter         = hitboxCenter playerHbx

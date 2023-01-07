@@ -63,7 +63,7 @@ mkGame = do
 stepGame :: Window -> Configs -> Game -> AppEnv BaseMsgsPhase Game
 stepGame window cfgs game =
     let
-        inputState          = _inputState (window :: Window)
+        inputState          = _inputState window
         activeConsole       = _active $ _console (game :: Game)
         inputState'
             | activeConsole = inactivateInputState inputState
@@ -156,7 +156,7 @@ gameMain appEnvData window game = do
         performGC
 
     let
-        inputState  = _inputState (window' :: Window)
+        inputState  = _inputState window'
         appEnvData' = updateAppEnvReadData inputState configs appEnvData
     gameMain appEnvData' window' game'
 

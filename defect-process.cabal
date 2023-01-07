@@ -1,11 +1,11 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.35.0.
+-- This file has been generated from package.yaml by hpack version 0.35.1.
 --
 -- see: https://github.com/sol/hpack
 
 name:           defect-process
-version:        1.0.1
+version:        1.0.2
 synopsis:       2d hack n' slash game
 category:       Game
 author:         Garrick Chin
@@ -481,11 +481,14 @@ executable defect-process
       Player.Gun.All.SpikeGun
       Player.Gun.All.SpikeGun.AttackDescriptions
       Player.Gun.All.SpikeGun.Data
+      Player.Gun.All.SpikeGun.Spike
+      Player.Gun.All.SpikeGun.SpikeAlt
       Player.Gun.All.SpikeGun.SpikeBarrage
       Player.Gun.All.SpikeGun.SpikeBarrage.Data
-      Player.Gun.All.SpikeGun.SpikeBarrage.Spike
+      Player.Gun.All.SpikeGun.SpikeRing
       Player.Gun.All.SpikeGun.Sprites
       Player.Gun.All.SpikeGun.Util
+      Player.Gun.DrawOverlayStatus
       Player.Gun.FireDrawAngle
       Player.Gun.FireDrawData
       Player.Gun.FireDrawState

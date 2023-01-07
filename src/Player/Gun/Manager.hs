@@ -17,6 +17,7 @@ module Player.Gun.Manager
 
 import Control.Monad.IO.Class (MonadIO)
 import Control.Monad.State    (execState, modify, when)
+import Data.Foldable          (traverse_)
 import Data.Functor           ((<&>))
 import Data.Maybe             (listToMaybe)
 import qualified Data.Set as S
@@ -142,5 +143,8 @@ drawGunManager player gunManager = drawGunFireDrawState player (_fireDrawState g
 
 drawGunManagerOverlay :: Player -> GunManager -> AppEnv DrawMsgsPhase ()
 drawGunManagerOverlay player gunManager = case _guns gunManager of
-    (Some gun:_) -> (_drawOverlay gun) player gun
-    _            -> return ()
+    (gun:guns) -> do
+        let drawOverlay = \s (Some g) -> (_drawOverlay g) s player g
+        drawOverlay GunDrawOverlayForeground gun
+        traverse_ (drawOverlay GunDrawOverlayBackground) guns
+    _          -> return ()

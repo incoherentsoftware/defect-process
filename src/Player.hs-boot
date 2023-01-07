@@ -10,8 +10,10 @@ module Player
     , playerAttackStagger
     , playerAttackCancelable
     , playerAttackActive
+    , playerAttackSprite
     , playerMovementSkillActive
     , playerMovementSkillCancelable
+    , playerMovementSkillSprite
     , playerWeaponTypes
     , playerGunTypes
     , playerMovementSkillType
@@ -30,6 +32,7 @@ import Player.Gun.Types
 import Player.MovementSkill.Types
 import Player.Weapon.Types
 import Util
+import Window.Graphics
 import {-# SOURCE #-} Player.Types
 
 mkPlayer                      :: AppEnv SetupMsgsPhase Player
@@ -42,8 +45,10 @@ playerAttackDamage            :: Player -> Maybe Damage
 playerAttackStagger           :: Player -> Maybe Stagger
 playerAttackCancelable        :: Player -> Bool
 playerAttackActive            :: Player -> Bool
+playerAttackSprite            :: Player -> Maybe Sprite
 playerMovementSkillActive     :: Player -> Bool
 playerMovementSkillCancelable :: Player -> Bool
+playerMovementSkillSprite     :: Player -> Maybe Sprite
 playerWeaponTypes             :: Player -> [WeaponType]
 playerGunTypes                :: Player -> [GunType]
 playerMovementSkillType       :: Player -> Maybe MovementSkillType

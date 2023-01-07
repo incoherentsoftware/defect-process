@@ -3,6 +3,7 @@ module Player.Gun.All.GrenadeLauncher.Mine
     ) where
 
 import Control.Monad.IO.Class (MonadIO)
+import qualified Data.List.NonEmpty as NE
 import qualified Data.Set as S
 
 import Attack
@@ -24,12 +25,17 @@ import Util
 import Window.Graphics
 import World.ZIndex
 
-packPath             = \p -> PackResourceFilePath "data/player/player-guns.pack" p
-mineOffImagePath     = packPath "grenade-launcher-mine-off.image"     :: PackResourceFilePath
-mineOnImagePath      = packPath "grenade-launcher-mine-on.image"      :: PackResourceFilePath
-overlayImagePath     = packPath "grenade-launcher-mine-overlay.image" :: PackResourceFilePath
-explosionAtkDescPath = packPath "grenade-launcher-mine-explosion.atk" :: PackResourceFilePath
-mineLandSoundPath    = "event:/SFX Events/Player/Guns/mine-land"      :: FilePath
+packPath              = \p -> PackResourceFilePath "data/player/player-guns.pack" p
+mineOffImagePath      = packPath "grenade-launcher-mine-off.image"     :: PackResourceFilePath
+mineOnImagePath       = packPath "grenade-launcher-mine-on.image"      :: PackResourceFilePath
+overlayImagePath      = packPath "grenade-launcher-mine-overlay.image" :: PackResourceFilePath
+explosionAtkDescPaths = NE.fromList $ map packPath
+    [ "grenade-launcher-mine-explosion-a.atk"
+    , "grenade-launcher-mine-explosion-b.atk"
+    , "grenade-launcher-mine-explosion-c.atk"
+    ] :: NE.NonEmpty PackResourceFilePath
+
+mineLandSoundPath = "event:/SFX Events/Player/Guns/mine-land" :: FilePath
 
 debugHitboxColor = Color 0 155 30 155 :: Color
 
@@ -38,12 +44,12 @@ data MineStatus
     | MineOnStatus Secs
 
 data MineData = MineData
-    { _status               :: MineStatus
-    , _mineOffImage         :: Image
-    , _mineOnImage          :: Image
-    , _mineOverlayImage     :: Image
-    , _mineExplosionAtkDesc :: AttackDescription
-    , _config               :: GrenadeLauncherConfig
+    { _status                :: MineStatus
+    , _mineOffImage          :: Image
+    , _mineOnImage           :: Image
+    , _mineOverlayImage      :: Image
+    , _mineExplosionAtkDescs :: NE.NonEmpty AttackDescription
+    , _config                :: GrenadeLauncherConfig
     }
 
 mkMineData :: (ConfigsRead m, FileCache m, GraphicsRead m, MonadIO m) => Player -> m MineData
@@ -53,7 +59,7 @@ mkMineData _ =
     loadPackImage mineOffImagePath <*>
     loadPackImage mineOnImagePath <*>
     loadPackImage overlayImagePath <*>
-    loadPackAttackDescription explosionAtkDescPath <*>
+    traverse loadPackAttackDescription explosionAtkDescPaths <*>
     readConfig _playerGun _grenadeLauncher
 
 mkMine :: (ConfigsRead m, FileCache m, GraphicsRead m, MonadIO m) => Player -> m (Some Projectile)
@@ -86,15 +92,15 @@ mkMine player = do
         }
 
 updateMine :: Monad m => ProjectileUpdate MineData m
-updateMine mine = return . mineUpdatePosVel $ mine {P._data = mineData {_status = status}}
+updateMine mine = return . updateMinePosVel $ mine {P._data = mineData {_status = status}}
     where
         mineData = P._data mine
         status   = case _status mineData of
             MineOffStatus          -> MineOffStatus
             MineOnStatus armingTtl -> MineOnStatus $ max 0.0 (armingTtl - timeStep)
 
-mineUpdatePosVel :: Projectile MineData -> Projectile MineData
-mineUpdatePosVel mine = mine
+updateMinePosVel :: Projectile MineData -> Projectile MineData
+updateMinePosVel mine = mine
     { _hitbox = const hitbox'
     , _vel    = toVel2 velVec'
     }
@@ -184,8 +190,9 @@ mineEnemyCollision mine =
             mineId           = P._msgId mine
             mineCenterPos    = hitboxCenter $ projectileHitbox mine
             mineData         = P._data mine
-            explosionAtkDesc = _mineExplosionAtkDesc mineData
-            mkExplosion      = mkPlayerAttackProjectile mineCenterPos RightDir explosionAtkDesc
+            mkExplosion      = do
+                explosionAtkDesc <- randomChoice $ _mineExplosionAtkDescs mineData
+                mkPlayerAttackProjectile mineCenterPos RightDir explosionAtkDesc
 
 drawMine :: (ConfigsRead m, GraphicsReadWrite m, MonadIO m) => ProjectileDraw MineData m
 drawMine mine =

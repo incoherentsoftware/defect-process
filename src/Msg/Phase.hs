@@ -145,6 +145,7 @@ instance AllowMsgWrite UpdatePlayerMsgsPhase ConsoleMsgPayload where
 instance AllowMsgWrite UpdatePlayerMsgsPhase ParticleMsgPayload where
 instance AllowMsgWrite UpdatePlayerMsgsPhase UiMsgPayload where
 instance AllowMsgWrite UpdatePlayerMsgsPhase WorldMsgPayload where
+instance AllowMsgWrite UpdatePlayerMsgsPhase ProjectileMsgPayload where
 
 instance AllowMsgRead UpdateEnemyMsgsPhase AudioMsgPayload where
 instance AllowMsgRead UpdateEnemyMsgsPhase CollisionMsgPayload where

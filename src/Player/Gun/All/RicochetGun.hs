@@ -222,7 +222,8 @@ update ricochetGun = do
         }
 
 drawOverlay :: (GraphicsReadWrite m, MonadIO m) => GunDrawOverlay RicochetGunData m
-drawOverlay player ricochetGun = do
+drawOverlay GunDrawOverlayBackground _ _                = return ()
+drawOverlay GunDrawOverlayForeground player ricochetGun = do
     playerPos           <- (_pos (player :: Player) `vecAdd`) <$> playerLerpOffset player
     let ricochetGunData  = _data ricochetGun
 

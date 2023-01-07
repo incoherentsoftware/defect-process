@@ -4,6 +4,7 @@ module Player.Gun.All.RicochetGun.Shot
 
 import Control.Monad.IO.Class (MonadIO)
 import Data.Functor           ((<&>))
+import qualified Data.List.NonEmpty as NE
 import qualified Data.Set as S
 
 import Attack.Hit
@@ -27,9 +28,17 @@ import Util
 import Window.Graphics
 import World.ZIndex
 
-gunsPack       = \p -> PackResourceFilePath "data/player/player-guns.pack" p
-missEffectPath = gunsPack "ricochet-gun-projectile-miss-effect.spr" :: PackResourceFilePath
-hitEffectPath  = gunsPack "ricochet-gun-projectile-hit-effect.spr"  :: PackResourceFilePath
+gunsPack        = \p -> PackResourceFilePath "data/player/player-guns.pack" p
+missEffectPaths = NE.fromList $ map gunsPack
+    [ "ricochet-gun-projectile-miss-effect-a.spr"
+    , "ricochet-gun-projectile-miss-effect-b.spr"
+    , "ricochet-gun-projectile-miss-effect-c.spr"
+    ] :: NE.NonEmpty PackResourceFilePath
+hitEffectPaths  = NE.fromList $ map gunsPack
+    [ "ricochet-gun-projectile-hit-effect-a.spr"
+    , "ricochet-gun-projectile-hit-effect-b.spr"
+    , "ricochet-gun-projectile-hit-effect-c.spr"
+    ] :: NE.NonEmpty PackResourceFilePath
 
 noBounceSoundPath    = "event:/SFX Events/Player/Guns/ricochet-gun-no-bounce"    :: FilePath
 bounceSoundPath      = "event:/SFX Events/Player/Guns/ricochet-gun-bounce"       :: FilePath
@@ -197,7 +206,8 @@ shotSurfaceCollision surfaceHbx shot intersectPos =
             prevBounceData = PrevBounceSurfaceHitbox surfaceHbx
 
             (effectDir, effectAngle) = particleClosestDirAngle intersectPos surfaceHbx
-            mkMissEffect             =
+            mkMissEffect             = do
+                missEffectPath <- randomChoice missEffectPaths
                 loadSimpleParticleRotated intersectPos effectDir worldEffectZIndex effectAngle missEffectPath
 
 shotEntityCollision :: CollisionEntity e => e -> Projectile ShotProjectileData -> Pos2 -> [Msg ThinkCollisionMsgsPhase]
@@ -218,7 +228,8 @@ shotEntityCollision entity shot intersectPos =
         prevBounceData = PrevBounceEnemyId entityId
 
         (effectDir, effectAngle) = particleClosestDirAngle intersectPos entityHbx
-        mkImpactEffect           =
+        mkImpactEffect           = do
+            hitEffectPath <- randomChoice hitEffectPaths
             loadSimpleParticleRotated intersectPos effectDir worldEffectZIndex effectAngle hitEffectPath
 
         cfg     = _config (shotData :: ShotProjectileData)

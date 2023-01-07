@@ -3,6 +3,7 @@ module Player.Gun.All.ShardGun.Shot
     ) where
 
 import Control.Monad.IO.Class (MonadIO)
+import qualified Data.List.NonEmpty as NE
 import qualified Data.Set as S
 
 import Attack.Hit
@@ -32,9 +33,13 @@ debugHitboxColor = Color 255 0 0 255 :: Color
 shardHitSoundFilePath = "event:/SFX Events/Player/Guns/shard-hit" :: FilePath
 
 packPath             = \f -> PackResourceFilePath "data/player/player-guns.pack" f
-shardMissEffectPath  = packPath "shard-miss-effect.spr"       :: PackResourceFilePath
-shardWhiffEffectPath = shardMissEffectPath                    :: PackResourceFilePath
-shardHitEffectPath   = packPath "shard-impale-hit-effect.spr" :: PackResourceFilePath
+shardMissEffectPath  = packPath "shard-miss-effect.spr" :: PackResourceFilePath
+shardWhiffEffectPath = shardMissEffectPath              :: PackResourceFilePath
+shardHitEffectPaths  = NE.fromList $ map packPath
+    [ "shard-impale-hit-effect-a.spr"
+    , "shard-impale-hit-effect-b.spr"
+    , "shard-impale-hit-effect-c.spr"
+    ] :: NE.NonEmpty PackResourceFilePath
 
 mkShotLine :: MonadIO m => ShardGunData -> Player -> m (Some Projectile)
 mkShotLine shardGunData player =
@@ -119,7 +124,9 @@ shotEntityCollision entity shot intersectPos =
                 }
 
             hitEffectPos    = calculateShardImpalePos intersectPos entity shot cfg
-            mkShotHitEffect = loadSimpleParticle hitEffectPos RightDir playerAttackEffectZIndex shardHitEffectPath
+            mkShotHitEffect = do
+                hitEffectPath <- randomChoice shardHitEffectPaths
+                loadSimpleParticle hitEffectPos RightDir playerAttackEffectZIndex hitEffectPath
 
 drawShotLine :: (ConfigsRead m, GraphicsReadWrite m, MonadIO m) => ProjectileDraw ShardGunData m
 drawShotLine shot =
