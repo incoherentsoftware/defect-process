@@ -37,7 +37,6 @@ data PauseMenuData = PauseMenuData
     , _mainMenuButton                         :: Button
     , _settingsButton                         :: Button
     , _settingsMenuData                       :: SettingsMenuData
-    , _viewInfoInputDisplayText               :: InputDisplayText
     , _changeSlotInputDisplayText             :: InputDisplayText
     , _generalHelpEntry                       :: PauseMenuHelpEntry ()
     , _targetingHelpEntry                     :: PauseMenuHelpEntry ()

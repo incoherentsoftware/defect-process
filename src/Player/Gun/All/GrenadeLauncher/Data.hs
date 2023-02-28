@@ -21,6 +21,12 @@ import Player.Gun.MuzzleFlash
 import Util
 import Window.Graphics
 
+smokeSpriteFileNames = NE.fromList
+    [ "grenade-launcher-smoke-a.spr"
+    , "grenade-launcher-smoke-b.spr"
+    , "grenade-launcher-smoke-c.spr"
+    ] :: NE.NonEmpty FileName
+
 throwMineUncancelableSecs = 0.2 :: Secs
 
 data GrenadeLauncherData = GrenadeLauncherData
@@ -170,11 +176,11 @@ mkShootFireDrawData cfg =
             , (BackFireDrawNeg90Degrees, "grenade-launcher-back-fire-neg-90-rear-arm.spr")
             ]
 
-        legsSprs <- loadLegsSprites
-        smokeSpr <- loadGrenadeLauncherSprite "grenade-launcher-smoke.spr"
+        legsSprs  <- loadLegsSprites
+        smokeSprs <- traverse loadGrenadeLauncherSprite smokeSpriteFileNames
         let
             muzzleFlashOffset = _muzzleFlashOffset cfg
-            muzzleFlash       = mkMuzzleFlash RearArmMuzzleFlash muzzleFlashOffset (smokeSpr NE.:| [])
+            muzzleFlash       = mkMuzzleFlash RearArmMuzzleFlash muzzleFlashOffset smokeSprs
 
         return $ GunFireDrawData
             { _fireDrawAngle          = FireDraw0Degrees

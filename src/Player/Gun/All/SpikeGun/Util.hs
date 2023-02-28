@@ -7,6 +7,7 @@ module Player.Gun.All.SpikeGun.Util
     ) where
 
 import Control.Monad.IO.Class (MonadIO)
+import qualified Data.List.NonEmpty as NE
 
 import Collision.Hitbox
 import Configs
@@ -30,7 +31,11 @@ spikesDematerialize4SprPath = packPath "spikes-dematerialize4-.spr" :: PackResou
 spikesDematerialize3SprPath = packPath "spikes-dematerialize3-.spr" :: PackResourceFilePath
 spikesDematerialize2SprPath = packPath "spikes-dematerialize2-.spr" :: PackResourceFilePath
 spikesDematerialize1SprPath = packPath "spikes-dematerialize1-.spr" :: PackResourceFilePath
-spikesAppearEffectSprPath   = packPath "spike-appear-effect.spr"    :: PackResourceFilePath
+spikesAppearEffectSprPaths  = NE.fromList $ map packPath
+    [ "spike-appear-effect-a.spr"
+    , "spike-appear-effect-b.spr"
+    , "spike-appear-effect-c.spr"
+    ] :: NE.NonEmpty PackResourceFilePath
 
 calculateSpikeBarragePos :: SpikeGunData -> Player -> Pos2
 calculateSpikeBarragePos spikeGunData player = playerPos `vecAdd` summonOffset'
@@ -79,4 +84,6 @@ mkSpikeGunBarrageSpikeAppearParticle spikeBarrage = do
         spikePos         = calculateSpikeBarrageSpikePos spikeBarrage playerCfg
         spikeBarrageData = P._data spikeBarrage
         angle            = calculateSpikeBarrageSpikeAngle spikePos (_targetPos spikeBarrageData)
+
+    spikesAppearEffectSprPath <- randomChoice spikesAppearEffectSprPaths
     loadSimpleParticleRotated spikePos RightDir worldEffectZIndex angle spikesAppearEffectSprPath

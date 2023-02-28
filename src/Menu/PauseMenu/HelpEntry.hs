@@ -27,11 +27,12 @@ import Window.Graphics.UiControls.Button
 import Window.InputState
 
 data PauseMenuHelpEntry a = PauseMenuHelpEntry
-    { _type         :: a
-    , _active       :: Bool
-    , _iconButton   :: Button
-    , _helpPopup    :: HelpPopup
-    , _soundIndices :: MenuSoundIndices
+    { _type                     :: a
+    , _active                   :: Bool
+    , _iconButton               :: Button
+    , _helpPopup                :: HelpPopup
+    , _viewInfoInputDisplayText :: InputDisplayText
+    , _soundIndices             :: MenuSoundIndices
     }
 
 mkPauseMenuHelpEntry
@@ -41,16 +42,18 @@ mkPauseMenuHelpEntry
     -> HelpPopupDescription
     -> m (PauseMenuHelpEntry a)
 mkPauseMenuHelpEntry iconButtonPos menuHelpPopupType menuHelpPopupDesc = do
-    iconBtn      <- mkImageButton iconButtonPos (_iconButtonImagePath menuHelpPopupDesc)
-    helpPopup    <- mkHelpPopup menuHelpPopupDesc
-    soundIndices <- mkMenuSoundIndices
+    iconBtn                 <- mkImageButton iconButtonPos (_iconButtonImagePath menuHelpPopupDesc)
+    helpPopup               <- mkHelpPopup menuHelpPopupDesc
+    viewInfoInputDisplayTxt <- mkInputDisplayText (_viewInfoText menuHelpPopupDesc) Font22 whiteColor
+    soundIndices            <- mkMenuSoundIndices
 
     return $ PauseMenuHelpEntry
-        { _type         = menuHelpPopupType
-        , _active       = False
-        , _iconButton   = iconBtn
-        , _helpPopup    = helpPopup
-        , _soundIndices = soundIndices
+        { _type                     = menuHelpPopupType
+        , _active                   = False
+        , _iconButton               = iconBtn
+        , _helpPopup                = helpPopup
+        , _viewInfoInputDisplayText = viewInfoInputDisplayTxt
+        , _soundIndices             = soundIndices
         }
 
 updatePauseMenuHelpEntry
@@ -70,6 +73,8 @@ updatePauseMenuHelpEntry iconBtnStatus helpEntry = do
         | prevActive -> updateHelpPopup helpPopup
         | otherwise  -> return helpPopup
 
+    viewInfoInputDisplayTxt <- updateInputDisplayText $ _viewInfoInputDisplayText helpEntry
+
     inputState <- readInputState
     let
         active
@@ -84,9 +89,10 @@ updatePauseMenuHelpEntry iconBtnStatus helpEntry = do
         void . playFmodSound . _confirm $ _soundIndices (helpEntry :: PauseMenuHelpEntry a)
 
     return $ helpEntry
-        { _active     = active
-        , _iconButton = iconButton
-        , _helpPopup  = helpPopup'
+        { _active                   = active
+        , _iconButton               = iconButton
+        , _helpPopup                = helpPopup'
+        , _viewInfoInputDisplayText = viewInfoInputDisplayTxt
         }
 
 drawPauseMenuHelpEntry :: (ConfigsRead m, GraphicsReadWrite m, InputRead m, MonadIO m) => PauseMenuHelpEntry a -> m ()

@@ -13,7 +13,7 @@ import Player.Meter
 import Util
 
 data GrenadeLauncherConfig = GrenadeLauncherConfig
-    { _fireDelaySecs            :: Secs
+    { _shootFireDelaySecs       :: Secs
     , _shootRange               :: Distance
     , _shotAliveSecs            :: Secs
     , _muzzleFlashOffset        :: Pos2
@@ -29,14 +29,15 @@ data GrenadeLauncherConfig = GrenadeLauncherConfig
     , _grenadeExplosionLaunchRadius :: Float
     , _grenadeExplosionLaunchSpeed  :: Float
 
-    , _mineOuterWidth  :: Float
-    , _mineOuterHeight :: Float
-    , _mineInnerWidth  :: Float
-    , _mineInnerHeight :: Float
-    , _mineVel         :: Vel2
-    , _mineGravity     :: Acceleration
-    , _mineArmingSecs  :: Secs
-    , _mineMeterCost   :: MeterValue
+    , _mineFireDelaySecs :: Secs
+    , _mineOuterWidth    :: Float
+    , _mineOuterHeight   :: Float
+    , _mineInnerWidth    :: Float
+    , _mineInnerHeight   :: Float
+    , _mineVel           :: Vel2
+    , _mineGravity       :: Acceleration
+    , _mineArmingSecs    :: Secs
+    , _mineMeterCost     :: MeterValue
 
     , _headAngleMultiplier     :: Float
     , _leadArmAngleMultiplier  :: Float

@@ -66,23 +66,16 @@ secondarySkillUpInputOverlayImgPath      =
 secondarySkillDownInputOverlayImgPath    =
     pauseMenuPack "secondary-skill-down-input-overlay.image"    :: PackResourceFilePath
 
-viewInfoText   = "View Info: {MenuSelectAlias.0}"        :: T.Text
 changeSlotText = "Reassign Input: {MenuSlotChangeAlias}" :: T.Text
 
 selectionInfoCenterTextPos@(Pos2 selectionInfoCenterTextX selectionInfoCenterTextY) = Pos2 960.0 834.0 :: Pos2
 selectionInfoSpacerWidth                                                            = 30.0             :: Float
 
-infoOverlayLeftImagePos                     = Pos2 99.0 498.0 :: Pos2
+infoOverlayLeftImagePos                     = Pos2 99.0 498.0   :: Pos2
 infoOverlayRightImagePos                    = Pos2 1225.0 249.0 :: Pos2
 emptySecondarySkillUpDownIconOverlayOpacity = Opacity 128       :: Opacity
 upgradeCountOverlayOffset                   = Pos2 10.0 10.0    :: Pos2
 secondarySkillInputOverlayImageOffset       = Pos2 130.0 126.0  :: Pos2
-
-emptySelectionInfoSelections = S.fromList
-    [ PauseMenuResumeSelection
-    , PauseMenuMainSelection
-    , PauseMenuSettingsSelection
-    ] :: S.Set PauseMenuSelection
 
 secondarySkillSelections = S.fromList
     [ PauseMenuSecondarySkillLeftSelection
@@ -109,7 +102,6 @@ mkPauseMenuData = do
     settingsBtn <- mkImageButtonCentered (_pausedSettingsButtonPos cfg) settingsButtonImgPath
 
     settingsMenuData          <- mkSettingsMenuData
-    viewInfoInputDisplayTxt   <- mkInputDisplayText viewInfoText Font22 whiteColor
     changeSlotInputDisplayTxt <- mkInputDisplayText changeSlotText Font22 whiteColor
     slotComboBoxes            <- mkSlotComboBoxes
 
@@ -135,7 +127,6 @@ mkPauseMenuData = do
         , _mainMenuButton                         = mainMenuBtn
         , _settingsButton                         = settingsBtn
         , _settingsMenuData                       = settingsMenuData
-        , _viewInfoInputDisplayText               = viewInfoInputDisplayTxt
         , _changeSlotInputDisplayText             = changeSlotInputDisplayTxt
         , _generalHelpEntry                       = generalHelpEntry
         , _targetingHelpEntry                     = targetingHelpEntry
@@ -321,7 +312,6 @@ updatePauseMenuData
 updatePauseMenuData prevGameMode equipmentInfo pauseMenuData = do
     upgradeCountOverlayDisplayTxts <-
         updateUpgradeCountOverlayDisplayText equipmentInfo (_upgradeCountOverlayDisplayTexts pauseMenuData)
-    viewInfoInputDisplayTxt        <- updateInputDisplayText $ _viewInfoInputDisplayText pauseMenuData
     changeSlotInputDisplayTxt      <- updateInputDisplayText $ _changeSlotInputDisplayText pauseMenuData
     weaponHelpEntries              <- currentWeaponHelpEntries equipmentInfo pauseMenuData
     gunHelpEntries                 <- currentGunHelpEntries equipmentInfo pauseMenuData
@@ -334,7 +324,6 @@ updatePauseMenuData prevGameMode equipmentInfo pauseMenuData = do
     let
         pauseMenuData' = pauseMenuData
             { _upgradeCountOverlayDisplayTexts = upgradeCountOverlayDisplayTxts
-            , _viewInfoInputDisplayText        = viewInfoInputDisplayTxt
             , _changeSlotInputDisplayText      = changeSlotInputDisplayTxt
             , _weaponHelpEntries               = weaponHelpEntries
             , _gunHelpEntries                  = gunHelpEntries
@@ -495,32 +484,51 @@ drawUpgradeCountOverlays pauseMenuData =
                 let pos = _pos (_iconButton helpEntry :: Button) `vecAdd` upgradeCountOverlayOffset
                 in drawDisplayText pos menuZIndex displayTxt
 
+selectionToHelpEntry :: PauseMenuData -> Maybe PauseMenuSelection -> Maybe (Some PauseMenuHelpEntry)
+selectionToHelpEntry pauseMenuData selection = case selection of
+    Just PauseMenuGeneralInfoSelection         -> Just $ Some (_generalHelpEntry pauseMenuData)
+    Just PauseMenuTargetingInfoSelection       -> Just $ Some (_targetingHelpEntry pauseMenuData)
+    Just PauseMenuWeaponLeftSelection          -> Some <$> _weaponHelpEntries pauseMenuData !!? 0
+    Just PauseMenuWeaponRightSelection         -> Some <$> _weaponHelpEntries pauseMenuData !!? 1
+    Just PauseMenuGunLeftSelection             -> Some <$> _gunHelpEntries pauseMenuData !!? 0
+    Just PauseMenuGunRightSelection            -> Some <$> _gunHelpEntries pauseMenuData !!? 1
+    Just PauseMenuMovementSkillSelection       -> Some <$> _movementSkillHelpEntries pauseMenuData !!? 0
+    Just PauseMenuSecondarySkillLeftSelection  -> Some <$> _secondarySkillNeutralHelpEntry pauseMenuData
+    Just PauseMenuSecondarySkillMidSelection   -> Some <$> _secondarySkillUpHelpEntry pauseMenuData
+    Just PauseMenuSecondarySkillRightSelection -> Some <$> _secondarySkillDownHelpEntry pauseMenuData
+    Just (PauseMenuUpgradeSelection n)         -> Some <$> _upgradeHelpEntries pauseMenuData !!? n
+    _                                          -> Nothing
+
 drawSelectionInfoText :: (GraphicsReadWrite m, InputRead m, MonadIO m) => PauseMenuData -> m ()
 drawSelectionInfoText pauseMenuData =
     let
         selection                 = _selection (pauseMenuData :: PauseMenuData)
-        isEmptySelectionInfo      = maybe True (`S.member` emptySelectionInfoSelections) selection
         isSecondarySkillSelection = maybe False (`S.member` secondarySkillSelections) selection
         isSlotExpanded            = isSlotComboBoxesExpanded $ _slotComboBoxes pauseMenuData
-        viewInfoIDT               = _viewInfoInputDisplayText pauseMenuData
-        changeSlotIDT             = _changeSlotInputDisplayText pauseMenuData
-    in if
-        | isEmptySelectionInfo || isSlotExpanded -> return ()
+    in case selectionToHelpEntry pauseMenuData selection of
+        _
+            | isSlotExpanded -> return ()
+        Nothing              -> return ()
 
-        | isSecondarySkillSelection && not isSlotExpanded -> do
-            viewInfoIDTWidth   <- inputDisplayTextWidth viewInfoIDT
-            changeSlotIDTWidth <- inputDisplayTextWidth changeSlotIDT
-            let
-                totalWidth        = viewInfoIDTWidth + selectionInfoSpacerWidth + changeSlotIDTWidth
-                viewInfoTextX     = selectionInfoCenterTextX - totalWidth / 2.0 + viewInfoIDTWidth / 2.0
-                viewInfoTextPos   = Pos2 viewInfoTextX selectionInfoCenterTextY
-                changeSlotTextX   = selectionInfoCenterTextX + totalWidth / 2.0 - changeSlotIDTWidth / 2.0
-                changeSlotTextPos = Pos2 changeSlotTextX selectionInfoCenterTextY
+        Just (Some helpEntry)
+            | isSecondarySkillSelection && not isSlotExpanded -> do
+                let viewInfoIDT     = _viewInfoInputDisplayText helpEntry
+                viewInfoIDTWidth   <- inputDisplayTextWidth viewInfoIDT
+                let changeSlotIDT   = _changeSlotInputDisplayText pauseMenuData
+                changeSlotIDTWidth <- inputDisplayTextWidth changeSlotIDT
+                let
+                    totalWidth        = viewInfoIDTWidth + selectionInfoSpacerWidth + changeSlotIDTWidth
+                    viewInfoTextX     = selectionInfoCenterTextX - totalWidth / 2.0 + viewInfoIDTWidth / 2.0
+                    viewInfoTextPos   = Pos2 viewInfoTextX selectionInfoCenterTextY
+                    changeSlotTextX   = selectionInfoCenterTextX + totalWidth / 2.0 - changeSlotIDTWidth / 2.0
+                    changeSlotTextPos = Pos2 changeSlotTextX selectionInfoCenterTextY
 
-            drawInputDisplayTextCentered viewInfoTextPos menuZIndex viewInfoIDT
-            drawInputDisplayTextCentered changeSlotTextPos menuZIndex changeSlotIDT
+                drawInputDisplayTextCentered viewInfoTextPos menuZIndex viewInfoIDT
+                drawInputDisplayTextCentered changeSlotTextPos menuZIndex changeSlotIDT
 
-        | otherwise -> drawInputDisplayTextCentered selectionInfoCenterTextPos menuZIndex viewInfoIDT
+            | otherwise ->
+                let viewInfoIDT = _viewInfoInputDisplayText helpEntry
+                in drawInputDisplayTextCentered selectionInfoCenterTextPos menuZIndex viewInfoIDT
 
 drawSlotComboBoxes :: (GraphicsReadWrite m, MonadIO m) => PauseMenuData -> m ()
 drawSlotComboBoxes pauseMenuData =

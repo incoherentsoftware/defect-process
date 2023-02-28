@@ -47,10 +47,11 @@ mkShardGunData = do
     cfg     <- readConfig _playerGun _shardGun
 
     return $ ShardGunData
-        { _gunMsgId             = msgId
-        , _aimAngle             = 0.0
-        , _blinkStrikePosMsgIds = []
-        , _attackDescription    = atkDesc
-        , _images               = imgs
-        , _config               = cfg
+        { _gunMsgId                  = msgId
+        , _aimAngle                  = 0.0
+        , _blinkStrikePosMsgIds      = []
+        , _blinkStrikePlayerStartPos = Nothing
+        , _attackDescription         = atkDesc
+        , _images                    = imgs
+        , _config                    = cfg
         }

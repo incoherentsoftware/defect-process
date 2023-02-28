@@ -5,6 +5,7 @@ module Player.Weapon.All.Scythe
 import Control.Monad.IO.Class (MonadIO)
 import Control.Monad.State    (execStateT, get, lift, put, when)
 import Data.Functor           ((<&>))
+import Data.Maybe             (fromMaybe)
 import qualified Data.Set as S
 
 import Attack
@@ -143,8 +144,8 @@ thinkScythe weaponThinkStatus player currentAtk scythe =
         chargeHeldMsgs = mkFloatingAttackChargeHeldMsgs weaponThinkStatus scytheData
     in do
         newAtkMsgs <- case weaponThinkStatus of
-            WeaponThinkForeground weaponAtkStatus -> thinkScytheAttack scytheData weaponAtkStatus currentAtk player
-            WeaponThinkBackground                 -> return []
+            WeaponThinkForeground weaponAtkStatus -> thinkScytheAttackFg scytheData weaponAtkStatus currentAtk player
+            WeaponThinkBackground                 -> thinkScytheAttackBg scytheData currentAtk
 
         fixBlinkStrikeMsgs <- fixBlinkPosMsgs scytheData currentAtk player
 
@@ -387,14 +388,14 @@ summonAttackMsgs scytheData (Just currentAtk)
 
         shouldSummon = summonFlagFrameTagName `isAttackFrameTag` currentAtk && attackFrameChanged currentAtk
 
-thinkScytheAttack
+thinkScytheAttackFg
     :: (ConfigsRead m, InputRead m, MonadIO m)
     => ScytheData
     -> WeaponAttackStatus
     -> Maybe Attack
     -> Player
     -> m [Msg ThinkPlayerMsgsPhase]
-thinkScytheAttack scytheData wpnAtkStatus currentAtk player = case _floatingAttackStatus scytheData of
+thinkScytheAttackFg scytheData wpnAtkStatus currentAtk player = case _floatingAttackStatus scytheData of
     FloatingAttackInactive -> summonAttackMsgs scytheData currentAtk >>= \case
         Nothing
             | wpnAtkStatus == WeaponAttackReady -> newSummonAttackMsgs scytheData player
@@ -409,6 +410,11 @@ thinkScytheAttack scytheData wpnAtkStatus currentAtk player = case _floatingAtta
         | wpnAtkStatus == WeaponAttackReady ->
             newFloatingAttackMsgs scytheData currentAtk player floatingAtkMsgId pos dir
         | otherwise                         -> return []
+
+thinkScytheAttackBg :: (ConfigsRead m, MonadIO m) => ScytheData -> Maybe Attack -> m [Msg ThinkPlayerMsgsPhase]
+thinkScytheAttackBg scytheData currentAtk = case _floatingAttackStatus scytheData of
+    FloatingAttackInactive -> fromMaybe [] <$> summonAttackMsgs scytheData currentAtk
+    _                      -> return []
 
 updateScythe :: (InputRead m, MsgsRead UpdatePlayerMsgsPhase m) => WeaponUpdate ScytheData m
 updateScythe weaponUpdateStatus _ _ scythe = flip execStateT scythe $ do

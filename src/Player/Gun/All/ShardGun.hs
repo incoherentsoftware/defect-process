@@ -4,7 +4,8 @@ module Player.Gun.All.ShardGun
 
 import Control.Monad.IO.Class (MonadIO)
 import Control.Monad.Random   (MonadRandom)
-import System.Random.Shuffle  (shuffleM)
+import Data.Maybe             (fromMaybe)
+import Data.Ord               (comparing)
 import qualified Data.List as L
 import qualified Data.List.NonEmpty as NE
 import qualified Data.Map as M
@@ -157,7 +158,7 @@ mkShardGun = do
         }
 
 getShardsPosMsgIds :: (MonadRandom m, MsgsRead ThinkPlayerMsgsPhase m) => ShardGunData -> m [(Pos2, MsgId)]
-getShardsPosMsgIds shardGunData = L.foldl' getShardMsgIds [] <$> readMsgs >>= shuffleM
+getShardsPosMsgIds shardGunData = L.sortBy (comparing snd) . L.foldl' getShardMsgIds [] <$> readMsgs
     where
         getShardMsgIds :: [(Pos2, MsgId)] -> InfoMsgPayload -> [(Pos2, MsgId)]
         getShardMsgIds posMsgIds d = case d of
@@ -207,9 +208,10 @@ thinkShardGun gunStatus player shardGun =
             -- blink striking
             ((projPos, projId):projPosIds) ->
                 let
-                    updateThink  = \g -> deferThinkShardGun projPosIds g
-                    updateGunMsg = mkMsg $ PlayerMsgUpdateGun updateThink
-                in (updateGunMsg:) <$> blinkStrikeMsgs shardGunData projPos projId
+                    updateThink    = \g -> deferThinkShardGun projPosIds g
+                    updateGunMsg   = mkMsg $ PlayerMsgUpdateGun updateThink
+                    playerStartPos = fromMaybe playerPos (_blinkStrikePlayerStartPos shardGunData)
+                in (updateGunMsg:) <$> blinkStrikeMsgs shardGunData projPos projId playerStartPos
 
             []
                 -- explode shards
@@ -226,7 +228,7 @@ thinkShardGun gunStatus player shardGun =
                             updateThink  = \g -> deferThinkShardGun projPosMsgIds g
                             updateGunMsg = mkMsg $ PlayerMsgUpdateGun updateThink
                         in do
-                            blinkMsgs <- blinkStrikeMsgs shardGunData projPos projId
+                            blinkMsgs <- blinkStrikeMsgs shardGunData projPos projId playerPos
                             return $ clearBufferedInputsMsg:updateGunMsg:blinkMsgs
 
                 -- fire shards

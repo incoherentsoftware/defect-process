@@ -32,10 +32,17 @@ debugHitboxColor = Color 255 0 0 255 :: Color
 
 shardHitSoundFilePath = "event:/SFX Events/Player/Guns/shard-hit" :: FilePath
 
-packPath             = \f -> PackResourceFilePath "data/player/player-guns.pack" f
-shardMissEffectPath  = packPath "shard-miss-effect.spr" :: PackResourceFilePath
-shardWhiffEffectPath = shardMissEffectPath              :: PackResourceFilePath
-shardHitEffectPaths  = NE.fromList $ map packPath
+packPath = \f -> PackResourceFilePath "data/player/player-guns.pack" f
+
+shardMissEffectPaths  = NE.fromList $ map packPath
+    [ "shard-miss-effect-a.spr"
+    , "shard-miss-effect-b.spr"
+    , "shard-miss-effect-c.spr"
+    ] :: NE.NonEmpty PackResourceFilePath
+
+shardWhiffEffectPaths = shardMissEffectPaths :: NE.NonEmpty PackResourceFilePath
+
+shardHitEffectPaths = NE.fromList $ map packPath
     [ "shard-impale-hit-effect-a.spr"
     , "shard-impale-hit-effect-b.spr"
     , "shard-impale-hit-effect-c.spr"
@@ -66,7 +73,10 @@ mkShotLine shardGunData player =
 thinkShot :: Monad m => Pos2 -> ProjectileThink ShardGunData m
 thinkShot targetPos shot
     | P._ttl shot - timeStep <= 0.0 =
-        let mkWhiffEffect = loadSimpleParticle targetPos RightDir worldEffectZIndex shardWhiffEffectPath
+        let
+            mkWhiffEffect = do
+                shardWhiffEffectPath <- randomChoice shardWhiffEffectPaths
+                loadSimpleParticle targetPos RightDir worldEffectZIndex shardWhiffEffectPath
         in return [mkMsg $ ParticleMsgAddM mkWhiffEffect]
     | otherwise                     = return []
 
@@ -93,7 +103,9 @@ shotSurfaceCollision shot intersectPos =
             shotId         = P._msgId shot
             startPos       = hitboxStartVertex $ projectileHitbox shot
             hitbox         = lineHitbox startPos intersectPos
-            mkMissParticle = loadSimpleParticle intersectPos RightDir playerAttackEffectZIndex shardMissEffectPath
+            mkMissParticle = do
+                shardMissEffectPath <- randomChoice shardMissEffectPaths
+                loadSimpleParticle intersectPos RightDir playerAttackEffectZIndex shardMissEffectPath
 
 shotEntityCollision :: CollisionEntity e => e -> Projectile ShardGunData -> Pos2 -> [Msg ThinkCollisionMsgsPhase]
 shotEntityCollision entity shot intersectPos =

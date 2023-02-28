@@ -41,25 +41,31 @@ thinkGrenadeLauncher gunStatus player grenadeLauncher = think <$> readInputState
     where
         think :: InputState -> [Msg ThinkPlayerMsgsPhase]
         think inputState
-            | fireDelayTtl > 0.0 = []
-
-            | shootDownPressed && canShoot = if
+            | fireDelayTtl <= 0.0 && shootDownPressed && canShoot = if
                 | not (canSpendMeter mineMeterCost) -> [mkMsg $ UiMsgInsufficientMeter mineMeterCost shootJustPressed]
                 | otherwise                         ->
-                    let updateThrowMine = \g -> g {_fireDrawData = Just $ _throwMineFireDrawData (_data g)}
+                    let
+                        updateThrowMine = \g ->
+                            let
+                                gData         = _data g
+                                fireDelaySecs = _mineFireDelaySecs $ _config (gData :: GrenadeLauncherData)
+                            in g
+                                { _data         = gData {_fireDelayTtl = fireDelaySecs}
+                                , _fireDrawData = Just $ _throwMineFireDrawData gData
+                                }
                     in
                         [ mkMsg $ PlayerMsgUpdateGun updateThrowMine
                         , mkMsg PlayerMsgFiredGun
                         ]
 
-            | shootPressed && canShoot = if
+            | fireDelayTtl <= 0.0 && shootPressed && canShoot = if
                 | not (canSpendMeter shotMeterCost) -> [mkMsg $ UiMsgInsufficientMeter shotMeterCost shootJustPressed]
                 | otherwise                         ->
                     let
                         updateShoot = \g ->
                             let
                                 gData         = _data g
-                                fireDelaySecs = _fireDelaySecs $ _config (gData :: GrenadeLauncherData)
+                                fireDelaySecs = _shootFireDelaySecs $ _config (gData :: GrenadeLauncherData)
                             in g
                                 { _data         = gData {_fireDelayTtl = fireDelaySecs}
                                 , _fireDrawData = Just $ _shootFireDrawData gData

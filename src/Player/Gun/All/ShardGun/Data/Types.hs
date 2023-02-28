@@ -22,10 +22,11 @@ data ShardGunStImages = ShardGunStImages
     }
 
 data ShardGunData = ShardGunData
-    { _gunMsgId             :: MsgId
-    , _aimAngle             :: Radians
-    , _blinkStrikePosMsgIds :: [(Pos2, MsgId)]
-    , _attackDescription    :: ShardGunStAttackDescription
-    , _images               :: ShardGunStImages
-    , _config               :: ShardGunConfig
+    { _gunMsgId                  :: MsgId
+    , _aimAngle                  :: Radians
+    , _blinkStrikePosMsgIds      :: [(Pos2, MsgId)]
+    , _blinkStrikePlayerStartPos :: Maybe Pos2
+    , _attackDescription         :: ShardGunStAttackDescription
+    , _images                    :: ShardGunStImages
+    , _config                    :: ShardGunConfig
     }

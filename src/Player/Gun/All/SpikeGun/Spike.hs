@@ -26,9 +26,13 @@ import Util
 import Window.Graphics
 import World.ZIndex
 
-packPath               = \f -> PackResourceFilePath "data/player/player-guns.pack" f
-spikeShatterEffectPath = packPath "spike-shatter.spr" :: PackResourceFilePath
-spikeHitEffectPaths    = NE.fromList $ map packPath
+packPath                = \f -> PackResourceFilePath "data/player/player-guns.pack" f
+spikeShatterEffectPaths = NE.fromList $ map packPath
+    [ "spike-shatter-a.spr"
+    , "spike-shatter-b.spr"
+    , "spike-shatter-c.spr"
+    ] :: NE.NonEmpty PackResourceFilePath
+spikeHitEffectPaths     = NE.fromList $ map packPath
     [ "spike-hit-effect-a.spr"
     , "spike-hit-effect-b.spr"
     , "spike-hit-effect-c.spr"
@@ -98,11 +102,14 @@ mkSpike spikeBarrage = do
         }
 
 mkSpikeShatter :: (FileCache m, GraphicsRead m, MonadIO m) => Projectile SpikeData -> m (Some Particle)
-mkSpikeShatter spike = loadSimpleParticleRotated pos RightDir worldEffectZIndex angle spikeShatterEffectPath
-    where
+mkSpikeShatter spike =
+    let
         pos       = hitboxStartVertex $ projectileHitbox spike
         spikeData = P._data spike
         angle     = _angle (spikeData :: SpikeData)
+    in do
+        spikeShatterEffectPath <- randomChoice spikeShatterEffectPaths
+        loadSimpleParticleRotated pos RightDir worldEffectZIndex angle spikeShatterEffectPath
 
 processSpikeCollisions :: ProjectileProcessCollisions SpikeData
 processSpikeCollisions collisions spike = case collisions of

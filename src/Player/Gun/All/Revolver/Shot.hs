@@ -26,9 +26,19 @@ import Util
 import Window.Graphics
 import World.ZIndex
 
-gunsPack        = \p -> PackResourceFilePath "data/player/player-guns.pack" p
-missEffectPath  = gunsPack "bullet-miss-effect.spr"  :: PackResourceFilePath
-whiffEffectPath = gunsPack "bullet-whiff-effect.spr" :: PackResourceFilePath
+gunsPack = \p -> PackResourceFilePath "data/player/player-guns.pack" p
+
+missEffectPaths = NE.fromList
+    [ gunsPack "bullet-miss-effect-a.spr"
+    , gunsPack "bullet-miss-effect-b.spr"
+    , gunsPack "bullet-miss-effect-c.spr"
+    ] :: NE.NonEmpty PackResourceFilePath
+
+whiffEffectPaths = NE.fromList
+    [ gunsPack "bullet-whiff-effect-a.spr"
+    , gunsPack "bullet-whiff-effect-b.spr"
+    , gunsPack "bullet-whiff-effect-c.spr"
+    ] :: NE.NonEmpty PackResourceFilePath
 
 hitEffectPaths = NE.fromList
     [ gunsPack "bullet-hit-effect-a.spr"
@@ -75,11 +85,14 @@ mkShotProjectile shotType player cfg =
             }
 
 thinkShot :: Monad m => Pos2 -> ProjectileThink ShotData m
-thinkShot targetPos shot
-    | P._ttl shot - timeStep <= 0.0 =
-        let mkWhiffEffect = loadSimpleParticle targetPos RightDir worldEffectZIndex whiffEffectPath
-        in return [mkMsg $ ParticleMsgAddM mkWhiffEffect]
-    | otherwise                     = return []
+thinkShot targetPos shot = return $ if
+    | P._ttl shot - timeStep <= 0.0 ->
+        let
+            mkWhiffEffect = do
+                whiffEffectPath <- randomChoice whiffEffectPaths
+                loadSimpleParticle targetPos RightDir worldEffectZIndex whiffEffectPath
+        in [mkMsg $ ParticleMsgAddM mkWhiffEffect]
+    | otherwise                     -> []
 
 processShotCollisions :: ProjectileProcessCollisions ShotData
 processShotCollisions projCollisions shot = processCollisions $ sortProjectileCollisions projCollisions shot
@@ -107,7 +120,8 @@ shotSurfaceCollision nonEnemyHbx shot intersectPos =
             hitbox   = lineHitbox startPos intersectPos
 
             (effectDir, effectAngle) = particleClosestDirAngle intersectPos nonEnemyHbx
-            mkMissEffect             =
+            mkMissEffect             = do
+                missEffectPath <- randomChoice missEffectPaths
                 loadSimpleParticleRotated intersectPos effectDir worldEffectZIndex effectAngle missEffectPath
 
 shotEntityCollision :: CollisionEntity e => e -> Projectile ShotData -> Pos2 -> [Msg ThinkCollisionMsgsPhase]

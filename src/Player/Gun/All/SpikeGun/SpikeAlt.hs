@@ -33,9 +33,13 @@ import Window.Graphics
 import World.ZIndex
 import {-# SOURCE #-} Player.Gun.All.SpikeGun.SpikeRing
 
-packPath                  = \f -> PackResourceFilePath "data/player/player-guns.pack" f
-spikeAltShatterEffectPath = packPath "spike-alt-shatter.spr" :: PackResourceFilePath
-spikeAltHitEffectPaths    = NE.fromList $ map packPath
+packPath                   = \f -> PackResourceFilePath "data/player/player-guns.pack" f
+spikeAltShatterEffectPaths = NE.fromList $ map packPath
+    [ "spike-alt-shatter-a.spr"
+    , "spike-alt-shatter-b.spr"
+    , "spike-alt-shatter-c.spr"
+    ] :: NE.NonEmpty PackResourceFilePath
+spikeAltHitEffectPaths     = NE.fromList $ map packPath
     [ "spike-hit-effect-a.spr"
     , "spike-hit-effect-b.spr"
     , "spike-hit-effect-c.spr"
@@ -116,11 +120,14 @@ processSpikeAltCollisions collisions spikeAlt = case collisions of
         _                                     -> []
 
 mkSpikeAltShatter :: (FileCache m, GraphicsRead m, MonadIO m) => Projectile SpikeAltData -> m (Some Particle)
-mkSpikeAltShatter spikeAlt = loadSimpleParticleRotated pos RightDir worldEffectZIndex angle spikeAltShatterEffectPath
-    where
+mkSpikeAltShatter spikeAlt =
+    let
         pos          = hitboxStartVertex $ projectileHitbox spikeAlt
         spikeAltData = P._data spikeAlt
         angle        = _angle (spikeAltData :: SpikeAltData)
+    in do
+        spikeAltShatterEffectPath <- randomChoice spikeAltShatterEffectPaths
+        loadSimpleParticleRotated pos RightDir worldEffectZIndex angle spikeAltShatterEffectPath
 
 updateSpikeRingOnReleaseMsg :: MsgId -> Msg ThinkCollisionMsgsPhase
 updateSpikeRingOnReleaseMsg msgId = mkMsg $ PlayerMsgUpdateGun update

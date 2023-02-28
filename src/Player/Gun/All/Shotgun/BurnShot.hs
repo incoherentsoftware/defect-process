@@ -22,10 +22,18 @@ import Projectile as P
 import Util
 import World.ZIndex
 
-packPath        = \f -> PackResourceFilePath "data/player/player-guns.pack" f
-missEffectPath  = packPath "bullet-miss-effect.spr"  :: PackResourceFilePath
-whiffEffectPath = packPath "bullet-whiff-effect.spr" :: PackResourceFilePath
-hitEffectPaths  = NE.fromList $ map packPath
+packPath         = \f -> PackResourceFilePath "data/player/player-guns.pack" f
+missEffectPaths  = NE.fromList $ map packPath
+    [ "bullet-miss-effect-a.spr"
+    , "bullet-miss-effect-b.spr"
+    , "bullet-miss-effect-c.spr"
+    ] :: NE.NonEmpty PackResourceFilePath
+whiffEffectPaths = NE.fromList $ map packPath
+    [ "bullet-whiff-effect-a.spr"
+    , "bullet-whiff-effect-b.spr"
+    , "bullet-whiff-effect-c.spr"
+    ] :: NE.NonEmpty PackResourceFilePath
+hitEffectPaths   = NE.fromList $ map packPath
     [ "bullet-hit-effect-a.spr"
     , "bullet-hit-effect-b.spr"
     , "bullet-hit-effect-c.spr"
@@ -67,7 +75,10 @@ mkBurnShotProjectiles player burnShotOwnerId cfg = traverse mkShotProjectile sta
 thinkShot :: Monad m => Pos2 -> ProjectileThink ShotgunConfig m
 thinkShot targetPos shot
     | P._ttl shot - timeStep <= 0.0 =
-        let mkWhiffEffect = loadSimpleParticle targetPos RightDir worldEffectZIndex whiffEffectPath
+        let
+            mkWhiffEffect = do
+                whiffEffectPath <- randomChoice whiffEffectPaths
+                loadSimpleParticle targetPos RightDir worldEffectZIndex whiffEffectPath
         in return [mkMsg $ ParticleMsgAddM mkWhiffEffect]
     | otherwise                     = return []
 
@@ -101,7 +112,8 @@ shotSurfaceCollision nonEnemyHbx shot intersectPos =
         hitbox   = lineHitbox startPos intersectPos
 
         (effectDir, effectAngle) = particleClosestDirAngle intersectPos nonEnemyHbx
-        mkMissEffect             =
+        mkMissEffect             = do
+            missEffectPath <- randomChoice missEffectPaths
             loadSimpleParticleRotated intersectPos effectDir worldEffectZIndex effectAngle missEffectPath
 
 shotEntityCollision :: CollisionEntity e => e -> Projectile ShotgunConfig -> Pos2 -> [Msg ThinkCollisionMsgsPhase]

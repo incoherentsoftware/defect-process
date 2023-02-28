@@ -57,6 +57,7 @@ data HelpPopupTabDescription = HelpPopupTabDescription
 
 data HelpPopupDescription = HelpPopupDescription
     { _iconButtonImagePath :: PackResourceFilePath
+    , _viewInfoText        :: T.Text
     , _popupDescription    :: Either HelpPopupScreenDescription [HelpPopupTabDescription]
     }
 
@@ -82,6 +83,7 @@ mkSymbolInputAliasPosTextDesc inputAlias = HelpPopupTextOverlayDescription
 generalInfoHelpPopupDescription :: HelpPopupDescription
 generalInfoHelpPopupDescription = HelpPopupDescription
     { _iconButtonImagePath = buttonImagePath "general-info-icon-button.image"
+    , _viewInfoText        = "View General Info: {MenuSelectAlias.0}"
     , _popupDescription    = Left $ HelpPopupScreenDescription
             { _imagePath               = variousHelpPackPath "general-info-help.image"
             , _textOverlayDescriptions = [mkSymbolInputAliasPosTextDesc JumpAlias]
@@ -115,6 +117,7 @@ mkLockOnTargetingHelpPosTexts menuCfg =
 targetingInfoHelpPopupDescription :: MenuConfig -> HelpPopupDescription
 targetingInfoHelpPopupDescription menuCfg = HelpPopupDescription
     { _iconButtonImagePath = buttonImagePath "targeting-info-icon-button.image"
+    , _viewInfoText        = "View Lock-on Targeting Info: {MenuSelectAlias.0}"
     , _popupDescription    = Left $ HelpPopupScreenDescription
         { _imagePath               = variousHelpPackPath "targeting-info-help.image"
         , _textOverlayDescriptions = mkLockOnTargetingHelpPosTexts menuCfg
@@ -125,6 +128,7 @@ weaponTypeToHelpPopupDescription :: MenuConfig -> WeaponType -> HelpPopupDescrip
 weaponTypeToHelpPopupDescription menuCfg wpnType = case wpnType of
     SwordWeapon -> HelpPopupDescription
         { _iconButtonImagePath = buttonImagePath "sword-icon-button.image"
+        , _viewInfoText        = "View " <> prettyShow wpnType <> " Info: {MenuSelectAlias.0}"
         , _popupDescription    = Right
             [ HelpPopupTabDescription
                 { _imagePath               = swordHelpImgPath "sword-basic-help.image"
@@ -145,6 +149,7 @@ weaponTypeToHelpPopupDescription menuCfg wpnType = case wpnType of
 
     GauntletsWeapon -> HelpPopupDescription
         { _iconButtonImagePath = buttonImagePath "gauntlets-icon-button.image"
+        , _viewInfoText        = "View " <> prettyShow wpnType <> " Info: {MenuSelectAlias.0}"
         , _popupDescription    = Right
             [ HelpPopupTabDescription
                 { _imagePath               = gauntletsHelpImgPath "gauntlets-basic-help.image"
@@ -172,6 +177,7 @@ weaponTypeToHelpPopupDescription menuCfg wpnType = case wpnType of
 
     ScytheWeapon -> HelpPopupDescription
         { _iconButtonImagePath = buttonImagePath "scythe-icon-button.image"
+        , _viewInfoText        = "View " <> prettyShow wpnType <> " Info: {MenuSelectAlias.0}"
         , _popupDescription    = Right
             [ HelpPopupTabDescription
                 { _imagePath               = scytheHelpImgPath "scythe-basic-help.image"
@@ -199,6 +205,7 @@ weaponTypeToHelpPopupDescription menuCfg wpnType = case wpnType of
 
     StaffWeapon -> HelpPopupDescription
         { _iconButtonImagePath = buttonImagePath "staff-icon-button.image"
+        , _viewInfoText        = "View " <> prettyShow wpnType <> " Info: {MenuSelectAlias.0}"
         , _popupDescription    = Right
             [ HelpPopupTabDescription
                 { _imagePath               = staffHelpImgPath "staff-basic-help.image"
@@ -219,6 +226,7 @@ weaponTypeToHelpPopupDescription menuCfg wpnType = case wpnType of
 
     SpiritBladeWeapon -> HelpPopupDescription
         { _iconButtonImagePath = buttonImagePath "spirit-blade-icon-button.image"
+        , _viewInfoText        = "View " <> prettyShow wpnType <> " Info: {MenuSelectAlias.0}"
         , _popupDescription    = Right
             [ HelpPopupTabDescription
                 { _imagePath               = spiritBladeHelpImgPath "spirit-blade-basic-help.image"
@@ -246,9 +254,10 @@ weaponTypeToHelpPopupDescription menuCfg wpnType = case wpnType of
         spiritBladeHelpImgPath = \fileName -> weaponImagePath "spirit-blade-help.pack" fileName
 
 gunTypeToHelpPopupDescription :: GunType -> HelpPopupDescription
-gunTypeToHelpPopupDescription = \case
+gunTypeToHelpPopupDescription gunType = case gunType of
     RevolverGun -> HelpPopupDescription
         { _iconButtonImagePath = buttonImagePath "revolver-icon-button.image"
+        , _viewInfoText        = "View " <> prettyShow gunType <> " Info: {MenuSelectAlias.0}"
         , _popupDescription    = Left $ HelpPopupScreenDescription
             { _imagePath               = variousHelpPackPath "revolver-help.image"
             , _textOverlayDescriptions = [mkSymbolInputAliasPosTextDesc ShootAlias]
@@ -257,6 +266,7 @@ gunTypeToHelpPopupDescription = \case
 
     ShotgunGun -> HelpPopupDescription
         { _iconButtonImagePath = buttonImagePath "shotgun-icon-button.image"
+        , _viewInfoText        = "View " <> prettyShow gunType <> " Info: {MenuSelectAlias.0}"
         , _popupDescription    = Left $ HelpPopupScreenDescription
             { _imagePath               = variousHelpPackPath "shotgun-help.image"
             , _textOverlayDescriptions = [mkSymbolInputAliasPosTextDesc ShootAlias]
@@ -265,6 +275,7 @@ gunTypeToHelpPopupDescription = \case
 
     GrenadeLauncherGun -> HelpPopupDescription
         { _iconButtonImagePath = buttonImagePath "grenade-launcher-icon-button.image"
+        , _viewInfoText        = "View " <> prettyShow gunType <> " Info: {MenuSelectAlias.0}"
         , _popupDescription    = Left $ HelpPopupScreenDescription
             { _imagePath               = variousHelpPackPath "grenade-launcher-help.image"
             , _textOverlayDescriptions = [mkSymbolInputAliasPosTextDesc ShootAlias]
@@ -273,6 +284,7 @@ gunTypeToHelpPopupDescription = \case
 
     ShardGun -> HelpPopupDescription
         { _iconButtonImagePath = buttonImagePath "shard-gun-icon-button.image"
+        , _viewInfoText        = "View " <> prettyShow gunType <> " Info: {MenuSelectAlias.0}"
         , _popupDescription    = Left $ HelpPopupScreenDescription
             { _imagePath               = variousHelpPackPath "shard-gun-help.image"
             , _textOverlayDescriptions = [mkSymbolInputAliasPosTextDesc ShootAlias]
@@ -281,6 +293,7 @@ gunTypeToHelpPopupDescription = \case
 
     SpikeGun -> HelpPopupDescription
         { _iconButtonImagePath = buttonImagePath "spike-gun-icon-button.image"
+        , _viewInfoText        = "View " <> prettyShow gunType <> " Info: {MenuSelectAlias.0}"
         , _popupDescription    = Left $ HelpPopupScreenDescription
             { _imagePath               = variousHelpPackPath "spike-gun-help.image"
             , _textOverlayDescriptions = [mkSymbolInputAliasPosTextDesc ShootAlias]
@@ -289,6 +302,7 @@ gunTypeToHelpPopupDescription = \case
 
     RicochetGun -> HelpPopupDescription
         { _iconButtonImagePath = buttonImagePath "ricochet-gun-icon-button.image"
+        , _viewInfoText        = "View " <> prettyShow gunType <> " Info: {MenuSelectAlias.0}"
         , _popupDescription    = Left $ HelpPopupScreenDescription
             { _imagePath               = variousHelpPackPath "ricochet-gun-help.image"
             , _textOverlayDescriptions = [mkSymbolInputAliasPosTextDesc ShootAlias]
@@ -296,9 +310,10 @@ gunTypeToHelpPopupDescription = \case
         }
 
 movementSkillTypeToHelpPopupDescription :: MovementSkillType -> HelpPopupDescription
-movementSkillTypeToHelpPopupDescription = \case
+movementSkillTypeToHelpPopupDescription moveSkillType = case moveSkillType of
     DashSkill -> HelpPopupDescription
         { _iconButtonImagePath = buttonImagePath "dash-icon-button.image"
+        , _viewInfoText        = "View " <> prettyShow moveSkillType <> " Info: {MenuSelectAlias.0}"
         , _popupDescription    = Left $ HelpPopupScreenDescription
             { _imagePath               = variousHelpPackPath "dash-help.image"
             , _textOverlayDescriptions = [mkSymbolInputAliasPosTextDesc MovementSkillAlias]
@@ -307,6 +322,7 @@ movementSkillTypeToHelpPopupDescription = \case
 
     TeleportSkill -> HelpPopupDescription
         { _iconButtonImagePath = buttonImagePath "teleport-icon-button.image"
+        , _viewInfoText        = "View " <> prettyShow moveSkillType <> " Info: {MenuSelectAlias.0}"
         , _popupDescription    = Left $ HelpPopupScreenDescription
             { _imagePath               = variousHelpPackPath "teleport-help.image"
             , _textOverlayDescriptions = [mkSymbolInputAliasPosTextDesc MovementSkillAlias]
@@ -315,6 +331,7 @@ movementSkillTypeToHelpPopupDescription = \case
 
     GrappleSkill -> HelpPopupDescription
         { _iconButtonImagePath = buttonImagePath "grapple-icon-button.image"
+        , _viewInfoText        = "View " <> prettyShow moveSkillType <> " Info: {MenuSelectAlias.0}"
         , _popupDescription    = Left $ HelpPopupScreenDescription
             { _imagePath               = variousHelpPackPath "grapple-help.image"
             , _textOverlayDescriptions = [mkSymbolInputAliasPosTextDesc MovementSkillAlias]
@@ -346,6 +363,7 @@ secondarySkillTypeToHelpPopupDescription :: SecondarySkillType -> SecondarySkill
 secondarySkillTypeToHelpPopupDescription secondarySkillType slot = case secondarySkillType of
     StoneFormSkill -> HelpPopupDescription
         { _iconButtonImagePath = buttonImagePath "stone-form-icon-button.image"
+        , _viewInfoText        = "View " <> prettyShow secondarySkillType <> " Info: {MenuSelectAlias.0}"
         , _popupDescription    = Left $ HelpPopupScreenDescription
             { _imagePath               = variousHelpPackPath "stone-form-help.image"
             , _textOverlayDescriptions =
@@ -358,6 +376,7 @@ secondarySkillTypeToHelpPopupDescription secondarySkillType slot = case secondar
 
     FlightSkill -> HelpPopupDescription
         { _iconButtonImagePath = buttonImagePath "flight-icon-button.image"
+        , _viewInfoText        = "View " <> prettyShow secondarySkillType <> " Info: {MenuSelectAlias.0}"
         , _popupDescription    = Left $ HelpPopupScreenDescription
             { _imagePath               = variousHelpPackPath "flight-help.image"
             , _textOverlayDescriptions =
@@ -369,6 +388,7 @@ secondarySkillTypeToHelpPopupDescription secondarySkillType slot = case secondar
 
     FastFallSkill -> HelpPopupDescription
         { _iconButtonImagePath = buttonImagePath "fast-fall-icon-button.image"
+        , _viewInfoText        = "View " <> prettyShow secondarySkillType <> " Info: {MenuSelectAlias.0}"
         , _popupDescription    = Left $ HelpPopupScreenDescription
             { _imagePath               = variousHelpPackPath "fast-fall-help.image"
             , _textOverlayDescriptions =
@@ -380,6 +400,7 @@ secondarySkillTypeToHelpPopupDescription secondarySkillType slot = case secondar
 
     StasisBlastSkill -> HelpPopupDescription
         { _iconButtonImagePath = buttonImagePath "stasis-blast-icon-button.image"
+        , _viewInfoText        = "View " <> prettyShow secondarySkillType <> " Info: {MenuSelectAlias.0}"
         , _popupDescription    = Left $ HelpPopupScreenDescription
             { _imagePath               = variousHelpPackPath "stasis-blast-help.image"
             , _textOverlayDescriptions =
@@ -391,6 +412,7 @@ secondarySkillTypeToHelpPopupDescription secondarySkillType slot = case secondar
 
     MarkRecallSkill -> HelpPopupDescription
         { _iconButtonImagePath = buttonImagePath "mark-recall-icon-button.image"
+        , _viewInfoText        = "View " <> prettyShow secondarySkillType <> " Info: {MenuSelectAlias.0}"
         , _popupDescription    = Left $ HelpPopupScreenDescription
             { _imagePath               = variousHelpPackPath "mark-recall-help.image"
             , _textOverlayDescriptions =
@@ -403,6 +425,7 @@ secondarySkillTypeToHelpPopupDescription secondarySkillType slot = case secondar
 
     SummonPlatformSkill -> HelpPopupDescription
         { _iconButtonImagePath = buttonImagePath "summon-platform-icon-button.image"
+        , _viewInfoText        = "View " <> prettyShow secondarySkillType <> " Info: {MenuSelectAlias.0}"
         , _popupDescription    = Left $ HelpPopupScreenDescription
             { _imagePath               = variousHelpPackPath "summon-platform-help.image"
             , _textOverlayDescriptions =
@@ -413,9 +436,10 @@ secondarySkillTypeToHelpPopupDescription secondarySkillType slot = case secondar
         }
 
 upgradeTypeToHelpPopupDescription :: PlayerUpgradeType -> HelpPopupDescription
-upgradeTypeToHelpPopupDescription = \case
+upgradeTypeToHelpPopupDescription upgradeType = case upgradeType of
     DoubleJumpUpgradeType -> HelpPopupDescription
         { _iconButtonImagePath = buttonImagePath "double-jump-icon-button.image"
+        , _viewInfoText        = "View " <> prettyShow upgradeType <> " Info: {MenuSelectAlias.0}"
         , _popupDescription    = Left $ HelpPopupScreenDescription
             { _imagePath               = variousHelpPackPath "double-jump-upgrade-help.image"
             , _textOverlayDescriptions = [mkSymbolInputAliasPosTextDesc JumpAlias]
@@ -424,6 +448,7 @@ upgradeTypeToHelpPopupDescription = \case
 
     MovementSkillUpgradeType -> HelpPopupDescription
         { _iconButtonImagePath = buttonImagePath "movement-skill-upgrade-icon-button.image"
+        , _viewInfoText        = "View " <> prettyShow upgradeType <> " Info: {MenuSelectAlias.0}"
         , _popupDescription    = Left $ HelpPopupScreenDescription
             { _imagePath               = variousHelpPackPath "movement-skill-upgrade-help.image"
             , _textOverlayDescriptions = [mkSymbolInputAliasPosTextDesc MovementSkillAlias]
@@ -432,6 +457,7 @@ upgradeTypeToHelpPopupDescription = \case
 
     MeterUpgradeType -> HelpPopupDescription
         { _iconButtonImagePath = buttonImagePath "meter-upgrade-icon-button.image"
+        , _viewInfoText        = "View " <> prettyShow upgradeType <> " Info: {MenuSelectAlias.0}"
         , _popupDescription    = Left $ HelpPopupScreenDescription
             { _imagePath               = variousHelpPackPath "meter-upgrade-help.image"
             , _textOverlayDescriptions = []
@@ -441,6 +467,7 @@ upgradeTypeToHelpPopupDescription = \case
 musicHelpPopupDescription :: HelpPopupDescription
 musicHelpPopupDescription = HelpPopupDescription
     { _iconButtonImagePath = buttonImagePath "general-info-icon-button.image"  -- unused
+    , _viewInfoText        = ""  -- unused
     , _popupDescription    = Left $ HelpPopupScreenDescription
         { _imagePath               = variousHelpPackPath "music-help.image"
         , _textOverlayDescriptions = []
