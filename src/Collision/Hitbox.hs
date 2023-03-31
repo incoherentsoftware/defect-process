@@ -30,6 +30,7 @@ module Collision.Hitbox
     , intersectsLineHitbox
     , containsPointHitbox
     , hitboxAvgIntersectPos
+    , hitboxPointCoarseDistance
     , isDummyHitbox
     , drawHitbox
     ) where
@@ -309,6 +310,21 @@ hitboxAvgIntersectPos hbx1 hbx2
                     | start2Contained                  -> Just start2
                     | end2Contained                    -> Just end2
                     | otherwise                        -> Nothing
+
+hitboxPointCoarseDistance :: Pos2 -> Hitbox -> Float
+hitboxPointCoarseDistance (Pos2 x y) hbx = sqrt $ dx ** 2.0 + dy ** 2.0
+    where
+        left  = hitboxLeft hbx
+        right = hitboxRight hbx
+        top   = hitboxTop hbx
+        bot   = hitboxBot hbx
+
+        dx
+            | x >= left && x <= right = 0.0
+            | otherwise               = min (abs (x - left)) (abs (x - right))
+        dy
+            | y >= top && y <= bot    = 0.0
+            | otherwise               = min (abs (y - top)) (abs (y - bot))
 
 isDummyHitbox :: Hitbox -> Bool
 isDummyHitbox = \case

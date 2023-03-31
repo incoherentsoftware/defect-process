@@ -41,6 +41,7 @@ data PlayerConfig = PlayerConfig
     , _defaultAimXOffset         :: PosX
     , _aimCrosshairAxisThreshold :: Float
     , _isGamepadAimLineEnabled   :: Bool
+    , _aimLockOnCursorMaxDist    :: Distance
     , _minSoftLandingVelY        :: VelY
     , _minMediumLandingVelY      :: VelY
     , _minHardLandingVelY        :: VelY

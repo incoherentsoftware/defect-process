@@ -168,13 +168,16 @@ processAtkProjCollisions collisions atkProj = case _mode atkProjData of
                         playerHbx       = collisionEntityHitbox player
                         atkIntersectPos = hitboxAvgIntersectPos atkHbx playerHbx
                         atkProjId       = P._msgId atkProj
+                        cfg             = _config (atkProjData :: TurretProjectileData)
                         atkHit          = (mkAttackHitEmpty atkProjId atkIntersectPos)
-                            { _damage   = _turretProjDamage $ _config (atkProjData :: TurretProjectileData)
+                            { _damage   = _turretProjDamage cfg
                             , _isRanged = True
                             } :: AttackHit
                         playerId        = collisionEntityMsgId player
-                        collisionMsg    = mkMsgTo (HurtMsgAttackHit atkHit) playerId
-                    in collisionMsg:msgs
+                    in
+                        [ mkMsgTo (HurtMsgAttackHit atkHit) playerId
+                        , mkMsg $ WorldMsgScreenshake (_turretScreenshakeMagnitude cfg)
+                        ] ++ msgs
                 _                          -> msgs
         in foldr processPlayerCollision [] collisions
 

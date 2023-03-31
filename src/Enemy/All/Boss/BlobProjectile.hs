@@ -32,25 +32,27 @@ projHitSoundPath = "event:/SFX Events/Enemy/Boss/attack-blob-hit" :: FilePath
 
 data BlobProjectileData = BlobProjectileData
     { _attack :: Attack
+    , _config :: BossEnemyConfig
     }
 
-mkBlobProjectileData :: Attack -> BlobProjectileData
-mkBlobProjectileData atk = BlobProjectileData
+mkBlobProjectileData :: Attack -> BossEnemyConfig -> BlobProjectileData
+mkBlobProjectileData atk cfg = BlobProjectileData
     { _attack = atk
+    , _config = cfg
     }
 
 mkBlobProjectile :: MonadIO m => Pos2 -> Direction -> BossEnemyData -> m (Some Projectile)
 mkBlobProjectile enemyPos dir enemyData =
     let
-        bossCfg               = _boss $ _config enemyData
-        releaseBlobProjOffset = _releaseBlobProjOffset bossCfg `vecFlip` dir
-        pos                   = enemyPos `vecAdd` releaseBlobProjOffset
+        bossCfg               = _boss $ _config (enemyData :: BossEnemyData)
+        blobProjReleaseOffset = _blobProjReleaseOffset bossCfg `vecFlip` dir
+        pos                   = enemyPos `vecAdd` blobProjReleaseOffset
         atkDesc               = _blobProjectile $ _attackDescs enemyData
     in do
         atk <- mkAttack pos dir atkDesc
         let
             vel          = attackVelToVel2 (attackVel atk) zeroVel2
-            blobProjData = mkBlobProjectileData atk
+            blobProjData = mkBlobProjectileData atk bossCfg
 
         msgId  <- newId
         let hbx = fromMaybe (DummyHitbox pos) (attackHitbox atk)
@@ -101,15 +103,18 @@ playerCollision player blobProj =
     , mkMsgTo (ProjectileMsgSetTtl 0.0) blobProjId
     , mkMsg $ ParticleMsgAddM mkHitEffect
     , mkMsg $ AudioMsgPlaySound projHitSoundPath pos
+    , mkMsg $ WorldMsgScreenshake (_blobScreenshakeMagnitude cfg)
     ]
         where
-            playerId    = collisionEntityMsgId player
-            blobProjId  = P._msgId blobProj
-            atk         = _attack (_data blobProj :: BlobProjectileData)
-            atkHit      = mkAttackHit atk
-            pos         = _pos (atk :: Attack)
-            dir         = _dir (atk :: Attack)
-            mkHitEffect = loadSimpleParticle pos dir enemyAttackProjectileZIndex projHitSprPath
+            playerId     = collisionEntityMsgId player
+            blobProjId   = P._msgId blobProj
+            blobProjData = _data blobProj
+            atk          = _attack (blobProjData :: BlobProjectileData)
+            atkHit       = mkAttackHit atk
+            pos          = _pos (atk :: Attack)
+            dir          = _dir (atk :: Attack)
+            mkHitEffect  = loadSimpleParticle pos dir enemyAttackProjectileZIndex projHitSprPath
+            cfg          = _config (blobProjData :: BlobProjectileData)
 
 surfaceCollision :: Hitbox -> Projectile BlobProjectileData -> [Msg ThinkCollisionMsgsPhase]
 surfaceCollision surfaceHbx blobProj

@@ -59,6 +59,7 @@ calculatePlayerInfo player surfaces = PlayerInfo
     , _groundBeneathPos = beneathGroundPos
     , _touchingGround   = touchingGround
     , _touchingWall     = _touchingWall (playerFlags :: PlayerFlags)
+    , _onPlatform       = _onPlatform (playerFlags :: PlayerFlags)
     , _equipment        = mkPlayerEquipmentInfo player
     , _meter            = _meter (player :: Player)
     , _enemyLockOn      = _enemyLockOn (_lockOnAim player :: PlayerLockOnAim)

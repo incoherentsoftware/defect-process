@@ -53,6 +53,7 @@ dropSpeed          = 350.0           :: Float
 dropGravity        = 3400.0          :: Float
 dropMinRandomAngle = toRadians 60.0  :: Radians
 dropMaxRandomAngle = toRadians 120.0 :: Radians
+dropMaxOffsetX     = 800.0           :: OffsetX
 
 arenaDropHoverOffsetXMultiplier   = 50.0   :: PosX
 endBossDropHoverOffsetXMultiplier = 20.0   :: PosX
@@ -186,9 +187,16 @@ mkArenaGoldDropsEx (Pos2 x y) goldValue hoverOffsetXMultiplier = do
             | (i, _) <- zip [startI..] goldValues
             ]
 
+    positions' <- sequenceA
+        [ Pos2 <$> pX' <*> pure pY
+        | Pos2 pX pY <- positions
+        , let randomX = randomRIO (x - dropMaxOffsetX, x + dropMaxOffsetX)
+        , let pX'     = if abs (pX - x) > dropMaxOffsetX then randomX else return pX
+        ]
+
     sequenceA
         [ mkGoldDrop p zeroVel2 goldVal ArenaGoldDrop
-        | (p, goldVal) <- zip positions goldValues
+        | (p, goldVal) <- zip positions' goldValues
         ]
 
 mkArenaGoldDrops :: (FileCache m, GraphicsRead m, MonadIO m) => Pos2 -> GoldValue -> m [Some Projectile]

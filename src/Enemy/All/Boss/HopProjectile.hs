@@ -9,6 +9,8 @@ import qualified Data.Set as S
 import Attack
 import Attack.Hit
 import Collision
+import Configs.All.Enemy
+import Configs.All.Enemy.Boss
 import Constants
 import Enemy.All.Boss.AttackDescriptions
 import Enemy.All.Boss.Data
@@ -32,11 +34,13 @@ hopProjectileOffset = Pos2 150.0 (-131.0) :: Pos2
 
 data HopProjectileData = HopProjectileData
     { _attack :: Attack
+    , _config :: BossEnemyConfig
     }
 
-mkHopProjectileData :: Attack -> HopProjectileData
-mkHopProjectileData atk = HopProjectileData
+mkHopProjectileData :: Attack -> BossEnemyData -> HopProjectileData
+mkHopProjectileData atk enemyData = HopProjectileData
     { _attack = atk
+    , _config = _boss $ _config (enemyData :: BossEnemyData)
     }
 
 mkHopProjectile :: MonadIO m => Pos2 -> Direction -> BossEnemyData -> m (Some Projectile)
@@ -49,7 +53,7 @@ mkHopProjectile enemyPos dir enemyData =
         atk <- mkAttack pos dir atkDesc
         let
             vel         = attackVelToVel2 (attackVel atk) zeroVel2
-            hopProjData = mkHopProjectileData atk
+            hopProjData = mkHopProjectileData atk enemyData
 
         msgId  <- newId
         let hbx = fromMaybe (DummyHitbox pos) (attackHitbox atk)
@@ -100,15 +104,18 @@ playerCollision player hopProj =
     , mkMsgTo (ProjectileMsgSetTtl 0.0) hopProjId
     , mkMsg $ ParticleMsgAddM mkHitEffect
     , mkMsg $ AudioMsgPlaySound projHitSoundPath pos
+    , mkMsg $ WorldMsgScreenshake (_hopScreenshakeMagnitude cfg)
     ]
         where
             playerId    = collisionEntityMsgId player
             hopProjId   = P._msgId hopProj
-            atk         = _attack (_data hopProj :: HopProjectileData)
+            hopProjData = _data hopProj
+            atk         = _attack (hopProjData :: HopProjectileData)
             atkHit      = mkAttackHit atk
             pos         = _pos (atk :: Attack)
             dir         = _dir (atk :: Attack)
             mkHitEffect = loadSimpleParticle pos dir enemyAttackProjectileZIndex projHitSprPath
+            cfg         = _config (hopProjData :: HopProjectileData)
 
 surfaceCollision :: Hitbox -> Projectile HopProjectileData -> [Msg ThinkCollisionMsgsPhase]
 surfaceCollision surfaceHbx hopProj

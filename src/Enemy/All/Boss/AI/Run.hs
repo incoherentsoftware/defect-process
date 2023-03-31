@@ -2,7 +2,9 @@ module Enemy.All.Boss.AI.Run
     ( runBehaviorInstr
     ) where
 
+import Control.Monad          (when)
 import Control.Monad.IO.Class (MonadIO)
+import Control.Monad.State    (execState, modify)
 import Data.Traversable       (for)
 import qualified Data.List.NonEmpty as NE
 import qualified Data.Map as M
@@ -19,6 +21,7 @@ import Enemy.All.Boss.BlobProjectile
 import Enemy.All.Boss.Data
 import Enemy.All.Boss.HopProjectile
 import Enemy.All.Boss.LankyProjectile
+import Enemy.All.Boss.LightingFakeProjectile
 import Enemy.All.Boss.Sprites
 import Enemy.All.Boss.SummonFlyingSpawnerProjectile
 import Enemy.All.Boss.SummonSpearsSpawnerProjectile
@@ -34,7 +37,8 @@ import Util
 import Window.Graphics
 import World.ZIndex
 
-soundFrameTagName = FrameTagName "sound" :: FrameTagName
+soundFrameTagName  = FrameTagName "sound"  :: FrameTagName
+darkenFrameTagName = FrameTagName "darken" :: FrameTagName
 
 bossSpawnSoundPath = "event:/SFX Events/Enemy/Boss/spawn" :: FilePath
 bossDeathSoundPath = "event:/SFX Events/Enemy/Boss/death" :: FilePath
@@ -189,10 +193,14 @@ updateIdleBehavior idleTtl enemy = mkEnemyUpdateBehaviorMsg enemy behavior
 updateSpawnBehavior :: Enemy BossEnemyData -> [Msg ThinkEnemyMsgsPhase]
 updateSpawnBehavior enemy = case E._sprite enemy of
     Nothing  -> []
-    Just spr -> if
-        | soundFrameTagName `isSpriteFrameTag` spr && _frameChanged spr ->
-            [mkMsg $ AudioMsgPlaySound bossSpawnSoundPath (E._pos enemy)]
-        | otherwise                                                     -> []
+    Just spr -> flip execState [] $ do
+        when (soundFrameTagName `isSpriteFrameTag` spr && _frameChanged spr) $
+            let pos = E._pos enemy
+            in modify (mkMsg (AudioMsgPlaySound bossSpawnSoundPath pos):)
+
+        when (darkenFrameTagName `isSpriteFrameTag` spr && _frameChanged spr) $
+            let enemyId = E._msgId enemy
+            in modify (mkMsg (NewThinkProjectileMsgAddM $ mkLightingFakeProjectile enemyId):)
 
 setAttackMessages :: AttackDescription -> Enemy BossEnemyData -> [Msg ThinkEnemyMsgsPhase]
 setAttackMessages atkDesc enemy = [mkMsgTo (EnemyMsgSetAttackDesc atkDesc) (E._msgId enemy)]

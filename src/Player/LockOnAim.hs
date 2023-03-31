@@ -215,8 +215,36 @@ switchLockOnTarget player lockOnAim = do
             modify $ selectTarget enemyLockOnDatas'
     return $ (lockOnAim :: PlayerLockOnAim) {_enemyLockOn = enemyLockOn'}
 
-updateLockOnCursorTarget :: (InputRead m, MsgsRead UpdatePlayerMsgsPhase m) => PlayerLockOnAim -> m PlayerLockOnAim
-updateLockOnCursorTarget lockOnAim = do
+selectLockOnCursorTargetCoarse
+    :: Pos2
+    -> EnemyLockOnData
+    -> (Maybe PlayerEnemyLockOn, Float)
+    -> (Maybe PlayerEnemyLockOn, Float)
+selectLockOnCursorTargetCoarse mousePos lockOnData (enemyLockOn, minDist)
+    | dist < minDist =
+        ( Just $ PlayerEnemyLockOn
+            { _enemyId                  = enemyId
+            , _enemyHealth              = _enemyHealth (lockOnData :: EnemyLockOnData)
+            , _enemyVel                 = _enemyVel (lockOnData :: EnemyLockOnData)
+            , _lockOnPos                = hitboxBotCenter enemyHbx `vecAdd` _reticleOffset lockOnData
+            , _reticleScale             = _reticleScale (lockOnData :: EnemyLockOnData)
+            , _source                   = CursorLockOnSource
+            , _prevSwitchTargetEnemyIds = S.singleton enemyId
+            }
+        , dist
+        )
+    | otherwise      = (enemyLockOn, minDist)
+    where
+        enemyHbx = _enemyHitbox lockOnData
+        dist     = hitboxPointCoarseDistance mousePos enemyHbx
+        enemyId  = _enemyId (lockOnData :: EnemyLockOnData)
+
+updateLockOnCursorTarget
+    :: (InputRead m, MsgsRead UpdatePlayerMsgsPhase m)
+    => PlayerLockOnAim
+    -> PlayerConfig
+    -> m PlayerLockOnAim
+updateLockOnCursorTarget lockOnAim cfg = do
     mousePos <- _mouseWorldPos <$> readInputState
 
     let
@@ -237,8 +265,16 @@ updateLockOnCursorTarget lockOnAim = do
             | otherwise                               = selectTarget enLockOn lockOnDatas
             where enemyHbx = _enemyHitbox lockOnData
 
-    enemyLockOn <- selectTarget (_enemyLockOn (lockOnAim :: PlayerLockOnAim)) <$> readMsgsEnemyLockOnData
-    return $ (lockOnAim :: PlayerLockOnAim) {_enemyLockOn = enemyLockOn}
+    enemyLockOnDatas <- readMsgsEnemyLockOnData
+    let
+        lockOnCursorMaxDist = _aimLockOnCursorMaxDist cfg
+        enemyLockOn         = _enemyLockOn (lockOnAim :: PlayerLockOnAim)
+        enemyLockOn'        = case selectTarget Nothing enemyLockOnDatas of
+            Just enLockOn -> Just enLockOn
+            Nothing       -> fst $
+                foldr (selectLockOnCursorTargetCoarse mousePos) (enemyLockOn, lockOnCursorMaxDist) enemyLockOnDatas
+
+    return $ (lockOnAim :: PlayerLockOnAim) {_enemyLockOn = enemyLockOn'}
 
 updateLockOnGamepadAxisTarget
     :: (InputRead m, MsgsRead UpdatePlayerMsgsPhase m)
@@ -304,7 +340,7 @@ updateLockOnTarget player lockOnAim = do
 
     if
         | isSwitchTargetInput'              -> switchLockOnTarget player lockOnAim
-        | isLockOnCursorInput'              -> updateLockOnCursorTarget lockOnAim
+        | isLockOnCursorInput'              -> updateLockOnCursorTarget lockOnAim (_config player)
         | isLockOnClearInput'               -> return $ clearPlayerLockOnAim lockOnAim
         | axisThreshold >= aimAxisThreshold -> updateLockOnGamepadAxisTarget player lockOnAim
         | otherwise                         -> return lockOnAim

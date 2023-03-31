@@ -21,6 +21,7 @@ data PlayerInfo = PlayerInfo
     , _groundBeneathPos :: Pos2
     , _touchingGround   :: Bool
     , _touchingWall     :: Bool
+    , _onPlatform       :: Bool
     , _equipment        :: PlayerEquipmentInfo
     , _meter            :: PlayerMeter
     , _enemyLockOn      :: Maybe PlayerEnemyLockOn

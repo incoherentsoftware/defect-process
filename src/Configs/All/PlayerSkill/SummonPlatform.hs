@@ -14,6 +14,7 @@ data SummonPlatformConfig = SummonPlatformConfig
     , _summonSoftVelY      :: VelY
     , _summonMeterCost     :: MeterValue
     , _platformTimeoutSecs :: Secs
+    , _platformBlinkSecs   :: Secs
     }
     deriving Generic
 

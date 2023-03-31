@@ -2,6 +2,7 @@ module Window.Graphics.Opacity
     ( minAlpha
     , Opacity(..)
     , decreaseOpacity
+    , increaseOpacity
     , opacityToAlpha
     , isMinOpacity
     ) where
@@ -33,6 +34,14 @@ decreaseOpacity decreaseVal opacity = Opacity $ max 0.0 (opacityVal - decreaseVa
         opacityVal = case opacity of
             FullOpacity -> 1.0
             Opacity o   -> o
+
+increaseOpacity :: Float -> Alpha -> Opacity -> Opacity
+increaseOpacity increaseVal targetAlpha opacity
+    | opacityToAlpha opacity' > targetAlpha = targetOpacity
+    | otherwise                             = opacity'
+    where
+        opacity'      = decreaseOpacity (-increaseVal) opacity
+        targetOpacity = Opacity $ fromIntegral targetAlpha / fromIntegral maxAlpha
 
 opacityToAlpha :: Opacity -> Alpha
 opacityToAlpha = \case

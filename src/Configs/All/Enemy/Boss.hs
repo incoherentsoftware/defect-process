@@ -9,6 +9,7 @@ import Attack.Util
 import Enemy.HurtEffectData.Types
 import Util
 import Window.Graphics.Util
+import World.Screenshake.Types
 
 data BossEnemyConfig = BossEnemyConfig
     { _health :: Health
@@ -26,12 +27,15 @@ data BossEnemyConfig = BossEnemyConfig
     , _attackMediumRange    :: Distance
     , _attackLongRange      :: Distance
 
-    , _releaseBlobProjOffset :: Pos2
-    , _teleportOffset        :: Pos2
-    , _turret1ProjOffset     :: Pos2
-    , _turret2ProjOffset     :: Pos2
-    , _turretProjDamage      :: Damage
-    , _turretProjMaxRange    :: Distance
+    , _blobProjReleaseOffset      :: Pos2
+    , _blobScreenshakeMagnitude   :: ScreenshakeMagnitude
+    , _teleportOffset             :: Pos2
+    , _turret1ProjOffset          :: Pos2
+    , _turret2ProjOffset          :: Pos2
+    , _turretProjDamage           :: Damage
+    , _turretProjMaxRange         :: Distance
+    , _turretScreenshakeMagnitude :: ScreenshakeMagnitude
+    , _hopScreenshakeMagnitude    :: ScreenshakeMagnitude
 
     , _hpThresholdBodyOffset :: Pos2
 

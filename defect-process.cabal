@@ -5,7 +5,7 @@ cabal-version: 1.12
 -- see: https://github.com/sol/hpack
 
 name:           defect-process
-version:        1.0.3
+version:        1.0.4
 synopsis:       2d hack n' slash game
 category:       Game
 author:         Garrick Chin
@@ -151,6 +151,7 @@ executable defect-process
       Enemy.All.Boss.HopProjectile
       Enemy.All.Boss.Images
       Enemy.All.Boss.LankyProjectile
+      Enemy.All.Boss.LightingFakeProjectile
       Enemy.All.Boss.SeekWallDummyProjectile
       Enemy.All.Boss.SpearProjectile
       Enemy.All.Boss.Sprites
