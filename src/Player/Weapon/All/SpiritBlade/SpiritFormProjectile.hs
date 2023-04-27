@@ -6,10 +6,10 @@ module Player.Weapon.All.SpiritBlade.SpiritFormProjectile
 import Control.Monad.IO.Class (MonadIO)
 
 import Attack
-import Attack.Projectile
 import Collision
 import Id
 import Msg
+import Player.Util
 import Player.Weapon.All.SpiritBlade.Data
 import Projectile as P
 import Util

@@ -10,7 +10,6 @@ import Data.Maybe             (fromMaybe, isJust)
 
 import Attack
 import Attack.Hit
-import Attack.Projectile
 import Collision.Hitbox
 import Configs
 import Configs.All.Player

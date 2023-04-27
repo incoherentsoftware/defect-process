@@ -37,6 +37,7 @@ mkTurretEnemy pos dir = do
     enemy             <- mkEnemy enemyData pos dir
     turretCfg         <- readEnemyConfig _turret
     lockOnReticleData <- readEnemyLockOnConfig _turret
+    tauntedData       <- mkEnemyTauntedData $ _tauntUnderlayDrawScale turretCfg
 
     return . Some $ enemy
         { _type                 = Just TurretEnemy
@@ -44,6 +45,7 @@ mkTurretEnemy pos dir = do
         , _hitbox               = turretEnemyHitbox
         , _pullable             = const False
         , _lockOnReticleData    = lockOnReticleData
+        , _tauntedData          = Just tauntedData
         , _thinkAI              = thinkAI
         , _updateHurtResponse   = updateHurtResponse
         , _updateGroundResponse = updateGroundResponse

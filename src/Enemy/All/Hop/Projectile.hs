@@ -10,6 +10,7 @@ import qualified Data.Set as S
 import Attack
 import Attack.Hit
 import Collision
+import Configs
 import Configs.All.Enemy
 import Configs.All.Enemy.Hop
 import Constants
@@ -34,7 +35,7 @@ data HopProjectileData = HopProjectileData
     { _attack :: Attack
     }
 
-mkHopProjectile :: MonadIO m => Enemy HopEnemyData -> m (Some Projectile)
+mkHopProjectile :: (ConfigsRead m, MonadIO m) => Enemy HopEnemyData -> m (Some Projectile)
 mkHopProjectile enemy =
     let
         enemyPos  = E._pos enemy
@@ -51,7 +52,7 @@ mkHopProjectile enemy =
         pos     = enemyPos `vecAdd` releaseProjOffset'
         atkDesc = _attackProj $ _attackDescs enemyData
     in do
-        atk <- mkAttack pos dir atkDesc
+        atk <- mkEnemyAttack pos dir atkDesc (enemyTauntedStatus enemy)
         let
             vel         = attackVelToVel2 (attackVel atk) zeroVel2
             hopProjData = HopProjectileData {_attack = atk}
@@ -64,6 +65,7 @@ mkHopProjectile enemy =
             , _update               = updateHopProjectile
             , _draw                 = drawHopProjectile
             , _processCollisions    = processCollisions
+            , _voluntaryClear       = voluntaryClearData
             }
 
 updateHopProjectile :: MsgsWrite UpdateProjectileMsgsPhase m => ProjectileUpdate HopProjectileData m
@@ -124,3 +126,14 @@ drawHopProjectile hopProj =
     in do
         pos' <- graphicsLerpPos pos vel
         drawSprite pos' dir enemyAttackProjectileZIndex spr
+
+voluntaryClearData :: ProjectileVoluntaryClear HopProjectileData
+voluntaryClearData hopProj = case attackImage atk of
+    Nothing  -> Nothing
+    Just img -> Just $ ProjectileVoluntaryClearData
+        { _pos    = _pos (atk :: Attack)
+        , _dir    = _dir (atk :: Attack)
+        , _zIndex = enemyAttackProjectileZIndex
+        , _image  = img
+        }
+    where atk = _attack (P._data hopProj :: HopProjectileData)

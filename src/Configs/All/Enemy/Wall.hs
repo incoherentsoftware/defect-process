@@ -28,6 +28,7 @@ data WallEnemyConfig = WallEnemyConfig
     , _releaseWallProjCooldown     :: Secs
     , _walkPlayerDistanceThreshold :: Distance
 
+    , _tauntUnderlayDrawScale      :: DrawScale
     , _groundImpactEffectDrawScale :: DrawScale
     , _wallImpactEffectDrawScale   :: DrawScale
 

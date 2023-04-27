@@ -230,11 +230,12 @@ playSoundContinuousMessages soundPath enemy = [mkMsg $ AudioMsgPlaySoundContinuo
         pos      = E._pos enemy
 
 createBlobProjectileMessages :: Enemy BossEnemyData -> [Msg ThinkEnemyMsgsPhase]
-createBlobProjectileMessages enemy = [mkMsg $ NewThinkProjectileMsgAddM (mkBlobProjectile pos dir enemyData)]
+createBlobProjectileMessages enemy = [mkMsg $ NewThinkProjectileMsgAddM mkBlobProj]
     where
-        pos       = E._pos enemy
-        dir       = E._dir enemy
-        enemyData = E._data enemy
+        pos        = E._pos enemy
+        dir        = E._dir enemy
+        enemyData  = E._data enemy
+        mkBlobProj = mkBlobProjectile pos dir enemyData (enemyTauntedStatus enemy)
 
 createTurret1ProjectileMessages :: Enemy BossEnemyData -> [Msg ThinkEnemyMsgsPhase]
 createTurret1ProjectileMessages enemy = [mkMsg $ NewThinkProjectileMsgAddM (mkTurretProjectile pos dir enemyData)]
@@ -254,12 +255,13 @@ createTurret2ProjectileMessages enemy = [mkMsg $ NewThinkProjectileMsgAddM (mkTu
 
 createHopProjectilesMessages :: Enemy BossEnemyData -> [Msg ThinkEnemyMsgsPhase]
 createHopProjectilesMessages enemy =
-    [ mkMsg $ NewThinkProjectileMsgAddM (mkHopProjectile pos LeftDir enemyData)
-    , mkMsg $ NewThinkProjectileMsgAddM (mkHopProjectile pos RightDir enemyData)
+    [ mkMsg $ NewThinkProjectileMsgAddM (mkHopProjectile pos LeftDir enemyData tauntedStatus)
+    , mkMsg $ NewThinkProjectileMsgAddM (mkHopProjectile pos RightDir enemyData tauntedStatus)
     ]
     where
-        pos       = E._pos enemy
-        enemyData = E._data enemy
+        pos           = E._pos enemy
+        enemyData     = E._data enemy
+        tauntedStatus = enemyTauntedStatus enemy
 
 createLankyProjectilesMessages :: Enemy BossEnemyData -> [Msg ThinkEnemyMsgsPhase]
 createLankyProjectilesMessages enemy = [mkMsg $ NewThinkProjectileMsgAddsM mkLankyProjs]
@@ -278,7 +280,7 @@ createLankyProjectilesMessages enemy = [mkMsg $ NewThinkProjectileMsgAddsM mkLan
                 let
                     pos           = Pos2 (knownInnerLeftWallX + arenaWidth * mult) y
                     isReappearAtk = i == reappearAtkIdx
-                mkLankyProjectile pos RightDir enemyId enemyData isReappearAtk
+                mkLankyProjectile pos RightDir enemyId enemyData isReappearAtk (enemyTauntedStatus enemy)
 
 startHpThresholdSummonFlyingBehavior :: Enemy BossEnemyData -> [Msg ThinkEnemyMsgsPhase]
 startHpThresholdSummonFlyingBehavior enemy = [mkMsg $ NewThinkProjectileMsgAddM mkSummonFlyingSpawnerProj]
@@ -286,7 +288,7 @@ startHpThresholdSummonFlyingBehavior enemy = [mkMsg $ NewThinkProjectileMsgAddM 
         pos                       = E._pos enemy
         enemyData                 = E._data enemy
         msgId                     = E._msgId enemy
-        mkSummonFlyingSpawnerProj = mkSummonFlyingSpawnerProjectile pos enemyData msgId
+        mkSummonFlyingSpawnerProj = mkSummonFlyingSpawnerProjectile pos enemyData msgId (enemyTauntedStatus enemy)
 
 startHpThresholdSummonSpearsBehavior :: Enemy BossEnemyData -> [Msg ThinkEnemyMsgsPhase]
 startHpThresholdSummonSpearsBehavior enemy = [mkMsg $ NewThinkProjectileMsgAddM mkSummonSpearsSpawnerProj]
@@ -294,7 +296,7 @@ startHpThresholdSummonSpearsBehavior enemy = [mkMsg $ NewThinkProjectileMsgAddM 
         pos                       = E._pos enemy
         enemyData                 = E._data enemy
         msgId                     = E._msgId enemy
-        mkSummonSpearsSpawnerProj = mkSummonSpearsSpawnerProjectile pos enemyData msgId
+        mkSummonSpearsSpawnerProj = mkSummonSpearsSpawnerProjectile pos enemyData msgId (enemyTauntedStatus enemy)
 
 startHpThresholdSummonWallsBehavior :: Enemy BossEnemyData -> [Msg ThinkEnemyMsgsPhase]
 startHpThresholdSummonWallsBehavior enemy = [mkMsg $ NewThinkProjectileMsgAddM mkSummonWallSpawnerProj]
@@ -302,7 +304,7 @@ startHpThresholdSummonWallsBehavior enemy = [mkMsg $ NewThinkProjectileMsgAddM m
         pos                     = E._pos enemy
         enemyData               = E._data enemy
         msgId                   = E._msgId enemy
-        mkSummonWallSpawnerProj = mkSummonWallSpawnerProjectile pos enemyData msgId
+        mkSummonWallSpawnerProj = mkSummonWallSpawnerProjectile pos enemyData msgId (enemyTauntedStatus enemy)
 
 teleportToHpThresholdAttackPosMessage :: Enemy BossEnemyData -> Msg ThinkEnemyMsgsPhase
 teleportToHpThresholdAttackPosMessage enemy = mkMsgTo (EnemyMsgUpdate updatePosDir) (E._msgId enemy)
@@ -428,7 +430,11 @@ deathEffectMsg enemy = mkMsg $ ParticleMsgAddM (loadSimpleParticle pos dir bossU
         dir = E._dir enemy
 
 startDeathBehavior :: Enemy BossEnemyData -> [Msg ThinkEnemyMsgsPhase]
-startDeathBehavior enemy = [deathSoundMsg enemy, deathEffectMsg enemy] ++ updateMsgs
+startDeathBehavior enemy =
+    [ deathSoundMsg enemy
+    , deathEffectMsg enemy
+    , mkMsg ProjectileMsgVoluntaryClear
+    ] ++ updateMsgs
     where
         updateMsgs = mkEnemyUpdateMsg enemy $ \e -> e
             { _data   = (_data e) {_behavior = DeathBehavior}

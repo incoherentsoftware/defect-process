@@ -31,6 +31,7 @@ import Enemy.DebugText
 import Enemy.Flags
 import Enemy.LockOnReticleData
 import Enemy.StasisData.Types
+import Enemy.TauntedData
 import Id
 import InfoMsg.Util
 import Msg.Types
@@ -120,6 +121,7 @@ data Enemy d = Enemy
     , _hitbox                 :: EnemyHitbox d
     , _pullable               :: EnemyPullable d
     , _lockOnReticleData      :: EnemyLockOnReticleData
+    , _tauntedData            :: Maybe EnemyTauntedData
     , _stasisData             :: EnemyStasisData
     , _knownPlayerInfo        :: Maybe PlayerInfo
     , _flags                  :: EnemyFlags

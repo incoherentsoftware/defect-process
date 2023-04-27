@@ -71,6 +71,7 @@ import Player.Upgrade.Manager
 import Player.Weapon as W
 import Player.Weapon.All
 import Player.Weapon.Manager
+import Projectile.Manager
 import SaveFiles
 import Stats.Manager
 import Util
@@ -132,6 +133,7 @@ consoleCommands =
     , (["arenaTrigger"], arenaTriggerCmd)
     , (["bossTrigger"], bossTriggerCmd)
     , (["defaultGraphicsFallback"], defaultGraphicsFallbackCmd)
+    , (["voluntaryProjectileClear", "vpc"], voluntaryProjectileClearCmd)
     ] :: [([T.Text], ConsoleCommand (AppEnv ConsoleMsgsPhase))]
 
 argsN :: Int -> [T.Text] -> T.Text
@@ -1229,7 +1231,7 @@ arenaTriggerCmd args _ = do
 
     return $ UpdateConfigsResult output cfgs'
 
-bossTriggerCmd :: forall m. ConfigsRead m => ConsoleCommand m
+bossTriggerCmd :: ConfigsRead m => ConsoleCommand m
 bossTriggerCmd args _ = do
     cfgs <- readConfigs
     let
@@ -1250,3 +1252,10 @@ bossTriggerCmd args _ = do
         output = (if disable then "disabled" else "enabled") <> " room boss trigger"
 
     return $ UpdateConfigsResult output cfgs'
+
+voluntaryProjectileClearCmd :: Monad m => ConsoleCommand m
+voluntaryProjectileClearCmd _ world = return $ UpdateWorldResult "voluntary projectile clear" world'
+    where
+        world' = world
+            { _projectileManager = (_projectileManager world) {_isPendingVoluntaryClear = True}
+            }

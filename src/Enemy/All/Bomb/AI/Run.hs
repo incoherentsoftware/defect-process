@@ -2,7 +2,8 @@ module Enemy.All.Bomb.AI.Run
     ( runBehaviorInstr
     ) where
 
-import Attack.Projectile
+import qualified Data.Set as S
+
 import Configs.All.Enemy
 import Configs.All.Enemy.Bomb
 import Constants
@@ -12,8 +13,15 @@ import Enemy.All.Bomb.Behavior
 import Enemy.All.Bomb.Data
 import InfoMsg.Util
 import Msg
+import Projectile
 import Util
 import Window.Graphics
+
+explosionRegisteredCollisions = S.fromList
+    [ ProjRegisteredPlayerCollision
+    , ProjRegisteredRoomItemCollision
+    , ProjRegisteredEnemyCollision
+    ] :: S.Set ProjectileRegisteredCollision
 
 runBehaviorInstr :: Bool -> BombEnemyBehaviorInstr -> Enemy BombEnemyData -> [Msg ThinkEnemyMsgsPhase]
 runBehaviorInstr aiEnabled cmd enemy
@@ -21,7 +29,7 @@ runBehaviorInstr aiEnabled cmd enemy
     | isExplodeTimerActive enemyData = aiDisabledMsgs
     | otherwise                      = aiEnabledMsgs
     where
-        enemyData = _data enemy
+        enemyData = E._data enemy
 
         aiEnabledMsgs = case cmd of
             StartIdleInstr                       -> startIdleBehavior enemy
@@ -54,7 +62,7 @@ runBehaviorInstr aiEnabled cmd enemy
 
 mkEnemyUpdateBehaviorMsg :: Enemy BombEnemyData -> BombEnemyBehavior -> [Msg ThinkEnemyMsgsPhase]
 mkEnemyUpdateBehaviorMsg enemy behavior = mkEnemyUpdateMsg enemy $ \e -> e
-    { _data = (_data e) {_behavior = behavior}
+    { E._data = (E._data e) {_behavior = behavior}
     }
 
 updateBehaviorIfMatching :: Enemy BombEnemyData -> BombEnemyBehavior -> BombEnemyBehavior
@@ -62,15 +70,16 @@ updateBehaviorIfMatching enemy behavior = case (behavior, existingBehavior) of
     (HurtBehavior _ _, HurtBehavior _ _)     -> behavior
     (LaunchedBehavior _, LaunchedBehavior _) -> behavior
     _                                        -> existingBehavior
-    where existingBehavior = _behavior $ _data enemy
+    where existingBehavior = _behavior $ E._data enemy
 
 createExplosionMessages :: Enemy BombEnemyData -> [Msg ThinkEnemyMsgsPhase]
 createExplosionMessages enemy = [mkMsg $ NewThinkProjectileMsgAddM mkExplosionProj]
     where
         pos              = E._pos enemy
         dir              = E._dir enemy
-        explosionAtkDesc = _attackExplosion $ _attackDescs (_data enemy)
-        mkExplosionProj  = mkPlayerEnemyAttackProjectile pos dir explosionAtkDesc
+        explosionAtkDesc = _attackExplosion $ _attackDescs (E._data enemy)
+        mkExplosionProj  =
+            mkEnemyAttackProjectileEx pos dir explosionAtkDesc (enemyTauntedStatus enemy) explosionRegisteredCollisions
 
 updateSpawnBehavior :: Enemy BombEnemyData -> [Msg ThinkEnemyMsgsPhase]
 updateSpawnBehavior enemy = case E._sprite enemy of
@@ -81,10 +90,10 @@ updateSpawnBehavior enemy = case E._sprite enemy of
 startExplodeBehavior :: Enemy BombEnemyData -> [Msg ThinkEnemyMsgsPhase]
 startExplodeBehavior enemy = mkEnemyUpdateMsg enemy $ \e ->
     let
-        eData            = _data e
+        eData            = E._data e
         explodeTimerSecs = _attackExplodeTimerSecs $ _bomb (_config eData)
     in e
-        { _data = eData {_explodeTimerTtl = Just explodeTimerSecs}
+        { E._data = eData {_explodeTimerTtl = Just explodeTimerSecs}
         }
 
 startLaunchedBehavior :: Secs -> Enemy BombEnemyData -> [Msg ThinkEnemyMsgsPhase]
@@ -92,24 +101,24 @@ startLaunchedBehavior hangtimeTtl enemy = mkEnemyUpdateBehaviorMsg enemy (Launch
 
 updateLaunchedBehavior :: Secs -> Enemy BombEnemyData -> [Msg ThinkEnemyMsgsPhase]
 updateLaunchedBehavior hangtimeTtl enemy = mkEnemyUpdateMsg enemy $ \e -> e
-    { _data = (_data e) {_behavior = updateBehaviorIfMatching e behavior}
+    { E._data = (E._data e) {_behavior = updateBehaviorIfMatching e behavior}
     , _vel  = zeroVel2
     }
     where behavior = LaunchedBehavior $ hangtimeTtl - timeStep
 
 updateHurtBehavior :: Secs -> HurtType -> Enemy BombEnemyData -> [Msg ThinkEnemyMsgsPhase]
 updateHurtBehavior hurtTtl hurtType enemy = mkEnemyUpdateMsg enemy $ \e -> e
-    { _data = (_data e) {_behavior = updateBehaviorIfMatching e behavior}
+    { E._data = (E._data e) {_behavior = updateBehaviorIfMatching e behavior}
     }
     where behavior = HurtBehavior (hurtTtl - timeStep) hurtType
 
 startIdleBehavior :: Enemy BombEnemyData -> [Msg ThinkEnemyMsgsPhase]
 startIdleBehavior enemy = mkEnemyUpdateMsg enemy $ \e ->
     let
-        eData    = _data e
+        eData    = E._data e
         idleSecs = _idleSecs . _bomb $ _config eData
     in e
-        { _data   = eData {_behavior = IdleBehavior idleSecs}
+        { E._data   = eData {_behavior = IdleBehavior idleSecs}
         , _vel    = Vel2 0.0 (vecY $ E._vel e)
         , _attack = Nothing
         }
@@ -121,17 +130,17 @@ updateIdleBehavior idleTtl enemy = mkEnemyUpdateBehaviorMsg enemy behavior
 startSearchBehavior :: Enemy BombEnemyData -> [Msg ThinkEnemyMsgsPhase]
 startSearchBehavior enemy = mkEnemyUpdateMsg enemy $ \e ->
     let
-        eData          = _data e
+        eData          = E._data e
         searchTurnSecs = _searchTurnSecs . _bomb $ _config eData
     in e
-        { _data = eData {_behavior = SearchBehavior searchTurnSecs 0}
+        { E._data = eData {_behavior = SearchBehavior searchTurnSecs 0}
         }
 
 updateSearchBehavior :: Secs -> Int -> Enemy BombEnemyData -> [Msg ThinkEnemyMsgsPhase]
 updateSearchBehavior searchTtl numTurns enemy = mkEnemyUpdateMsg enemy $ \e ->
     let
         searchTtl'     = searchTtl - timeStep
-        eData          = _data e
+        eData          = E._data e
         searchTurnSecs = _searchTurnSecs . _bomb $ _config eData
         dir            = E._dir enemy
 
@@ -139,7 +148,7 @@ updateSearchBehavior searchTtl numTurns enemy = mkEnemyUpdateMsg enemy $ \e ->
             | searchTtl' <= 0.0 = (SearchBehavior searchTurnSecs (numTurns + 1), flipDirection dir)
             | otherwise         = (SearchBehavior searchTtl' numTurns, dir)
     in e
-        { _data = eData {_behavior = behavior}
+        { E._data = eData {_behavior = behavior}
         , _dir  = dir'
         }
 
@@ -180,16 +189,16 @@ updateSprintBehavior sprintTtl enemy = mkEnemyUpdateMsg enemy $ \e ->
 startWallSplatBehavior :: Enemy BombEnemyData -> [Msg ThinkEnemyMsgsPhase]
 startWallSplatBehavior enemy = enemyWallImpactMessages effectDrawScale enemy ++ updateEnemyMsg
     where
-        enemyCfg        = _config $ _data enemy
+        enemyCfg        = _config $ E._data enemy
         effectDrawScale = _wallImpactEffectDrawScale $ _bomb enemyCfg
 
         updateEnemyMsg = mkEnemyUpdateMsg enemy $ \e -> e
-            { _data = (_data e) {_behavior = WallSplatBehavior $ _minWallSplatSecs enemyCfg}
+            { E._data = (E._data e) {_behavior = WallSplatBehavior $ _minWallSplatSecs enemyCfg}
             , _vel  = zeroVel2
             }
 
 updateWallSplatBehavior :: Secs -> Enemy BombEnemyData -> [Msg ThinkEnemyMsgsPhase]
 updateWallSplatBehavior wallSplatTtl enemy = mkEnemyUpdateMsg enemy $ \e -> e
-    { _data = (_data e) {_behavior = WallSplatBehavior $ wallSplatTtl - timeStep}
+    { E._data = (E._data e) {_behavior = WallSplatBehavior $ wallSplatTtl - timeStep}
     , _vel  = zeroVel2
     }

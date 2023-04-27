@@ -34,6 +34,7 @@ data SpearEnemyConfig = SpearEnemyConfig
     , _spearProjSurfaceWidth  :: Float
     , _spearProjSurfaceHeight :: Float
 
+    , _tauntUnderlayDrawScale      :: DrawScale
     , _groundImpactEffectDrawScale :: DrawScale
     , _wallImpactEffectDrawScale   :: DrawScale
 

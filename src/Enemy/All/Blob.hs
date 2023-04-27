@@ -38,12 +38,14 @@ mkBlobEnemy pos dir = do
     enemy             <- mkEnemy enemyData pos dir
     blobCfg           <- readEnemyConfig _blob
     lockOnReticleData <- readEnemyLockOnConfig _blob
+    tauntedData       <- mkEnemyTauntedData $ _tauntUnderlayDrawScale blobCfg
 
     return . Some $ enemy
         { _type                   = Just BlobEnemy
         , _health                 = _health (blobCfg :: BlobEnemyConfig)
         , _hitbox                 = blobEnemyHitbox
         , _lockOnReticleData      = lockOnReticleData
+        , _tauntedData            = Just tauntedData
         , _thinkAI                = thinkAI
         , _updateHurtResponse     = updateHurtResponse
         , _updateGroundResponse   = updateGroundResponse

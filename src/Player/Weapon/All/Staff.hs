@@ -10,7 +10,6 @@ import Data.Functor           ((<&>))
 import Data.Maybe             (fromMaybe)
 
 import Attack
-import Attack.Projectile
 import Configs
 import Configs.All.PlayerWeapon
 import Configs.All.PlayerWeapon.Staff
@@ -20,7 +19,7 @@ import Id
 import Msg
 import Player
 import Player.BufferedInputState
-import Player.Weapon
+import Player.Weapon as W
 import Player.Weapon.All.Staff.Data
 import Player.Weapon.All.Staff.WindProjectile
 import Util
@@ -48,7 +47,7 @@ mkStaffWeapon = do
 
 thinkStaff :: (InputRead m, MonadIO m) => WeaponThink StaffData m
 thinkStaff weaponThinkStatus player currentAtk staff = do
-    let staffData = _data staff
+    let staffData = W._data staff
 
     inputState <- readInputState
 
@@ -292,7 +291,7 @@ updateStaff WeaponUpdateForeground player _ staff = do
 
     let
         onGround        = _touchingGround (_flags player)
-        staffData       = _data staff
+        staffData       = W._data staff
         airStrikeCount
             | onGround  = 0
             | otherwise = _airStrikeCount staffData
@@ -331,13 +330,13 @@ updateStaff WeaponUpdateForeground player _ staff = do
         , _config           = cfg'
         }
 
-    return $ staff {_data = staffData'}
+    return $ staff {W._data = staffData'}
 
 drawStaffChargeOverlay :: (GraphicsReadWrite m, MonadIO m) => WeaponDrawOverlay StaffData m
 drawStaffChargeOverlay WeaponDrawOverlayBackground _ _ _          = return ()
 drawStaffChargeOverlay WeaponDrawOverlayForeground player _ staff =
     let
-        staffData        = _data staff
+        staffData        = W._data staff
         dir              = _dir (player :: Player)
         pos              = _pos (player :: Player)
         chargeOverlaySpr = _chargeOverlaySpr staffData

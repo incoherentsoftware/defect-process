@@ -7,6 +7,7 @@ import Control.Monad.IO.Class (MonadIO)
 import Control.Monad.State    (get, gets, execStateT, lift, modify, put)
 import Data.Dynamic           (toDyn)
 import Data.Foldable          (foldlM, for_)
+import Data.Functor           ((<&>))
 import qualified Data.List as L
 import qualified Data.Set as S
 
@@ -39,7 +40,8 @@ updateEnemyMessages enemy =
     processAiMessages enemy >>=
     processCollisionMessages >>=
     processEnemyMessages >>=
-    processHurtMessages
+    processHurtMessages >>=
+    processTauntMessages
 
 updateEnemyByWall :: PosX -> WallSurfaceType -> Enemy d -> Enemy d
 updateEnemyByWall wallX wallType enemy = enemy
@@ -135,8 +137,9 @@ updateEnemy enemy
     | isEnemyInStasis enemy = updateEnemyInStasis enemy
     | otherwise             = flip execStateT enemy $ do
         modify $ \e -> e
-            { _flags      = clearEnemyFlags $ _flags e
-            , _stasisData = updateEnemyStasisData $ _stasisData e
+            { _flags       = clearEnemyFlags $ _flags e
+            , _tauntedData = updateEnemyTauntedData <$> _tauntedData e
+            , _stasisData  = updateEnemyStasisData $ _stasisData e
             }
         get >>= lift . updateEnemyMessages >>= put
         modify updateEnemyAttack
@@ -176,13 +179,13 @@ processCollisionMessages enemy = foldlM processMsg enemy =<< readMsgsTo (_msgId 
             CollisionMsgMovingPlatform _ _                 -> return e
             CollisionMsgWallProximity _ _                  -> return e
 
-setEnemyAttack :: MonadIO m => AttackDescription -> Enemy d -> m (Enemy d)
+setEnemyAttack :: (ConfigsRead m, MonadIO m) => AttackDescription -> Enemy d -> m (Enemy d)
 setEnemyAttack atkDesc enemy =
     let
         pos = E._pos enemy
         dir = E._dir enemy
     in do
-        atk <- mkAttack pos dir atkDesc
+        atk <- mkEnemyAttack pos dir atkDesc (enemyTauntedStatus enemy)
         return $ enemy {_attack = Just atk}
 
 setEnemyStasis :: MsgsWrite UpdateEnemyMsgsPhase m => Secs -> Attack -> Enemy d -> m (Enemy d)
@@ -276,3 +279,14 @@ processHurtMessages enemy =
             modify $ \e -> e
                 { _stasisData = (_stasisData e) {_deferredAttackHits = []}
                 }
+
+processTauntMessages :: forall m d. MsgsRead UpdateEnemyMsgsPhase m => Enemy d -> m (Enemy d)
+processTauntMessages enemy = processMsgs <$> readMsgs
+    where
+        processMsgs :: [PlayerMsgPayload] -> Enemy d
+        processMsgs []     = enemy
+        processMsgs (p:ps) = case p of
+            PlayerMsgTaunt -> enemy
+                { _tauntedData = _tauntedData enemy <&> \td -> td {_status = EnemyTauntedActive}
+                }
+            _              -> processMsgs ps

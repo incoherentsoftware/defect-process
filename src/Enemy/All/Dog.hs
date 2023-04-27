@@ -41,12 +41,14 @@ mkDogEnemy pos dir = do
     enemy             <- mkEnemy enemyData pos dir
     dogCfg            <- readEnemyConfig _dog
     lockOnReticleData <- readEnemyLockOnConfig _dog
+    tauntedData       <- mkEnemyTauntedData $ _tauntUnderlayDrawScale dogCfg
 
     return . Some $ enemy
         { _type                   = Just ClawsEnemy
         , _health                 = _health (dogCfg :: DogEnemyConfig)
         , _hitbox                 = dogEnemyHitbox
         , _lockOnReticleData      = lockOnReticleData
+        , _tauntedData            = Just tauntedData
         , _thinkAI                = thinkAI
         , _updateHurtResponse     = updateHurtResponse
         , _updateGroundResponse   = updateGroundResponse

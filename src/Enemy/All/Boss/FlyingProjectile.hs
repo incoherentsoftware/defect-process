@@ -9,7 +9,10 @@ import qualified Data.Set as S
 
 import Attack
 import Collision
+import Configs
 import Constants
+import Enemy.TauntedData
+import Enemy.Util
 import FileCache
 import Id
 import InfoMsg.Util
@@ -31,18 +34,25 @@ data FlyingProjectileData = FlyingProjectileData
     { _attack :: Attack
     }
 
-mkFlyingProjectile :: MonadIO m => Pos2 -> AttackDescription -> m (Some Projectile)
-mkFlyingProjectile pos atkDesc = do
+mkFlyingProjectile
+    :: (ConfigsRead m, MonadIO m)
+    => Pos2
+    -> AttackDescription
+    -> EnemyTauntedStatus
+    -> m (Some Projectile)
+mkFlyingProjectile pos atkDesc tauntedStatus = do
     msgId <- newId
     let
-        loadHitParticle = \atk -> loadSimpleParticle (_pos atk) LeftDir worldEffectZIndex hitEffectSpritePath
+        loadHitParticle = \atk ->
+            let atkPos = _pos (atk :: Attack)
+            in loadSimpleParticle atkPos LeftDir worldEffectZIndex hitEffectSpritePath
         atkDesc'        = atkDesc
             { _onHitType = AddedOnHitType $ \_ _ atk ->
                 [ mkMsg $ ParticleMsgAddM (loadHitParticle atk)
                 , mkMsgTo (ProjectileMsgSetTtl 0.0) msgId
                 ]
             }
-    atk <- mkAttack pos LeftDir atkDesc'
+    atk <- mkEnemyAttack pos LeftDir atkDesc' tauntedStatus
 
     let
         flyingProjData = FlyingProjectileData {_attack = atk}

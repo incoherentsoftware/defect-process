@@ -43,12 +43,14 @@ mkZombieEnemy pos dir = do
     enemy             <- mkEnemyWithId enemyId enemyData pos dir
     zombieCfg         <- readEnemyConfig _zombie
     lockOnReticleData <- readEnemyLockOnConfig _zombie
+    tauntedData       <- mkEnemyTauntedData $ _tauntUnderlayDrawScale zombieCfg
 
     return . Some $ enemy
         { _type                   = Just ZombieEnemy
         , _health                 = _health (zombieCfg :: ZombieEnemyConfig)
         , _hitbox                 = zombieEnemyHitbox
         , _lockOnReticleData      = lockOnReticleData
+        , _tauntedData            = Just tauntedData
         , _thinkAI                = thinkAI
         , _updateHurtResponse     = updateHurtResponse
         , _updateGroundResponse   = updateGroundResponse

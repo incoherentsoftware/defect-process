@@ -8,7 +8,6 @@ import qualified Data.List.NonEmpty as NE
 import qualified Data.Set as S
 
 import Attack
-import Attack.Projectile
 import Collision
 import Configs
 import Configs.All.PlayerGun

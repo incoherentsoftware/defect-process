@@ -22,6 +22,7 @@ data BatEnemyConfig = BatEnemyConfig
     , _patrolSpeed      :: Speed
     , _staggerThreshold :: Stagger
 
+    , _tauntUnderlayDrawScale      :: DrawScale
     , _groundImpactEffectDrawScale :: DrawScale
     , _wallImpactEffectDrawScale   :: DrawScale
 

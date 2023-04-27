@@ -8,7 +8,10 @@ import qualified Data.Set as S
 
 import Attack
 import Collision
+import Configs
 import Constants
+import Enemy.TauntedData
+import Enemy.Util
 import FileCache
 import Id
 import Msg
@@ -29,18 +32,26 @@ data WallProjectileData = WallProjectileData
     , _leftDisappearThresholdX :: PosX
     }
 
-mkWallProjectile :: MonadIO m => Pos2 -> AttackDescription -> PosX -> m (Some Projectile)
-mkWallProjectile pos atkDesc knownInnerLeftWallX = do
+mkWallProjectile
+    :: (ConfigsRead m, MonadIO m)
+    => Pos2
+    -> AttackDescription
+    -> PosX
+    -> EnemyTauntedStatus
+    -> m (Some Projectile)
+mkWallProjectile pos atkDesc knownInnerLeftWallX tauntedStatus = do
     msgId <- newId
     let
-        loadHitParticle = \atk -> loadSimpleParticle (_pos atk) LeftDir worldEffectZIndex hitEffectSpritePath
+        loadHitParticle = \atk ->
+            let atkPos = _pos (atk :: Attack)
+            in loadSimpleParticle atkPos LeftDir worldEffectZIndex hitEffectSpritePath
         atkDesc'        = atkDesc
             { _onHitType = AddedOnHitType $ \_ _ atk ->
                 [ mkMsg $ ParticleMsgAddM (loadHitParticle atk)
                 , mkMsgTo (ProjectileMsgSetTtl 0.0) msgId
                 ]
             }
-    atk <- mkAttack pos LeftDir atkDesc'
+    atk <- mkEnemyAttack pos LeftDir atkDesc' tauntedStatus
 
     let
         wallProjData = WallProjectileData

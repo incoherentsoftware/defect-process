@@ -12,11 +12,14 @@ import qualified Data.Set as S
 import Attack
 import Attack.Hit
 import Collision
+import Configs
 import Configs.All.Enemy
 import Configs.All.Enemy.Claws
 import Constants
 import Enemy.All.Claws.AttackDescriptions
 import Enemy.All.Claws.Data
+import Enemy.TauntedData
+import Enemy.Util
 import FileCache
 import Id
 import Msg
@@ -42,8 +45,14 @@ clawsProjHitbox atk = fromMaybe (dummyHitbox pos) (attackHitbox atk)
 clawsProjVel :: Attack -> Vel2
 clawsProjVel atk = attackVelToVel2 (attackVel atk) zeroVel2
 
-mkClawsProjectile :: MonadIO m => Pos2 -> Direction -> ClawsEnemyData -> m (Some Projectile)
-mkClawsProjectile enemyPos dir enemyData =
+mkClawsProjectile
+    :: (ConfigsRead m, MonadIO m)
+    => Pos2
+    -> Direction
+    -> ClawsEnemyData
+    -> EnemyTauntedStatus
+    -> m (Some Projectile)
+mkClawsProjectile enemyPos dir enemyData tauntedStatus =
     let
         Pos2 offsetX offsetY = _projectileSpawnOffset . _claws $ _config enemyData
         offset               = Pos2 (offsetX * directionNeg dir) offsetY
@@ -51,7 +60,7 @@ mkClawsProjectile enemyPos dir enemyData =
         pos                  = enemyPos `vecAdd` offset
     in do
         msgId  <- newId
-        atk    <- mkAttack pos dir projAtkDesc
+        atk    <- mkEnemyAttack pos dir projAtkDesc tauntedStatus
         let hbx = clawsProjHitbox atk
 
         let clawsProjData = ClawsProjData {_attack = atk}
@@ -62,6 +71,7 @@ mkClawsProjectile enemyPos dir enemyData =
             , _update               = updateClawsProj
             , _draw                 = drawClawsProj
             , _processCollisions    = processCollisions
+            , _voluntaryClear       = voluntaryClearData
             }
 
 updateClawsProj :: MsgsWrite UpdateProjectileMsgsPhase m => ProjectileUpdate ClawsProjData m
@@ -127,3 +137,14 @@ drawClawsProj clawsProj =
     in do
         pos' <- graphicsLerpPos pos vel
         drawSprite pos' dir enemyAttackProjectileZIndex spr
+
+voluntaryClearData :: ProjectileVoluntaryClear ClawsProjData
+voluntaryClearData clawsProj = case attackImage atk of
+    Nothing  -> Nothing
+    Just img -> Just $ ProjectileVoluntaryClearData
+        { _pos    = _pos (atk :: Attack)
+        , _dir    = _dir (atk :: Attack)
+        , _zIndex = enemyAttackProjectileZIndex
+        , _image  = img
+        }
+    where atk = _attack (P._data clawsProj :: ClawsProjData)

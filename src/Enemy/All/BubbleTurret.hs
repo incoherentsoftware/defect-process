@@ -37,6 +37,7 @@ mkBubbleTurretEnemy pos dir = do
     enemy             <- mkEnemy enemyData pos dir
     bubbleTurretCfg   <- readEnemyConfig _bubbleTurret
     lockOnReticleData <- readEnemyLockOnConfig _bubbleTurret
+    tauntedData       <- mkEnemyTauntedData $ _tauntUnderlayDrawScale bubbleTurretCfg
 
     return . Some $ enemy
         { _type                 = Just BubbleTurretEnemy
@@ -44,6 +45,7 @@ mkBubbleTurretEnemy pos dir = do
         , _hitbox               = turretEnemyHitbox
         , _pullable             = const False
         , _lockOnReticleData    = lockOnReticleData
+        , _tauntedData          = Just tauntedData
         , _thinkAI              = thinkAI
         , _updateHurtResponse   = updateHurtResponse
         , _updateGroundResponse = updateGroundResponse

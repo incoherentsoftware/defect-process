@@ -38,6 +38,7 @@ mkGiantEnemy pos dir = do
     enemy             <- mkEnemy enemyData pos dir
     giantCfg          <- readEnemyConfig _giant
     lockOnReticleData <- readEnemyLockOnConfig _giant
+    tauntedData       <- mkEnemyTauntedData $ _tauntUnderlayDrawScale giantCfg
 
     return . Some $ enemy
         { _type                 = Just GiantEnemy
@@ -45,6 +46,7 @@ mkGiantEnemy pos dir = do
         , _hitbox               = giantEnemyHitbox
         , _pullable             = const False
         , _lockOnReticleData    = lockOnReticleData
+        , _tauntedData            = Just tauntedData
         , _thinkAI              = thinkAI
         , _updateHurtResponse   = updateHurtResponse
         , _updateGroundResponse = updateGroundResponse

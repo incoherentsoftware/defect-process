@@ -11,6 +11,7 @@ module Enemy.Util
     , enemyHitbox
     , enemySpriteFinished
     , enemyFlippedDirIfWallOrGround
+    , enemyTauntedStatus
     , mkEnemyUpdateMsg
     , mkEnemyUpdateMsgM
     , updateEnemySprite
@@ -30,15 +31,20 @@ module Enemy.Util
     , enemyWallImpactMessages
     , isEnemyFacingPlayer
     , isEnemyInStasis
+    , mkEnemyAttack
+    , mkEnemyAttackProjectile
+    , mkEnemyAttackProjectileEx
     ) where
 
 import Control.Monad.IO.Class (MonadIO)
 import Data.Maybe             (fromMaybe)
 import Data.Typeable          (Typeable)
+import qualified Data.Set as S
 
 import AppEnv
+import Attack
 import Attack.Hit.Types
-import Attack.Util
+import Attack.Projectile
 import Collision.Hitbox
 import Configs
 import Configs.All.Enemy
@@ -51,11 +57,13 @@ import Enemy.LockOnData
 import Enemy.LockOnReticleData
 import Enemy.SpawnEffectData
 import Enemy.StasisData
+import Enemy.TauntedData
 import Enemy.Types as E
 import FileCache
 import InfoMsg.Util
 import Msg
 import Particle.All.Simple
+import Projectile.Types
 import Util
 import Window.Graphics
 import World.ZIndex
@@ -91,6 +99,9 @@ enemyFlippedDirIfWallOrGround enemy
             | _touchingRightWall flags = dir == RightDir
             | otherwise                = False
         willFallOffGround              = _willFallOffGround flags
+
+enemyTauntedStatus :: Enemy d -> EnemyTauntedStatus
+enemyTauntedStatus enemy = maybe EnemyTauntedInactive _status (_tauntedData enemy)
 
 mkEnemyUpdateMsg :: Typeable d => Enemy d -> (Enemy d -> Enemy d) -> [Msg ThinkEnemyMsgsPhase]
 mkEnemyUpdateMsg enemy update = [mkMsgTo (EnemyMsgUpdate update) enemyId]
@@ -166,7 +177,7 @@ enemyHitstunFromAttackHit atkHit enemyCfg
         damageVal         = fromIntegral $ _int (damage :: Damage)
         base              = _hitstunLogBase enemyCfg
         minHurtSecs       = _minHurtSecs enemyCfg
-        hitstunMultiplier = _hitstunMultiplier atkHit
+        hitstunMultiplier = _hitstunMultiplier (atkHit :: AttackHit)
 
 enemySpawnEffectMessages :: Enemy d -> [Msg ThinkEnemyMsgsPhase]
 enemySpawnEffectMessages enemy =
@@ -229,3 +240,38 @@ isEnemyFacingPlayer enemy = case vecX . playerInfoPos <$> _knownPlayerInfo enemy
 
 isEnemyInStasis :: Enemy d -> Bool
 isEnemyInStasis = isEnemyStasisDataInStasis . _stasisData
+
+mkEnemyAttack :: (ConfigsRead m, MonadIO m) => Pos2 -> Direction -> AttackDescription -> EnemyTauntedStatus -> m Attack
+mkEnemyAttack pos dir atkDesc tauntedStatus = do
+    atkDesc' <- case tauntedStatus of
+        EnemyTauntedActive -> do
+            tauntedDamageMultiplier <- readConfig _enemy _tauntedDamageMultiplier
+            let damage               = _damage (atkDesc :: AttackDescription)
+            return $ (atkDesc :: AttackDescription)
+                { _damage = multiplyDamage tauntedDamageMultiplier damage
+                }
+        _                  -> return atkDesc
+    mkAttack pos dir atkDesc'
+
+mkEnemyAttackProjectile
+    :: (ConfigsRead m, MonadIO m)
+    => Pos2
+    -> Direction
+    -> AttackDescription
+    -> EnemyTauntedStatus
+    -> m (Some Projectile)
+mkEnemyAttackProjectile pos dir atkDesc tauntedStatus =
+    mkEnemyAttackProjectileEx pos dir atkDesc tauntedStatus registeredCollisions
+        where registeredCollisions = S.singleton ProjRegisteredPlayerCollision
+
+mkEnemyAttackProjectileEx
+    :: (ConfigsRead m, MonadIO m)
+    => Pos2
+    -> Direction
+    -> AttackDescription
+    -> EnemyTauntedStatus
+    -> S.Set ProjectileRegisteredCollision
+    -> m (Some Projectile)
+mkEnemyAttackProjectileEx pos dir atkDesc tauntedStatus registeredCollisions =
+    mkAttackProjectile pos dir atkDesc mkEnemyAttack' registeredCollisions
+        where mkEnemyAttack' = \p d a -> mkEnemyAttack p d a tauntedStatus

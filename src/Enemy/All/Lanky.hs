@@ -48,6 +48,7 @@ mkLankyEnemy pos dir = do
     enemy             <- mkEnemy enemyData pos dir
     lankyCfg          <- readEnemyConfig _lanky
     lockOnReticleData <- readEnemyLockOnConfig _lanky
+    tauntedData       <- mkEnemyTauntedData $ _tauntUnderlayDrawScale lankyCfg
 
     return . Some $ enemy
         { _type                   = Just LankyEnemy
@@ -55,6 +56,7 @@ mkLankyEnemy pos dir = do
         , _hitbox                 = lankyEnemyHitbox
         , _pullable               = lankyEnemyPullable
         , _lockOnReticleData      = lockOnReticleData
+        , _tauntedData            = Just tauntedData
         , _thinkAI                = thinkAI
         , _updateHurtResponse     = updateHurtResponse
         , _updateGroundResponse   = updateGroundResponse

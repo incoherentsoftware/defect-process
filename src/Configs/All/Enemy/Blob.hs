@@ -23,6 +23,7 @@ data BlobEnemyConfig = BlobEnemyConfig
     , _maxAttackMoveLoops :: Int
     , _staggerThreshold   :: Stagger
 
+    , _tauntUnderlayDrawScale      :: DrawScale
     , _groundImpactEffectDrawScale :: DrawScale
     , _wallImpactEffectDrawScale   :: DrawScale
 

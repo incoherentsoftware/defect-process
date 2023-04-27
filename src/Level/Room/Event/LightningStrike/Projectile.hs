@@ -8,8 +8,9 @@ import Data.Maybe             (fromMaybe)
 import qualified Data.Set as S
 
 import Attack
-import Attack.Projectile
 import Collision
+import Enemy.TauntedData
+import Enemy.Util
 import FileCache
 import Id
 import Msg
@@ -79,7 +80,7 @@ updateLightningProj lightningProj = return $ lightningProj
                         x   = hitboxLeft hbx + hitboxWidth hbx * xMultiplier
                     in Pos2 x y
         in return
-            [ mkMsg $ NewUpdateProjectileMsgAddM (mkEnemyAttackProjectile pos RightDir atkDesc)
+            [ mkMsg $ NewUpdateProjectileMsgAddM (mkEnemyAttackProjectile pos RightDir atkDesc EnemyTauntedInactive)
             , mkMsgTo (ProjectileMsgSetTtl 0.0) (P._msgId p)
             ]
     }

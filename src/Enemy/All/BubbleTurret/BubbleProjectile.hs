@@ -8,12 +8,13 @@ import Control.Monad.IO.Class (MonadIO)
 import qualified Data.Set as S
 
 import Attack
-import Attack.Projectile
 import Collision
+import Configs
 import Configs.All.Enemy
 import Configs.All.Enemy.BubbleTurret
 import Constants
-import Enemy.All.BubbleTurret.Data
+import Enemy.TauntedData
+import Enemy.Util
 import FileCache
 import Id
 import Msg
@@ -41,19 +42,20 @@ data BubbleProjData = BubbleProjData
     , _dir            :: Direction
     , _sprite         :: Sprite
     , _explodeAtkDesc :: AttackDescription
+    , _tauntedStatus  :: EnemyTauntedStatus
     , _config         :: BubbleTurretEnemyConfig
     }
 
 mkBubbleProjData
-    :: (FileCache m, GraphicsRead m, MonadIO m)
+    :: (ConfigsRead m, FileCache m, GraphicsRead m, MonadIO m)
     => Pos2
     -> Direction
-    -> BubbleTurretEnemyData
+    -> EnemyTauntedStatus
     -> m BubbleProjData
-mkBubbleProjData pos dir bubbleProjData = do
+mkBubbleProjData pos dir tauntedStatus = do
     spr            <- loadPackSprite bubbleSpinPath
     explodeAtkDesc <- loadPackAttackDescription bubbleExplodePath
-    let cfg         = _bubbleTurret $ _config (bubbleProjData :: BubbleTurretEnemyData)
+    cfg            <- readConfig _enemy _bubbleTurret
 
     return $ BubbleProjData
         { _velBehavior    = InitialRiseVel $ _bubbleProjInitialRiseSecs cfg
@@ -61,6 +63,7 @@ mkBubbleProjData pos dir bubbleProjData = do
         , _dir            = dir
         , _sprite         = spr
         , _explodeAtkDesc = explodeAtkDesc
+        , _tauntedStatus  = tauntedStatus
         , _config         = cfg
         }
 
@@ -75,13 +78,13 @@ bubbleProjHitbox bubbleProj = rectHitbox pos width height
         pos            = Pos2 (x - width / 2.0) (y - height / 2.0)
 
 mkBubbleProjectile
-    :: (FileCache m, GraphicsRead m, MonadIO m)
+    :: (ConfigsRead m, FileCache m, GraphicsRead m, MonadIO m)
     => Pos2
     -> Direction
-    -> BubbleTurretEnemyData
+    -> EnemyTauntedStatus
     -> m (Some Projectile)
-mkBubbleProjectile pos dir bubbleTurretData = do
-    bubbleProjData <- mkBubbleProjData pos dir bubbleTurretData
+mkBubbleProjectile pos dir tauntedStatus = do
+    bubbleProjData <- mkBubbleProjData pos dir tauntedStatus
     msgId          <- newId
 
     let
@@ -95,6 +98,7 @@ mkBubbleProjectile pos dir bubbleTurretData = do
         , _update               = updateBubbleProj
         , _draw                 = drawBubbleProj
         , _processCollisions    = processBubbleProjCollisions
+        , _voluntaryClear       = voluntaryClearData
         }
 
 bubbleProjExplodeRemoveMsgs
@@ -107,7 +111,7 @@ bubbleProjExplodeRemoveMsgs bubbleProj = [mkAtkProjMsg, removeBubbleProjMsg]
         pos            = _pos (bubbleProjData :: BubbleProjData)
         dir            = _dir (bubbleProjData :: BubbleProjData)
         explodeAtkDesc = _explodeAtkDesc bubbleProjData
-        mkAtkProj      = mkEnemyAttackProjectile pos dir explodeAtkDesc
+        mkAtkProj      = mkEnemyAttackProjectile pos dir explodeAtkDesc EnemyTauntedInactive
         mkAtkProjMsg   = mkMsg $ NewUpdateProjectileMsgAddM mkAtkProj
 
         bubbleProjId        = P._msgId bubbleProj
@@ -171,3 +175,16 @@ processBubbleProjCollisions collisions bubbleProj = foldr processCollision [] co
         processCollision collision !msgs = case collision of
             ProjPlayerCollision _ -> bubbleProjExplodeRemoveMsgs bubbleProj ++ msgs
             _                     -> msgs
+
+voluntaryClearData :: ProjectileVoluntaryClear BubbleProjData
+voluntaryClearData bubbleProj = case spriteImage spr of
+    Nothing  -> Nothing
+    Just img -> Just $ ProjectileVoluntaryClearData
+        { _pos    = _pos (bubbleProjData :: BubbleProjData)
+        , _dir    = _dir (bubbleProjData :: BubbleProjData)
+        , _zIndex = enemyAttackProjectileZIndex
+        , _image  = img
+        }
+    where
+        bubbleProjData = _data bubbleProj
+        spr            = _sprite (bubbleProjData :: BubbleProjData)

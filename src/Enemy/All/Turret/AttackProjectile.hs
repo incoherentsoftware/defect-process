@@ -83,6 +83,7 @@ mkTurretAttackProjectile pos dir turretEnemyId turretData =
             , _update               = updateAtkProj
             , _draw                 = drawAtkProj
             , _processCollisions    = processAtkProjCollisions
+            , _voluntaryClear       = voluntaryClearData
             }
 
 isTurretEnemyInStasis :: Projectile TurretAttackProjData -> Bool
@@ -243,4 +244,15 @@ processAtkProjCollisions collisions atkProj = case _mode atkProjData of
                 _                          -> msgs
         in foldr processPlayerCollision [] collisions
 
+    where atkProjData = _data atkProj
+
+voluntaryClearData :: ProjectileVoluntaryClear TurretAttackProjData
+voluntaryClearData atkProj = case spriteImage (_beamEndSpr atkProjData) of
+    Nothing  -> Nothing
+    Just img -> Just $ ProjectileVoluntaryClearData
+        { _pos    = _pos (atkProjData :: TurretAttackProjData)
+        , _dir    = _dir (atkProjData :: TurretAttackProjData)
+        , _zIndex = enemyAttackProjectileZIndex
+        , _image  = img
+        }
     where atkProjData = _data atkProj

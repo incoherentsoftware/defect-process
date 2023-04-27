@@ -8,12 +8,14 @@ import qualified Data.Set as S
 
 import Attack
 import Attack.Hit
-import Attack.Projectile
 import Collision
+import Configs
 import Constants
 import Enemy.All.Boss.AttackDescriptions
 import Enemy.All.Boss.Data
+import Enemy.TauntedData
 import Enemy.Types as E
+import Enemy.Util
 import Id
 import InfoMsg.Util
 import Msg
@@ -28,14 +30,23 @@ data LankyProjectileData = LankyProjectileData
     , _reappearAtkDesc   :: AttackDescription
     , _noReappearAtkDesc :: AttackDescription
     , _enemyMsgId        :: MsgId
+    , _tauntedStatus     :: EnemyTauntedStatus
     }
 
-mkLankyProjectile :: MonadIO m => Pos2 -> Direction -> MsgId -> BossEnemyData -> Bool -> m (Some Projectile)
-mkLankyProjectile enemyPos dir enemyMsgId enemyData isReappearAtk = do
+mkLankyProjectile
+    :: (ConfigsRead m, MonadIO m)
+    => Pos2
+    -> Direction
+    -> MsgId
+    -> BossEnemyData
+    -> Bool
+    -> EnemyTauntedStatus
+    -> m (Some Projectile)
+mkLankyProjectile enemyPos dir enemyMsgId enemyData isReappearAtk tauntedStatus = do
     let
         pos      = enemyPos
         atkDescs = _attackDescs enemyData
-    atk <- mkAttack pos dir (_lankyProjectileIndicator atkDescs)
+    atk <- mkEnemyAttack pos dir (_lankyProjectileIndicator atkDescs) tauntedStatus
 
     let
         lankyProjData = LankyProjectileData
@@ -44,6 +55,7 @@ mkLankyProjectile enemyPos dir enemyMsgId enemyData isReappearAtk = do
             , _reappearAtkDesc   = _lankyReappear atkDescs
             , _noReappearAtkDesc = _lankyProjectile atkDescs
             , _enemyMsgId        = enemyMsgId
+            , _tauntedStatus     = tauntedStatus
             }
 
     msgId  <- newId
@@ -55,6 +67,7 @@ mkLankyProjectile enemyPos dir enemyMsgId enemyData isReappearAtk = do
         , _update               = updateLankyProjectile
         , _draw                 = drawLankyProjectile
         , _processCollisions    = processCollisions
+        , _voluntaryClear       = voluntaryClearData
         }
 
 thinkLankyProjectile :: Monad m => ProjectileThink LankyProjectileData m
@@ -64,6 +77,7 @@ thinkLankyProjectile lankyProj = return $ atkMsgs ++ reappearMsgs
         atk            = _attack (lankyProjData :: LankyProjectileData)
         atkMsgs        = thinkAttack atk
         pos@(Pos2 x _) = _pos (atk :: Attack)
+        tauntedStatus  = _tauntedStatus lankyProjData
 
         reappearMsgs
             | attackIsLastFrameIndex atk && attackFrameChanged atk = if
@@ -77,7 +91,7 @@ thinkLankyProjectile lankyProj = return $ atkMsgs ++ reappearMsgs
                                         | vecX (playerInfoPos playerInfo) < x -> LeftDir
                                         | otherwise                           -> RightDir
                             in do
-                                reappearAtk <- mkAttack pos dir (_reappearAtkDesc lankyProjData)
+                                reappearAtk <- mkEnemyAttack pos dir (_reappearAtkDesc lankyProjData) tauntedStatus
                                 return $ e
                                     { E._pos    = pos
                                     , E._dir    = dir
@@ -89,7 +103,8 @@ thinkLankyProjectile lankyProj = return $ atkMsgs ++ reappearMsgs
                     let
                         dir               = _dir (atk :: Attack)
                         noReappearAtkDesc = _noReappearAtkDesc lankyProjData
-                    in [mkMsg $ NewUpdateProjectileMsgAddM (mkEnemyAttackProjectile pos dir noReappearAtkDesc)]
+                        mkAtkProj         = mkEnemyAttackProjectile pos dir noReappearAtkDesc tauntedStatus
+                    in [mkMsg $ NewUpdateProjectileMsgAddM mkAtkProj]
 
             | otherwise = []
 
@@ -142,3 +157,14 @@ drawLankyProjectile lankyProj =
     in do
         pos' <- graphicsLerpPos pos vel
         drawSprite pos' dir enemyAttackProjectileZIndex spr
+
+voluntaryClearData :: ProjectileVoluntaryClear LankyProjectileData
+voluntaryClearData lankyProj = case attackImage atk of
+    Nothing  -> Nothing
+    Just img -> Just $ ProjectileVoluntaryClearData
+        { _pos    = _pos (atk :: Attack)
+        , _dir    = _dir (atk :: Attack)
+        , _zIndex = enemyAttackProjectileZIndex
+        , _image  = img
+        }
+    where atk = _attack (P._data lankyProj :: LankyProjectileData)

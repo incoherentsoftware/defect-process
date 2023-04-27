@@ -4,6 +4,7 @@ module Player.SecondarySkill.All.MarkRecallSkill
 
 import Control.Monad.IO.Class (MonadIO)
 import Data.Maybe             (isNothing)
+import qualified Data.Set as S
 
 import Attack
 import Attack.Projectile
@@ -143,7 +144,7 @@ thinkMarkRecallSkill canUseSkill player slot markRecallSkill = do
             let
                 pos           = playerPos `vecAdd` _markerOffset cfg
                 markerAtkDesc = _marker atkDescs
-                mkMarkerProj  = mkAttackProjectileWithMsgId pos RightDir markerAtkDesc [] markerProjId
+                mkMarkerProj  = mkAttackProjectileEx pos RightDir markerAtkDesc mkAttack S.empty markerProjId
             in [mkMsg $ NewThinkProjectileMsgAddM mkMarkerProj]
 
         | otherwise -> []

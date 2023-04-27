@@ -8,12 +8,12 @@ import Data.Functor           ((<&>))
 import Data.Maybe             (fromMaybe, listToMaybe)
 
 import Attack.Description
-import Attack.Projectile
 import Collision
 import Constants
 import Id
 import InfoMsg.Util
 import Msg
+import Player.Util
 import Player.Weapon.All.Scythe.Data
 import Projectile as P
 import Util

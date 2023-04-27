@@ -40,6 +40,7 @@ data DebugConfig = DebugConfig
     , _disableFileCache             :: Bool
     , _disablePauseMenuHints        :: Bool
     , _disableEnemyHurtSfx          :: Bool
+    , _disablePlayerTaunt           :: Bool
     }
     deriving Generic
 
@@ -75,5 +76,6 @@ instance FromJSON DebugConfig where
         v .:? "forceLastUsedInputType" <*>
         v .:? "disableFileCache" .!= False <*>
         v .:? "disablePauseMenuHints" .!= False <*>
-        v .:? "disableEnemyHurtSfx" .!= False
+        v .:? "disableEnemyHurtSfx" .!= False <*>
+        v .:? "disablePlayerTaunt" .!= False
     parseJSON value      = typeMismatch "DebugConfig" value

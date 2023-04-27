@@ -269,6 +269,7 @@ processPlayerMsgs player = foldlM processMsg player =<< readMsgs
             PlayerMsgForceInAir                         -> return forcePlayerInAir
             PlayerMsgWarpOut                            -> return $ p {_flags = flags {_warpingOut = True}}
             PlayerMsgTouchingInfoSign                   -> return $ p {_flags = flags {_touchingInfoSign = True}}
+            PlayerMsgTaunt                              -> return p
             where
                 updatePlayerMovementSkill :: Typeable d => (MovementSkill d -> MovementSkill d) -> Player
                 updatePlayerMovementSkill update = p {_movementSkill = update' <$> _movementSkill p}
@@ -603,12 +604,12 @@ hurtPlayer atkHit debugCfg player = player
     , _timersCounters = timersCounters
     }
     where
-        hitByHashedIds   = _hitByHashedIds player
-        flags            = _flags player
-        atkHashedId      = _hashedId atkHit
-        Damage damageVal = _damage (atkHit :: AttackHit)
-        damageVal'       = ceiling $ fromIntegral damageVal * _playerDamageMultiplier debugCfg
-        health           = decreaseHealth (Damage damageVal') (_health player)
+        hitByHashedIds = _hitByHashedIds player
+        flags          = _flags player
+        atkHashedId    = _hashedId atkHit
+        damage         = _damage (atkHit :: AttackHit)
+        damage'        = multiplyDamage (_playerDamageMultiplier debugCfg) damage
+        health         = decreaseHealth damage' (_health player)
 
         atkVel@(Vel2 atkVelX _) = _vel (atkHit :: AttackHit)
         dir

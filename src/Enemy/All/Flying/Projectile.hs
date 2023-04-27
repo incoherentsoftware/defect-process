@@ -43,6 +43,7 @@ mkFlyingProjectile attack playerPos cfg =
             , _update               = updateFlyingProjectile
             , _draw                 = drawFlyingProjectile
             , _processCollisions    = processCollisions
+            , _voluntaryClear       = voluntaryClearData
             }
 
 updateFlyingProjectile :: Monad m => ProjectileUpdate FlyingProjectileData m
@@ -97,3 +98,14 @@ drawFlyingProjectile flyingProjectile =
     in do
         pos' <- graphicsLerpPos pos vel
         drawSprite pos' dir enemyAttackProjectileZIndex spr
+
+voluntaryClearData :: ProjectileVoluntaryClear FlyingProjectileData
+voluntaryClearData flyingProjectile = case attackImage atk of
+    Nothing  -> Nothing
+    Just img -> Just $ ProjectileVoluntaryClearData
+        { _pos    = _pos (atk :: Attack)
+        , _dir    = _dir (atk :: Attack)
+        , _zIndex = enemyAttackProjectileZIndex
+        , _image  = img
+        }
+    where atk = _attack $ _data flyingProjectile

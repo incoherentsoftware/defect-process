@@ -15,13 +15,17 @@ import Data.Traversable (for)
 import AppEnv
 import Constants
 import Msg
+import Particle.All.Fade
 import Projectile
 import Projectile.Manager.Types
 import Util
 import World.Surface.Types
 
 mkProjectileManager :: ProjectileManager
-mkProjectileManager = ProjectileManager {_projectiles = []}
+mkProjectileManager = ProjectileManager
+    { _projectiles             = []
+    , _isPendingVoluntaryClear = False
+    }
 
 thinkProjectileManager :: ProjectileManager -> AppEnv ThinkProjectileMsgsPhase ProjectileManager
 thinkProjectileManager projectileManager = do
@@ -51,7 +55,7 @@ mkNewThinkProjectiles = foldlM processMsg [] =<< readMsgs
 
 addProjectileManagerNewProjectiles :: ProjectileManager -> AppEnv ThinkProjectileMsgsPhase ProjectileManager
 addProjectileManagerNewProjectiles projectileManager = do
-    projectiles <- (++) <$> mkNewThinkProjectiles <*> pure (_projectiles projectileManager)
+    projectiles <- (++ _projectiles projectileManager) <$> mkNewThinkProjectiles
     return $ projectileManager {_projectiles = projectiles}
 
 mkNewUpdateProjectiles :: AppEnv UpdateProjectileMsgsPhase [Some Projectile]
@@ -67,15 +71,44 @@ mkNewUpdateProjectiles = foldlM processMsg [] =<< readMsgs
             NewUpdateProjectileMsgAddM proj   -> (:ps) <$> proj
             NewUpdateProjectileMsgAddsM projs -> (++ ps) <$> projs
 
+updateProjectileManagerVoluntaryClear :: ProjectileManager -> AppEnv UpdateProjectileMsgsPhase ProjectileManager
+updateProjectileManagerVoluntaryClear projectileManager
+    | _isPendingVoluntaryClear projectileManager =
+        let
+            processProj :: MsgsWrite UpdateProjectileMsgsPhase m => Some Projectile -> m (Some Projectile)
+            processProj (Some p) = case (_voluntaryClear p) p of
+                Nothing                 -> return $ Some p
+                Just voluntaryClearData -> do
+                    writeMsgs [mkMsg $ ParticleMsgAdd (mkFadeParticle voluntaryClearData)]
+                    return . Some $ p {_ttl = 0.0}
+        in do
+            projectiles <- traverse processProj (_projectiles projectileManager)
+            return $ projectileManager
+                { _projectiles             = projectiles
+                , _isPendingVoluntaryClear = False
+                }
+
+    | otherwise =
+        let
+            processMsgs :: [ProjectileMsgPayload] -> ProjectileManager
+            processMsgs []     = projectileManager
+            processMsgs (d:ds) = case d of
+                ProjectileMsgVoluntaryClear -> projectileManager {_isPendingVoluntaryClear = True}
+                _                           -> processMsgs ds
+
+        in processMsgs <$> readMsgs
+
 updateProjectileManager :: ProjectileManager -> AppEnv UpdateProjectileMsgsPhase ProjectileManager
 updateProjectileManager projectileManager = do
-    projectiles <-
-        traverse (\(Some p) -> Some <$> updateProjectileMsgs p) (_projectiles projectileManager) >>=
-        traverse (\(Some p) -> Some <$> (_update p) p) >>=
-        return . updateProjectileTtls >>= \ps ->
-        (++) <$> mkNewUpdateProjectiles <*> pure ps
+    projectileManager' <- updateProjectileManagerVoluntaryClear projectileManager
 
-    return $ projectileManager {_projectiles = projectiles}
+    projectiles  <-
+        traverse (\(Some p) -> Some <$> updateProjectileMsgs p) (_projectiles projectileManager') >>=
+        traverse (\(Some p) -> Some <$> (_update p) p) >>=
+        return . updateProjectileTtls
+    projectiles' <- (++ projectiles) <$> mkNewUpdateProjectiles
+
+    return $ projectileManager' {_projectiles = projectiles'}
 
 updateProjectileTtls :: [Some Projectile] -> [Some Projectile]
 updateProjectileTtls [] = []

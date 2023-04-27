@@ -47,7 +47,7 @@ mkDogProjectile enemy =
         enemyData        = E._data enemy
         shootProjAtkDesc = _shootProjectile $ _attackDescs enemyData
     in do
-        atk <- mkAttack pos dir shootProjAtkDesc
+        atk <- mkEnemyAttack pos dir shootProjAtkDesc (enemyTauntedStatus enemy)
 
         let
             dogProjData = DogProjectileData
@@ -68,6 +68,7 @@ mkDogProjectile enemy =
             , _update               = updateDogProjectile
             , _draw                 = drawDogProjectile
             , _processCollisions    = processCollisions
+            , _voluntaryClear       = voluntaryClearData
             }
 
 updateDogProjectile :: Monad m => ProjectileUpdate DogProjectileData m
@@ -127,3 +128,14 @@ drawDogProjectile dogProjectile =
     in do
         pos <- graphicsLerpPos atkPos vel
         drawSprite pos dir enemyAttackProjectileZIndex spr
+
+voluntaryClearData :: ProjectileVoluntaryClear DogProjectileData
+voluntaryClearData dogProjectile = case attackImage atk of
+    Nothing  -> Nothing
+    Just img -> Just $ ProjectileVoluntaryClearData
+        { _pos    = _pos (atk :: Attack)
+        , _dir    = _dir (atk :: Attack)
+        , _zIndex = enemyAttackProjectileZIndex
+        , _image  = img
+        }
+    where atk = _attack (P._data dogProjectile :: DogProjectileData)

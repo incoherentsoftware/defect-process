@@ -41,12 +41,14 @@ mkAxeEnemy pos dir = do
     enemy             <- mkEnemy enemyData pos dir
     axeCfg            <- readEnemyConfig _axe
     lockOnReticleData <- readEnemyLockOnConfig _axe
+    tauntedData       <- mkEnemyTauntedData $ _tauntUnderlayDrawScale axeCfg
 
     return . Some $ enemy
         { _type                   = Just AxeEnemy
         , _health                 = _health (axeCfg :: AxeEnemyConfig)
         , _hitbox                 = axeEnemyHitbox
         , _lockOnReticleData      = lockOnReticleData
+        , _tauntedData            = Just tauntedData
         , _thinkAI                = thinkAI
         , _updateHurtResponse     = updateHurtResponse
         , _updateGroundResponse   = updateGroundResponse

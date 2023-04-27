@@ -139,7 +139,7 @@ readPlayerPos arenaWalls = L.foldl' processMsg wallsBotCenter <$> readMsgs
         wallsBotCenter = hitboxBotCenter $ roomArenaWallsBoundingHitbox arenaWalls
 
 thinkRoomArenaWallsEnemySpawn :: MsgsRead ThinkLevelMsgsPhase m => RoomArenaWalls -> m [Msg ThinkLevelMsgsPhase]
-thinkRoomArenaWallsEnemySpawn arenaWalls = case _status arenaWalls of
+thinkRoomArenaWallsEnemySpawn arenaWalls = case _status (arenaWalls :: RoomArenaWalls) of
     WallsReadyStatus -> return []
     WallsDoneStatus  -> return []
 

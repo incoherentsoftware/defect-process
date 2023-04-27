@@ -6,6 +6,7 @@ import Control.Monad.IO.Class (MonadIO)
 import Data.Foldable          (sequenceA_)
 import Data.Functor           ((<&>))
 import Data.Maybe             (fromMaybe)
+import qualified Data.Set as S
 
 import Attack as A
 import Attack.Hit
@@ -33,10 +34,10 @@ attackOrbIdleSoundPath = "event:/SFX Events/Player/Weapons/Sword/attack-orb-idle
 
 staggerThreshold = Stagger 1 :: Stagger
 
-registeredCollisions =
+registeredCollisions = S.fromList
     [ ProjRegisteredEnemyRealCollision
     , ProjRegisteredRoomItemCollision
-    ] :: [ProjectileRegisteredCollision]
+    ] :: S.Set ProjectileRegisteredCollision
 
 data AttackOrbData = AttackOrbData
     { _numActivations     :: Int
@@ -153,7 +154,7 @@ attackOrbHurtResponse atkHit attackOrb
             dir             = E._dir attackOrb
             attackOrbData   = E._data attackOrb
             activateAtkDesc = _activateAttackDesc attackOrbData
-            mkAttackProj    = mkAttackProjectile pos dir activateAtkDesc registeredCollisions
+            mkAttackProj    = mkAttackProjectile pos dir activateAtkDesc mkAttack registeredCollisions
             attackOrbData'  = attackOrbData {_numActivations = _numActivations attackOrbData + 1}
         in do
             writeMsgs [mkMsg $ NewUpdateProjectileMsgAddM mkAttackProj]

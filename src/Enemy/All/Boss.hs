@@ -64,6 +64,7 @@ mkBossEnemy pos dir = do
     enemy             <- mkEnemy enemyData pos dir
     bossCfg           <- readEnemyConfig _boss
     lockOnReticleData <- readEnemyLockOnConfig _boss
+    tauntedData       <- mkEnemyTauntedData $ _tauntUnderlayDrawScale bossCfg
 
     return . Some $ enemy
         { _type                   = Just BossEnemy
@@ -71,6 +72,7 @@ mkBossEnemy pos dir = do
         , _hitbox                 = bossEnemyHitbox
         , _pullable               = bossEnemyPullable
         , _lockOnReticleData      = lockOnReticleData
+        , _tauntedData            = Just tauntedData
         , _thinkAI                = thinkAI
         , _updateHurtResponse     = updateHurtResponse
         , _updateGroundResponse   = updateGroundResponse

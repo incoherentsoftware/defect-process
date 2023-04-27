@@ -10,6 +10,7 @@ import Enemy.DeathEffectData.Types
 import Enemy.HurtEffectData.Types
 import Enemy.SpawnEffectData.Types
 import Util
+import Window.Graphics.Util
 
 data TurretEnemyConfig = TurretEnemyConfig
     { _health :: Health
@@ -28,6 +29,8 @@ data TurretEnemyConfig = TurretEnemyConfig
     , _attackMouthOffset         :: Pos2
     , _attackMouthMidBeamOffsetX :: PosX
     , _staggerThreshold          :: Stagger
+
+    , _tauntUnderlayDrawScale      :: DrawScale
 
     , _hurtEffectData  :: EnemyHurtEffectData
     , _deathEffectData :: EnemyDeathEffectData

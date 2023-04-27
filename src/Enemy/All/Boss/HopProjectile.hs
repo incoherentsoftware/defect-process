@@ -9,11 +9,14 @@ import qualified Data.Set as S
 import Attack
 import Attack.Hit
 import Collision
+import Configs
 import Configs.All.Enemy
 import Configs.All.Enemy.Boss
 import Constants
 import Enemy.All.Boss.AttackDescriptions
 import Enemy.All.Boss.Data
+import Enemy.TauntedData
+import Enemy.Util
 import FileCache
 import Id
 import Msg
@@ -43,14 +46,20 @@ mkHopProjectileData atk enemyData = HopProjectileData
     , _config = _boss $ _config (enemyData :: BossEnemyData)
     }
 
-mkHopProjectile :: MonadIO m => Pos2 -> Direction -> BossEnemyData -> m (Some Projectile)
-mkHopProjectile enemyPos dir enemyData =
+mkHopProjectile
+    :: (ConfigsRead m, MonadIO m)
+    => Pos2
+    -> Direction
+    -> BossEnemyData
+    -> EnemyTauntedStatus
+    -> m (Some Projectile)
+mkHopProjectile enemyPos dir enemyData tauntedStatus =
     let
         releaseHopProjOffset = hopProjectileOffset `vecFlip` dir
         pos                  = enemyPos `vecAdd` releaseHopProjOffset
         atkDesc              = _hopProjectile $ _attackDescs enemyData
     in do
-        atk <- mkAttack pos dir atkDesc
+        atk <- mkEnemyAttack pos dir atkDesc tauntedStatus
         let
             vel         = attackVelToVel2 (attackVel atk) zeroVel2
             hopProjData = mkHopProjectileData atk enemyData
@@ -64,6 +73,7 @@ mkHopProjectile enemyPos dir enemyData =
             , _update               = updateHopProjectile
             , _draw                 = drawHopProjectile
             , _processCollisions    = processCollisions
+            , _voluntaryClear       = voluntaryClearData
             }
 
 thinkHopProjectile :: Monad m => ProjectileThink HopProjectileData m
@@ -143,3 +153,14 @@ drawHopProjectile hopProj =
     in do
         pos' <- graphicsLerpPos pos vel
         drawSprite pos' dir enemyAttackProjectileZIndex spr
+
+voluntaryClearData :: ProjectileVoluntaryClear HopProjectileData
+voluntaryClearData hopProj = case attackImage atk of
+    Nothing  -> Nothing
+    Just img -> Just $ ProjectileVoluntaryClearData
+        { _pos    = _pos (atk :: Attack)
+        , _dir    = _dir (atk :: Attack)
+        , _zIndex = enemyAttackProjectileZIndex
+        , _image  = img
+        }
+    where atk = _attack (P._data hopProj :: HopProjectileData)

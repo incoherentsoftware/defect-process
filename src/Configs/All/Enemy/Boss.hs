@@ -39,6 +39,7 @@ data BossEnemyConfig = BossEnemyConfig
 
     , _hpThresholdBodyOffset :: Pos2
 
+    , _tauntUnderlayDrawScale      :: DrawScale
     , _groundImpactEffectDrawScale :: DrawScale
     , _wallImpactEffectDrawScale   :: DrawScale
 

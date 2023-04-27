@@ -174,7 +174,7 @@ flipDirectionMessages enemy = [mkMsgToEx (EnemyMsgSetDirection dir) enemyId MsgA
 
 createAttackProjMessages :: Enemy SpearEnemyData -> [Msg ThinkEnemyMsgsPhase]
 createAttackProjMessages enemy = [mkMsg $ NewThinkProjectileMsgAddM mkSpearProj]
-    where mkSpearProj = mkSpearProjectile (E._pos enemy) (E._dir enemy) (_data enemy)
+    where mkSpearProj = mkSpearProjectile (E._pos enemy) (E._dir enemy) (_data enemy) (enemyTauntedStatus enemy)
 
 startWalkBehavior :: Enemy SpearEnemyData -> [Msg ThinkEnemyMsgsPhase]
 startWalkBehavior enemy = mkEnemyUpdateBehaviorMsgM enemy behavior

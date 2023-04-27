@@ -9,6 +9,9 @@ import qualified Data.Set as S
 
 import AppEnv
 import Attack
+import Configs
+import Configs.All.Settings
+import Configs.All.Settings.Debug
 import Msg
 import Player
 import Player.BufferedInputState
@@ -18,12 +21,16 @@ import Player.LockOnAim
 import Player.MovementSkill as MS
 import Player.SecondarySkill as SS
 import Player.SecondarySkill.Manager
+import Player.Taunts
 import Player.Weapon as W
 import Player.Weapon.Manager
 import Util
+import Window.Graphics
 import Window.InputState
 
 invalidActionSoundPath = "event:/SFX Events/Level/pickup-item-cant-buy" :: FilePath
+
+tauntFrameTag = FrameTagName "taunt" :: FrameTagName
 
 playerInteractMsgs :: InputState -> Player -> [Msg ThinkPlayerMsgsPhase]
 playerInteractMsgs inputState player
@@ -139,6 +146,27 @@ playerInvalidActionUiMsgs inputState player =
         unlessM (gets null) $
             modify (mkMsg (AudioMsgPlaySoundCentered invalidActionSoundPath):)
 
+playerTauntMsgs :: (ConfigsRead m, InputRead m) => Player -> m [Msg ThinkPlayerMsgsPhase]
+playerTauntMsgs player = do
+    isTauntEnabled <- not <$> readSettingsConfig _debug _disablePlayerTaunt
+    inputState     <- readInputState
+
+    let
+        onGround     = _touchingGround $ _flags player
+        isTauntInput =
+            (UpAlias `aliasHold` inputState || DownAlias `aliasHold` inputState) &&
+            InteractAlias `aliasPressed` inputState
+
+    return $ flip execState [] $ do
+        when (isTauntEnabled && onGround && isTauntInput) $
+            let tauntAtkDesc = _taunt $ _taunts player
+            in modify (mkMsg (PlayerMsgSetAttackDesc tauntAtkDesc):)
+
+        case playerAttackSprite player of
+            Just atkSpr
+                | tauntFrameTag `isSpriteFrameTag` atkSpr && _frameChanged atkSpr -> modify (mkMsg PlayerMsgTaunt:)
+            _                                                                     -> return ()
+
 thinkPlayer :: Player -> AppEnv ThinkPlayerMsgsPhase ()
 thinkPlayer player
     | isPlayerInSpawnAnim player = return ()
@@ -147,6 +175,7 @@ thinkPlayer player
         inputState         <- readInputState
         moveSkillMsgs      <- playerMovementSkillMsgs player
         lockOnAimMsgs      <- thinkPlayerLockOnAim player (_lockOnAim player)
+        tauntMsgs          <- playerTauntMsgs player
         secondarySkillMsgs <- playerSecondarySkillMsgs player
         gunMsgs            <- playerGunMsgs player
         weaponMsgs         <- playerWeaponMsgs player
@@ -160,6 +189,7 @@ thinkPlayer player
         writeMsgs . concat $
             [ moveSkillMsgs
             , lockOnAimMsgs
+            , tauntMsgs
             , secondarySkillMsgs
             , gunMsgs
             , weaponMsgs

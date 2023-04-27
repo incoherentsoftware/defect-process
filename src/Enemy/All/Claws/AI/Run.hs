@@ -76,7 +76,7 @@ updateBehaviorIfMatching enemy behavior = case (behavior, existingBehavior) of
 
 createAttackProjectileMessages :: Enemy ClawsEnemyData -> [Msg ThinkEnemyMsgsPhase]
 createAttackProjectileMessages enemy = [mkMsg $ NewThinkProjectileMsgAddM mkProj]
-    where mkProj = mkClawsProjectile (E._pos enemy) (E._dir enemy) (_data enemy)
+    where mkProj = mkClawsProjectile (E._pos enemy) (E._dir enemy) (_data enemy) (enemyTauntedStatus enemy)
 
 updateWillUseAttackProjMessages :: Enemy ClawsEnemyData -> [Msg ThinkEnemyMsgsPhase]
 updateWillUseAttackProjMessages enemy = mkEnemyUpdateMsgM enemy $ \e -> do

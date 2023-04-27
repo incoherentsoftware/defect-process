@@ -10,11 +10,14 @@ import qualified Data.Set as S
 import Attack
 import Attack.Hit
 import Collision
+import Configs
 import Configs.All.Enemy
 import Configs.All.Enemy.Zombie
 import Enemy.All.Zombie.AttackDescriptions
 import Enemy.All.Zombie.Behavior
 import Enemy.All.Zombie.Data
+import Enemy.TauntedData
+import Enemy.Util
 import FileCache
 import Id
 import Msg
@@ -32,11 +35,18 @@ data ZombieProjData = ZombieProjData
     , _lingerAttack  :: Attack
     }
 
-mkZombieProjData :: MonadIO m => Pos2 -> Direction -> AttackType -> ZombieEnemyData -> m ZombieProjData
-mkZombieProjData pos dir atkType enemyData =
+mkZombieProjData
+    :: (ConfigsRead m, MonadIO m)
+    => Pos2
+    -> Direction
+    -> AttackType
+    -> ZombieEnemyData
+    -> EnemyTauntedStatus
+    -> m ZombieProjData
+mkZombieProjData pos dir atkType enemyData tauntedStatus =
     ZombieProjData <$>
-    mkAttack pos dir initialAtkDesc <*>
-    mkAttack pos dir (_projFlames atkDescs)
+    mkEnemyAttack pos dir initialAtkDesc tauntedStatus <*>
+    mkEnemyAttack pos dir (_projFlames atkDescs) tauntedStatus
     where
         atkDescs       = _attackDescs enemyData
         initialAtkDesc = case atkType of
@@ -76,8 +86,15 @@ zombieProjHitbox zombieProj = fromMaybe (dummyHitbox pos) (attackHitbox atk)
         atk = zombieProjAttack $ _data zombieProj
         pos = _pos (atk :: Attack)
 
-mkZombieProjectile :: MonadIO m => Pos2 -> Direction -> AttackType -> ZombieEnemyData -> m (Some Projectile)
-mkZombieProjectile enemyPos dir atkType enemyData =
+mkZombieProjectile
+    :: (ConfigsRead m, MonadIO m)
+    => Pos2
+    -> Direction
+    -> AttackType
+    -> ZombieEnemyData
+    -> EnemyTauntedStatus
+    -> m (Some Projectile)
+mkZombieProjectile enemyPos dir atkType enemyData tauntedStatus =
     let
         pos = case atkType of
             FallAttackType -> enemyPos
@@ -88,7 +105,7 @@ mkZombieProjectile enemyPos dir atkType enemyData =
                 in enemyPos `vecAdd` offset
     in do
         msgId       <- newId
-        projData    <- mkZombieProjData pos dir atkType enemyData
+        projData    <- mkZombieProjData pos dir atkType enemyData tauntedStatus
         let dummyHbx = dummyHitbox enemyPos
 
         return . Some $ (mkProjectile projData msgId dummyHbx maxSecs)
@@ -98,6 +115,7 @@ mkZombieProjectile enemyPos dir atkType enemyData =
             , _update               = updateZombieProj
             , _draw                 = drawZombieProj
             , _processCollisions    = processCollisions
+            , _voluntaryClear       = voluntaryClearData
             }
 
 thinkZombieProj :: MsgsWrite ThinkProjectileMsgsPhase m => ProjectileThink ZombieProjData m
@@ -154,3 +172,14 @@ drawZombieProj zombieProj =
     in do
         pos' <- graphicsLerpPos pos vel
         drawSprite pos' dir enemyAttackProjectileZIndex spr
+
+voluntaryClearData :: ProjectileVoluntaryClear ZombieProjData
+voluntaryClearData zombieProj = case attackImage atk of
+    Nothing  -> Nothing
+    Just img -> Just $ ProjectileVoluntaryClearData
+        { _pos    = _pos (atk :: Attack)
+        , _dir    = _dir (atk :: Attack)
+        , _zIndex = enemyAttackProjectileZIndex
+        , _image  = img
+        }
+    where atk = zombieProjAttack $ _data zombieProj

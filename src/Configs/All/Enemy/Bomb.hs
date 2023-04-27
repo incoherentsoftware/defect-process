@@ -26,6 +26,7 @@ data BombEnemyConfig = BombEnemyConfig
     , _attackExplodeRange         :: Distance
     , _attackExplodeTimerSecs     :: Secs
 
+    , _tauntUnderlayDrawScale      :: DrawScale
     , _groundImpactEffectDrawScale :: DrawScale
     , _wallImpactEffectDrawScale   :: DrawScale
 

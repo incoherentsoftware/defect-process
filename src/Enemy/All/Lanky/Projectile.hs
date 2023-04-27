@@ -9,6 +9,9 @@ import qualified Data.Set as S
 import Attack
 import Attack.Hit
 import Collision
+import Configs
+import Enemy.TauntedData
+import Enemy.Util
 import Id
 import Msg
 import Projectile as P
@@ -32,9 +35,15 @@ mkLankyProjectileData atk = do
         , _groundSoundHashedId = groundSoundHashedId
         }
 
-mkLankyProjectile :: MonadIO m => Pos2 -> Direction -> AttackDescription -> m (Some Projectile)
-mkLankyProjectile pos dir atkDesc = do
-    atk           <- mkAttack pos dir atkDesc
+mkLankyProjectile
+    :: (ConfigsRead m, MonadIO m)
+    => Pos2
+    -> Direction
+    -> AttackDescription
+    -> EnemyTauntedStatus
+    -> m (Some Projectile)
+mkLankyProjectile pos dir atkDesc tauntedStatus = do
+    atk           <- mkEnemyAttack pos dir atkDesc tauntedStatus
     lankyProjData <- mkLankyProjectileData atk
 
     msgId  <- newId
@@ -45,6 +54,7 @@ mkLankyProjectile pos dir atkDesc = do
         , _update               = updateLankyProjectile
         , _draw                 = drawLankyProjectile
         , _processCollisions    = processCollisions
+        , _voluntaryClear       = voluntaryClearData
         }
 
 thinkLankyProjectile :: Monad m => ProjectileThink LankyProjectileData m
@@ -96,3 +106,14 @@ drawLankyProjectile lankyProj = drawSprite pos dir enemyAttackProjectileZIndex s
         spr    = attackSprite attack
         pos    = _pos (attack :: Attack)
         dir    = _dir (attack :: Attack)
+
+voluntaryClearData :: ProjectileVoluntaryClear LankyProjectileData
+voluntaryClearData lankyProj = case attackImage atk of
+    Nothing  -> Nothing
+    Just img -> Just $ ProjectileVoluntaryClearData
+        { _pos    = _pos (atk :: Attack)
+        , _dir    = _dir (atk :: Attack)
+        , _zIndex = enemyAttackProjectileZIndex
+        , _image  = img
+        }
+    where atk = _attack (P._data lankyProj :: LankyProjectileData)

@@ -42,8 +42,9 @@ mkProjectile dat msgId hbx ttl = Projectile
     , _update               = return . id
     , _think                = const $ return []
     , _updateDynamic        = updateDynamic
-    , _draw                 = \_ -> return ()
+    , _draw                 = const $ return ()
     , _processCollisions    = \_ _ -> []
+    , _voluntaryClear       = const Nothing
     }
 
 updateDynamic :: Typeable d => ProjectileUpdateDynamic d (AppEnv UpdateProjectileMsgsPhase)
@@ -63,6 +64,7 @@ updateProjectileMsgs proj = foldlM processMsg proj =<< readMsgsTo (_msgId proj)
             ProjectileMsgSetVelocity vel -> return $ p {_vel = vel}
             ProjectileMsgSetHitbox hbx   -> return $ p {_hitbox = const hbx}
             ProjectileMsgSetTtl ttl      -> return $ p {_ttl = ttl}
+            ProjectileMsgVoluntaryClear  -> return p
             ProjectileMsgRemoveCollision -> return $ p {_registeredCollisions = S.empty}
             ProjectileMsgRemoveThink     -> return $ p {_think = const (return [])}
             ProjectileMsgRemoveUpdate    -> return $ p {_update = return . id}

@@ -2,6 +2,7 @@ module Enemy
     ( module E
     , module Enemy.Flags
     , module Enemy.StasisData
+    , module Enemy.TauntedData
     , module Enemy.Util
     , mkEnemy
     , mkEnemyWithId
@@ -43,6 +44,7 @@ import Enemy.DeathEffectData
 import Enemy.DebugText
 import Enemy.Flags
 import Enemy.StasisData
+import Enemy.TauntedData
 import Enemy.Types as E
 import Enemy.Util
 import Id
@@ -105,6 +107,7 @@ mkEnemyInternal enMsgId enData pos dir enDummyType = do
         , _hitbox                 = const $ dummyHitbox pos
         , _pullable               = const True
         , _lockOnReticleData      = dummyLockOnReticleData
+        , _tauntedData            = Nothing
         , _stasisData             = stasisData
         , _knownPlayerInfo        = Nothing
         , _flags                  = mkEnemyFlags
@@ -215,6 +218,10 @@ drawEnemy enemy = case _draw enemy of
             when isDrawStasis $
                 setGraphicsBlendMode BlendModeAlpha
 
+            case _tauntedData enemy of
+                Nothing          -> return ()
+                Just tauntedData -> drawEnemyTauntedUnderlay pos dir (enemyLockOnData enemy) tauntedData
+
             drawEnemyOverlay
 
             drawEnemyDebugHitboxes enemy
@@ -224,42 +231,42 @@ drawEnemy enemy = case _draw enemy of
 
     where drawEnemyOverlay = (_drawOverlay enemy) enemy
 
-lockOnReticleDataMsgs :: Enemy d -> [Msg ThinkEnemyMsgsPhase]
-lockOnReticleDataMsgs enemy
+enemyLockOnData :: Enemy d -> EnemyLockOnData
+enemyLockOnData enemy = EnemyLockOnData
+    { _enemyId       = E._msgId enemy
+    , _enemyHitbox   = (_hitbox enemy) enemy
+    , _enemyHealth   = _health enemy
+    , _enemyVel      = vel
+    , _reticleScale  = _scale (lockOnReticleData :: EnemyLockOnReticleData)
+    , _reticleOffset = vecFlip reticleOffset (E._dir enemy)
+    }
+    where
+        vel
+            | isEnemyInStasis enemy = zeroVel2
+            | otherwise             = E._vel enemy
+
+        lockOnReticleData = _lockOnReticleData enemy
+        offsetMap         = _offsetMap lockOnReticleData
+        offset            = _offset (lockOnReticleData :: EnemyLockOnReticleData)
+        reticleOffset     = fromMaybe offset $ do
+            spr            <- (attackSprite <$> E._attack enemy) <|> E._sprite enemy
+            let sprFileName = takeBaseName $ _filePath (spr :: Sprite)
+            offsets        <- M.lookup sprFileName =<< offsetMap
+            let frameIndex  = _frameIndex spr
+            listToMaybe $ drop (_int (frameIndex :: FrameIndex)) offsets
+
+enemyLockOnReticleDataMsgs :: Enemy d -> [Msg ThinkEnemyMsgsPhase]
+enemyLockOnReticleDataMsgs enemy
     | isHealthZero (_health enemy) = []
-    | otherwise                    =
-        let
-            vel
-                | isEnemyInStasis enemy = zeroVel2
-                | otherwise             = E._vel enemy
-
-            lockOnReticleData = _lockOnReticleData enemy
-            offsetMap         = _offsetMap lockOnReticleData
-            offset            = _offset (lockOnReticleData :: EnemyLockOnReticleData)
-            reticleOffset     = fromMaybe offset $ do
-                spr            <- (attackSprite <$> E._attack enemy) <|> E._sprite enemy
-                let sprFileName = takeBaseName $ _filePath (spr :: Sprite)
-                offsets        <- M.lookup sprFileName =<< offsetMap
-                let frameIndex  = _frameIndex spr
-                listToMaybe $ drop (_int (frameIndex :: FrameIndex)) offsets
-
-            lockOnData = EnemyLockOnData
-                { _enemyId       = E._msgId enemy
-                , _enemyHitbox   = (_hitbox enemy) enemy
-                , _enemyHealth   = _health enemy
-                , _enemyVel      = vel
-                , _reticleScale  = _scale (lockOnReticleData :: EnemyLockOnReticleData)
-                , _reticleOffset = vecFlip reticleOffset (E._dir enemy)
-                }
-        in [mkMsg $ InfoMsgEnemyLockOnReticle lockOnData]
+    | otherwise                    = [mkMsg $ InfoMsgEnemyLockOnReticle (enemyLockOnData enemy)]
 
 thinkEnemy :: Enemy d -> AppEnv ThinkEnemyMsgsPhase ()
 thinkEnemy enemy
     | isEnemyInStasis enemy = do
-        writeMsgs $ lockOnReticleDataMsgs enemy
+        writeMsgs $ enemyLockOnReticleDataMsgs enemy
         writeMsgs [enemyStasisDataSoundMessage (E._pos enemy) (_stasisData enemy)]
 
     | otherwise = do
         writeMsgs =<< (_thinkAI enemy) enemy
-        writeMsgs $ lockOnReticleDataMsgs enemy
+        writeMsgs $ enemyLockOnReticleDataMsgs enemy
         writeMsgs $ maybe [] thinkAttack (_attack enemy)

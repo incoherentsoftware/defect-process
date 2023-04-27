@@ -7,10 +7,12 @@ import System.Random.Shuffle  (shuffleM)
 
 import Attack
 import Collision
+import Configs
 import Constants
 import Enemy.All.Boss.AttackDescriptions
 import Enemy.All.Boss.Data
 import Enemy.All.Boss.SpearProjectile
+import Enemy.TauntedData
 import Id
 import Msg
 import Projectile as P
@@ -41,21 +43,29 @@ data SummonSpearsSpawnerProjData = SummonSpearsSpawnerProjData
     { _waveOffsets     :: [Pos2]
     , _waveCooldownTtl :: Secs
     , _spearAttackDesc :: AttackDescription
+    , _tauntedStatus   :: EnemyTauntedStatus
     }
 
-mkSummonSpearsSpawnerProjData :: MonadIO m => BossEnemyData -> m SummonSpearsSpawnerProjData
-mkSummonSpearsSpawnerProjData enemyData = do
+mkSummonSpearsSpawnerProjData :: MonadIO m => BossEnemyData -> EnemyTauntedStatus -> m SummonSpearsSpawnerProjData
+mkSummonSpearsSpawnerProjData enemyData tauntedStatus = do
     waveOffsets <- liftIO $ shuffleM allWaveOffsets
     return $ SummonSpearsSpawnerProjData
         { _waveOffsets     = waveOffsets
         , _waveCooldownTtl = initialWaveCooldownSecs
         , _spearAttackDesc = _spearProjectile $ _attackDescs enemyData
+        , _tauntedStatus   = tauntedStatus
         }
 
-mkSummonSpearsSpawnerProjectile :: MonadIO m => Pos2 -> BossEnemyData -> MsgId -> m (Some Projectile)
-mkSummonSpearsSpawnerProjectile pos bossEnemyData bossEnemyMsgId = do
+mkSummonSpearsSpawnerProjectile
+    :: (ConfigsRead m, MonadIO m)
+    => Pos2
+    -> BossEnemyData
+    -> MsgId
+    -> EnemyTauntedStatus
+    -> m (Some Projectile)
+mkSummonSpearsSpawnerProjectile pos bossEnemyData bossEnemyMsgId tauntedStatus = do
     msgId                 <- newId
-    spearsSpawnerProjData <- mkSummonSpearsSpawnerProjData bossEnemyData
+    spearsSpawnerProjData <- mkSummonSpearsSpawnerProjData bossEnemyData tauntedStatus
     let dummyHbx           = dummyHitbox $ pos `vecAdd` spawnerOffset
 
     return . Some $ (mkProjectile spearsSpawnerProjData msgId dummyHbx maxSecs)
@@ -75,8 +85,9 @@ thinkSummonSpearsSpawnerProj spearsSpawnerProj  =
                 | waveCooldownTtl <= 0.0 ->
                     let
                         spearsAttackDesc = _spearAttackDesc spearsSpawnerProjData
-                        spearsPos        = hitboxCenter $ projectileHitbox spearsSpawnerProj
-                        mkSpearProj      = mkSpearProjectile (spearsPos `vecAdd` offset) spearsAttackDesc
+                        spearsPos        = hitboxCenter (projectileHitbox spearsSpawnerProj) `vecAdd` offset
+                        tauntedStatus    = _tauntedStatus spearsSpawnerProjData
+                        mkSpearProj      = mkSpearProjectile spearsPos spearsAttackDesc tauntedStatus
                     in return
                         ( [mkMsg $ NewUpdateProjectileMsgAddM mkSpearProj]
                         , waveCooldownSecs

@@ -10,6 +10,7 @@ import Enemy.DeathEffectData.Types
 import Enemy.HurtEffectData.Types
 import Enemy.SpawnEffectData.Types
 import Util
+import Window.Graphics.Util
 
 data BubbleTurretEnemyConfig = BubbleTurretEnemyConfig
     { _health :: Health
@@ -31,6 +32,8 @@ data BubbleTurretEnemyConfig = BubbleTurretEnemyConfig
     , _bubbleProjInitialRiseSecs    :: Secs
     , _bubbleProjRiseFallPeriodSecs :: Secs
     , _staggerThreshold             :: Stagger
+
+    , _tauntUnderlayDrawScale :: DrawScale
 
     , _hurtEffectData  :: EnemyHurtEffectData
     , _deathEffectData :: EnemyDeathEffectData

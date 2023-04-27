@@ -27,6 +27,7 @@ data HammerEnemyConfig = HammerEnemyConfig
     , _teleportOffsetX          :: PosX
     , _rerollPerPatrolLoopCount :: Int
 
+    , _tauntUnderlayDrawScale      :: DrawScale
     , _groundImpactEffectDrawScale :: DrawScale
     , _wallImpactEffectDrawScale   :: DrawScale
 

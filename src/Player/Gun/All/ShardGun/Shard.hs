@@ -7,7 +7,6 @@ import Control.Monad.IO.Class (MonadIO)
 import qualified Data.List.NonEmpty as NE
 
 import Attack
-import Attack.Projectile
 import Collision
 import Configs
 import Configs.All.PlayerGun
@@ -18,6 +17,7 @@ import Msg
 import Particle.All.Simple
 import Player.Gun.All.ShardGun.Data
 import Player.Gun.All.ShardGun.Util
+import Player.Util
 import Projectile as P
 import Util
 import Window.Graphics

@@ -96,7 +96,7 @@ facePlayerMessages enemy = case vecX <$> enemyKnownPlayerPos enemy of
 
 createAttackProjectileMessages :: Enemy WallEnemyData -> [Msg ThinkEnemyMsgsPhase]
 createAttackProjectileMessages enemy = [mkMsg $ NewThinkProjectileMsgAddM mkWallProj]
-    where mkWallProj = mkWallProjectile (E._pos enemy) (E._dir enemy) (_data enemy)
+    where mkWallProj = mkWallProjectile (E._pos enemy) (E._dir enemy) (_data enemy) (enemyTauntedStatus enemy)
 
 startDeathBehavior :: Enemy WallEnemyData -> [Msg ThinkEnemyMsgsPhase]
 startDeathBehavior enemy = deathSoundMsg:updateMsg

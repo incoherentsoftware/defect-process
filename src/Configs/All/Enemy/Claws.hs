@@ -38,6 +38,7 @@ data ClawsEnemyConfig = ClawsEnemyConfig
     , _hurtSecs                :: Secs
     , _staggerThreshold        :: Stagger
 
+    , _tauntUnderlayDrawScale      :: DrawScale
     , _groundImpactEffectDrawScale :: DrawScale
     , _wallImpactEffectDrawScale   :: DrawScale
 

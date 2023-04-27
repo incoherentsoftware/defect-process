@@ -10,6 +10,7 @@ import Enemy.DeathEffectData.Types
 import Enemy.HurtEffectData.Types
 import Enemy.SpawnEffectData.Types
 import Util
+import Window.Graphics.Util
 
 data GiantEnemyConfig = GiantEnemyConfig
     { _health  :: Health
@@ -31,6 +32,8 @@ data GiantEnemyConfig = GiantEnemyConfig
     , _smashRangeX           :: Distance
     , _smashRangeY           :: Distance
     , _idleSecs              :: Secs
+
+    , _tauntUnderlayDrawScale :: DrawScale
 
     , _hurtEffectData  :: EnemyHurtEffectData
     , _deathEffectData :: EnemyDeathEffectData

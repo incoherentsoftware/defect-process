@@ -4,6 +4,7 @@ module Attack
     , module Attack.Util
     , mkAttack
     , attackSprite
+    , attackImage
     , attackFrameIndex
     , attackIsLastFrameIndex
     , attackFrameChanged
@@ -94,6 +95,9 @@ mkAttack pos@(Pos2 _ y) dir atkDesc =
 
 attackSprite :: Attack -> Sprite
 attackSprite = (_sprite :: AttackDescription -> Sprite) . _description
+
+attackImage :: Attack -> Maybe Image
+attackImage = spriteImage . attackSprite
 
 attackFrameIndex :: Attack -> FrameIndex
 attackFrameIndex = _frameIndex . attackSprite

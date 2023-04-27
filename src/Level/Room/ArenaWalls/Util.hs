@@ -70,7 +70,7 @@ roomArenaWallsRightWallPos arenaWalls = hitboxBotLeft rightWallHbx `vecAdd` wall
     where rightWallHbx = _hitbox $ _rightWall (arenaWalls :: RoomArenaWalls)
 
 roomArenaWallsDisappearMsgs :: RoomArenaWalls -> [Msg ThinkLevelMsgsPhase]
-roomArenaWallsDisappearMsgs arenaWalls = goldMsg:(audioMsgs ++ particleMsgs)
+roomArenaWallsDisappearMsgs arenaWalls = [goldMsg, mkMsg ProjectileMsgVoluntaryClear] ++ audioMsgs ++ particleMsgs
     where
         leftWallPos@(Pos2 leftWallX leftWallY) = roomArenaWallsLeftWallPos arenaWalls
         rightWallPos@(Pos2 rightWallX _)       = roomArenaWallsRightWallPos arenaWalls

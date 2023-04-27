@@ -6,5 +6,6 @@ import Projectile
 import Util
 
 data ProjectileManager = ProjectileManager
-    { _projectiles :: [Some Projectile]
+    { _projectiles             :: [Some Projectile]
+    , _isPendingVoluntaryClear :: Bool
     }

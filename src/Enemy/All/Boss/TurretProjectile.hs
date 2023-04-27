@@ -26,8 +26,9 @@ import World.ZIndex
 hasHitboxFrameTagName = "hasHitbox"       :: FrameTagName
 debugHbxColor         = Color 0 0 255 155 :: Color
 
-projectileSprPath =
-    PackResourceFilePath "data/enemies/boss-enemy-attack1.pack" "attack-turret-projectile.spr" :: PackResourceFilePath
+packPath                 = \f -> PackResourceFilePath "data/enemies/boss-enemy-attack1.pack" f
+projectileSprPath        = packPath "attack-turret-projectile.spr"            :: PackResourceFilePath
+projectileFadeOutImgPath = packPath "attack-turret-projectile-fade-out.image" :: PackResourceFilePath
 
 seekingWallModeRegisteredCollisions = S.fromList
     [ ProjRegisteredSurfaceCollision
@@ -42,12 +43,13 @@ data TurretProjectileMode
     | FiringMode
 
 data TurretProjectileData = TurretProjectileData
-    { _mode       :: TurretProjectileMode
-    , _pos        :: Pos2
-    , _dir        :: Direction
-    , _width      :: Float
-    , _beamMidSpr :: Sprite
-    , _config     :: BossEnemyConfig
+    { _mode              :: TurretProjectileMode
+    , _pos               :: Pos2
+    , _dir               :: Direction
+    , _width             :: Float
+    , _beamMidSpr        :: Sprite
+    , _beamMidFadeOutImg :: Image
+    , _config            :: BossEnemyConfig
     }
 
 mkTurretProjectile
@@ -61,16 +63,18 @@ mkTurretProjectile pos dir bossEnemyData = do
         dummyHbx = dummyHitbox pos
         cfg      = _boss $ _config (bossEnemyData :: BossEnemyData)
 
-    spr <- loadPackSprite projectileSprPath
+    beamMidSpr        <- loadPackSprite projectileSprPath
+    beamMidFadeOutImg <- loadPackImage projectileFadeOutImgPath
 
     let
         atkProjData = TurretProjectileData
-            { _mode       = SeekingWallMode
-            , _pos        = pos
-            , _dir        = dir
-            , _width      = _turretProjMaxRange cfg
-            , _beamMidSpr = spr
-            , _config     = cfg
+            { _mode              = SeekingWallMode
+            , _pos               = pos
+            , _dir               = dir
+            , _width             = _turretProjMaxRange cfg
+            , _beamMidSpr        = beamMidSpr
+            , _beamMidFadeOutImg = beamMidFadeOutImg
+            , _config            = cfg
             }
 
     msgId <- newId
@@ -80,6 +84,7 @@ mkTurretProjectile pos dir bossEnemyData = do
         , _update               = updateAtkProj
         , _draw                 = drawAtkProj
         , _processCollisions    = processAtkProjCollisions
+        , _voluntaryClear       = voluntaryClearData
         }
 
 atkProjHitbox :: ProjectileHitbox TurretProjectileData
@@ -204,4 +209,13 @@ drawAtkProj atkProj = case _mode atkProjData of
             when (midWidth > 0.0) $
                 drawSpriteRect midPos midWidth midSprImgHeight bossUnderBodyZIndex beamMidSpr
 
+    where atkProjData = _data atkProj
+
+voluntaryClearData :: ProjectileVoluntaryClear TurretProjectileData
+voluntaryClearData atkProj = Just $ ProjectileVoluntaryClearData
+    { _pos    = hitboxCenter $ atkProjHitbox atkProj
+    , _dir    = _dir (atkProjData :: TurretProjectileData)
+    , _zIndex = bossUnderBodyZIndex
+    , _image  = _beamMidFadeOutImg atkProjData
+    }
     where atkProjData = _data atkProj

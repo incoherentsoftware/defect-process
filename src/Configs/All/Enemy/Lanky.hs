@@ -32,6 +32,7 @@ data LankyEnemyConfig = LankyEnemyConfig
     , _maxAuraHealth                 :: Health
     , _auraBreakScreenshakeMagnitude :: ScreenshakeMagnitude
 
+    , _tauntUnderlayDrawScale      :: DrawScale
     , _groundImpactEffectDrawScale :: DrawScale
     , _wallImpactEffectDrawScale   :: DrawScale
 

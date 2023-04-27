@@ -38,12 +38,14 @@ mkBatEnemy pos dir = do
     enemy             <- mkEnemy enData pos dir
     batCfg            <- readEnemyConfig _bat
     lockOnReticleData <- readEnemyLockOnConfig _bat
+    tauntedData       <- mkEnemyTauntedData $ _tauntUnderlayDrawScale batCfg
 
     return . Some $ enemy
         { _type                   = Just BatEnemy
         , _health                 = _health (batCfg :: BatEnemyConfig)
         , _hitbox                 = hitbox
         , _lockOnReticleData      = lockOnReticleData
+        , _tauntedData            = Just tauntedData
         , _thinkAI                = thinkAI
         , _updateHurtResponse     = updateHurtResponse
         , _updateGroundResponse   = updateGroundResponse

@@ -8,10 +8,12 @@ import qualified Data.List.NonEmpty as NE
 
 import Attack
 import Collision
+import Configs
 import Constants
 import Enemy.All.Boss.AttackDescriptions
 import Enemy.All.Boss.Data
 import Enemy.All.Boss.WallProjectile
+import Enemy.TauntedData
 import Id
 import Msg
 import Projectile as P
@@ -46,22 +48,30 @@ data SummonWallSpawnerProjData = SummonWallSpawnerProjData
     , _waveCooldownTtl     :: Secs
     , _wallAttackDesc      :: AttackDescription
     , _knownInnerLeftWallX :: PosX
+    , _tauntedStatus       :: EnemyTauntedStatus
     }
 
-mkSummonWallSpawnerProjData :: BossEnemyData -> SummonWallSpawnerProjData
-mkSummonWallSpawnerProjData enemyData = SummonWallSpawnerProjData
+mkSummonWallSpawnerProjData :: BossEnemyData -> EnemyTauntedStatus -> SummonWallSpawnerProjData
+mkSummonWallSpawnerProjData enemyData tauntedStatus = SummonWallSpawnerProjData
     { _waveCooldownSecs    = NE.tail allWaveCooldownSecs
     , _waveCooldownTtl     = NE.head allWaveCooldownSecs
     , _wallAttackDesc      = _wallProjectile $ _attackDescs enemyData
     , _knownInnerLeftWallX = _knownInnerLeftWallX (enemyData :: BossEnemyData)
+    , _tauntedStatus       = tauntedStatus
     }
 
-mkSummonWallSpawnerProjectile :: MonadIO m => Pos2 -> BossEnemyData -> MsgId -> m (Some Projectile)
-mkSummonWallSpawnerProjectile pos bossEnemyData bossEnemyMsgId = do
+mkSummonWallSpawnerProjectile
+    :: (ConfigsRead m, MonadIO m)
+    => Pos2
+    -> BossEnemyData
+    -> MsgId
+    -> EnemyTauntedStatus
+    -> m (Some Projectile)
+mkSummonWallSpawnerProjectile pos bossEnemyData bossEnemyMsgId tauntedStatus = do
     msgId <- newId
     let
         dummyHbx            = dummyHitbox $ pos `vecAdd` spawnerOffset
-        wallSpawnerProjData = mkSummonWallSpawnerProjData bossEnemyData
+        wallSpawnerProjData = mkSummonWallSpawnerProjData bossEnemyData tauntedStatus
 
     return . Some $ (mkProjectile wallSpawnerProjData msgId dummyHbx maxSecs)
         { _think   = thinkSummonWallSpawnerProj
@@ -87,8 +97,9 @@ thinkSummonWallSpawnerProj wallSpawnerProj =
                         positions           = pattern $ hitboxCenter (projectileHitbox wallSpawnerProj)
                         wallAttackDesc      = _wallAttackDesc wallSpawnerProjData
                         knownInnerLeftWallX = _knownInnerLeftWallX (wallSpawnerProjData :: SummonWallSpawnerProjData)
+                        tauntedStatus       = _tauntedStatus wallSpawnerProjData
                         mkWallProjs         = for positions $ \pos ->
-                            mkWallProjectile pos wallAttackDesc knownInnerLeftWallX
+                            mkWallProjectile pos wallAttackDesc knownInnerLeftWallX tauntedStatus
 
                     return
                         ( [mkMsg $ NewUpdateProjectileMsgAddsM mkWallProjs]

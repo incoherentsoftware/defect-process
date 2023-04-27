@@ -32,7 +32,7 @@ runBehaviorInstr aiEnabled cmd enemy
 
         aiDisabledMsgs =
             let
-                setIdleMsgs = case _behavior (_data enemy) of
+                setIdleMsgs = case _behavior (E._data enemy) of
                     IdleBehavior -> []
                     _            -> startIdleBehavior enemy
             in case cmd of
@@ -60,7 +60,7 @@ startDeathBehavior enemy = deathSoundMsg:updateMsg
         deathSoundMsg = mkMsg $ AudioMsgPlaySound enemyDeathSoundPath pos
 
         updateMsg = mkEnemyUpdateMsg enemy $ \e -> e
-            { _data   = (_data e) {_behavior = DeathBehavior}
+            { _data   = (E._data e) {_behavior = DeathBehavior}
             , _vel    = zeroVel2
             , _attack = Nothing
             }
@@ -96,8 +96,7 @@ createBubbleProjMessages enemy = [mkMsg $ NewThinkProjectileMsgAddM mkBubbleProj
     where
         pos          = attackProjOffset enemy
         dir          = E._dir enemy
-        enemyData    = E._data enemy
-        mkBubbleProj = mkBubbleProjectile pos dir enemyData
+        mkBubbleProj = mkBubbleProjectile pos dir (enemyTauntedStatus enemy)
 
 startIdleBehavior :: Enemy BubbleTurretEnemyData -> [Msg ThinkEnemyMsgsPhase]
 startIdleBehavior enemy = clearAtkMsg:mkEnemyUpdateBehaviorMsg enemy IdleBehavior

@@ -43,6 +43,7 @@ mkSpearEnemy pos dir = do
     enemy             <- mkEnemy enemyData pos dir
     spearCfg          <- readEnemyConfig _spear
     lockOnReticleData <- readEnemyLockOnConfig _spear
+    tauntedData       <- mkEnemyTauntedData $ _tauntUnderlayDrawScale spearCfg
 
     return . Some $ enemy
         { _type                   = Just SpearEnemy
@@ -50,6 +51,7 @@ mkSpearEnemy pos dir = do
         , _hitbox                 = spearEnemyHitbox
         , _pullable               = not . isSpearEnemySuperArmor
         , _lockOnReticleData      = lockOnReticleData
+        , _tauntedData            = Just tauntedData
         , _thinkAI                = thinkAI
         , _updateHurtResponse     = updateHurtResponse
         , _updateGroundResponse   = updateGroundResponse

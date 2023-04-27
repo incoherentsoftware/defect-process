@@ -152,6 +152,7 @@ instance AllowMsgRead UpdateEnemyMsgsPhase CollisionMsgPayload where
 instance AllowMsgRead UpdateEnemyMsgsPhase EnemyMsgPayload where
 instance AllowMsgRead UpdateEnemyMsgsPhase HurtMsgPayload where
 instance AllowMsgRead UpdateEnemyMsgsPhase InfoMsgPayload where
+instance AllowMsgRead UpdateEnemyMsgsPhase PlayerMsgPayload where
 instance AllowMsgWrite UpdateEnemyMsgsPhase AudioMsgPayload where
 instance AllowMsgWrite UpdateEnemyMsgsPhase ConsoleMsgPayload where
 instance AllowMsgWrite UpdateEnemyMsgsPhase NewUpdateProjectileMsgPayload where

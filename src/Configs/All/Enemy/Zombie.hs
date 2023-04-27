@@ -32,6 +32,7 @@ data ZombieEnemyConfig = ZombieEnemyConfig
     , _forceAtkRangeY        :: Distance
     , _atkSpitProjOffset     :: Pos2
 
+    , _tauntUnderlayDrawScale      :: DrawScale
     , _groundImpactEffectDrawScale :: DrawScale
     , _wallImpactEffectDrawScale   :: DrawScale
 

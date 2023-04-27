@@ -225,11 +225,13 @@ data PlayerMsgPayload where
     PlayerMsgForceInAir                   :: PlayerMsgPayload
     PlayerMsgWarpOut                      :: PlayerMsgPayload
     PlayerMsgTouchingInfoSign             :: PlayerMsgPayload
+    PlayerMsgTaunt                        :: PlayerMsgPayload
 
 data ProjectileMsgPayload where
     ProjectileMsgSetVelocity     :: Vel2 -> ProjectileMsgPayload
     ProjectileMsgSetHitbox       :: Hitbox -> ProjectileMsgPayload
     ProjectileMsgSetTtl          :: Secs -> ProjectileMsgPayload
+    ProjectileMsgVoluntaryClear  :: ProjectileMsgPayload
     ProjectileMsgRemoveCollision :: ProjectileMsgPayload
     ProjectileMsgRemoveThink     :: ProjectileMsgPayload
     ProjectileMsgRemoveUpdate    :: ProjectileMsgPayload

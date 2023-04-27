@@ -7,7 +7,6 @@ import qualified Data.List.NonEmpty as NE
 import qualified Data.Set as S
 
 import Attack
-import Attack.Projectile
 import Collision
 import Configs
 import Configs.All.PlayerGun
@@ -92,10 +91,10 @@ mkMine player = do
         }
 
 updateMine :: Monad m => ProjectileUpdate MineData m
-updateMine mine = return . updateMinePosVel $ mine {P._data = mineData {_status = status}}
+updateMine mine = return . updateMinePosVel $ mine {P._data = mineData {_status = status} :: MineData}
     where
         mineData = P._data mine
-        status   = case _status mineData of
+        status   = case _status (mineData :: MineData) of
             MineOffStatus          -> MineOffStatus
             MineOnStatus armingTtl -> MineOnStatus $ max 0.0 (armingTtl - timeStep)
 
@@ -146,7 +145,7 @@ processMineCollisions collisions mine = foldr processCollision [] collisions
             _ -> msgs
 
             where
-                isArmed = case _status (P._data mine) of
+                isArmed = case _status (P._data mine :: MineData) of
                     MineOnStatus armingTtl -> armingTtl <= 0.0
                     MineOffStatus          -> False
 
@@ -165,7 +164,7 @@ mineSurfaceCollision surfaceHbx mine =
                 in setHitboxTopLeft pos hbx
             | otherwise                                                                     -> hbx
 
-        audioMsgs = case _status (P._data mine) of
+        audioMsgs = case _status (P._data mine :: MineData) of
             MineOffStatus  -> [mkMsg $ AudioMsgPlaySound mineLandSoundPath (hitboxCenter hbx')]
             MineOnStatus _ -> []
 
@@ -175,10 +174,10 @@ mineSurfaceCollision surfaceHbx mine =
                 armingSecs = _mineArmingSecs $ _config (mnData :: MineData)
             in mn
                 { P._data = mnData
-                    { _status = case _status mnData of
+                    { _status = case _status (mnData :: MineData) of
                         MineOffStatus -> MineOnStatus armingSecs
                         status        -> status
-                    }
+                    } :: MineData
                 }
 
 mineEnemyCollision :: Projectile MineData -> [Msg ThinkCollisionMsgsPhase]
@@ -200,13 +199,13 @@ drawMine mine =
         hbx      = projectileHitbox mine
         pos      = hitboxBotCenter hbx
         mineData = P._data mine
-        img      = case _status mineData of
+        img      = case _status (mineData :: MineData) of
             MineOffStatus  -> _mineOffImage mineData
             MineOnStatus _ -> _mineOnImage mineData
     in do
         drawImage pos RightDir worldProjectileZIndex img
 
-        case _status mineData of
+        case _status (mineData :: MineData) of
             MineOffStatus  -> return ()
             MineOnStatus _ -> drawImage pos RightDir worldProjectileZIndex (_mineOverlayImage mineData)
 

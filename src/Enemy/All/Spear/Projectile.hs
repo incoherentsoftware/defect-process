@@ -9,11 +9,14 @@ import qualified Data.Set as S
 import Attack
 import Attack.Hit
 import Collision
+import Configs
 import Configs.All.Enemy
 import Configs.All.Enemy.Spear
 import Constants
 import Enemy.All.Spear.AttackDescriptions
 import Enemy.All.Spear.Data
+import Enemy.TauntedData
+import Enemy.Util
 import FileCache
 import Id
 import Msg
@@ -57,15 +60,21 @@ spearProjectileSurfaceHitbox spearProj = rectHitbox pos width height
 spearProjectileSurface :: ProjectileSurface SpearProjectileData
 spearProjectileSurface spearProj = Just $ mkPlatformSurface (spearProjectileSurfaceHitbox spearProj)
 
-mkSpearProjectile :: MonadIO m => Pos2 -> Direction -> SpearEnemyData -> m (Some Projectile)
-mkSpearProjectile enemyPos dir enemyData =
+mkSpearProjectile
+    :: (ConfigsRead m, MonadIO m)
+    => Pos2
+    -> Direction
+    -> SpearEnemyData
+    -> EnemyTauntedStatus
+    -> m (Some Projectile)
+mkSpearProjectile enemyPos dir enemyData tauntedStatus =
     let
         spearCfg               = _spear $ _config enemyData
         releaseSpearProjOffset = _releaseSpearProjOffset spearCfg `vecFlip` dir
         pos                    = enemyPos `vecAdd` releaseSpearProjOffset
         atkDesc                = _spearProj $ _attackDescs enemyData
     in do
-        atk <- mkAttack pos dir atkDesc
+        atk <- mkEnemyAttack pos dir atkDesc tauntedStatus
         let
             vel           = attackVelToVel2 (attackVel atk) zeroVel2
             spearProjData = mkSpearProjectileData atk spearCfg
@@ -80,6 +89,7 @@ mkSpearProjectile enemyPos dir enemyData =
             , _update               = updateSpearProjectile
             , _draw                 = drawSpearProjectile
             , _processCollisions    = processCollisions
+            , _voluntaryClear       = voluntaryClearData
             }
 
 thinkSpearProjectile :: Monad m => ProjectileThink SpearProjectileData m
@@ -145,3 +155,14 @@ drawSpearProjectile spearProj =
     in do
         pos' <- graphicsLerpPos pos vel
         drawSprite pos' dir enemyAttackProjectileZIndex spr
+
+voluntaryClearData :: ProjectileVoluntaryClear SpearProjectileData
+voluntaryClearData spearProj = case attackImage atk of
+    Nothing  -> Nothing
+    Just img -> Just $ ProjectileVoluntaryClearData
+        { _pos    = _pos (atk :: Attack)
+        , _dir    = _dir (atk :: Attack)
+        , _zIndex = enemyAttackProjectileZIndex
+        , _image  = img
+        }
+    where atk = _attack (P._data spearProj :: SpearProjectileData)

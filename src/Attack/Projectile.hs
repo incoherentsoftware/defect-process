@@ -1,11 +1,6 @@
 module Attack.Projectile
-    ( mkPlayerAttackProjectile
-    , mkEnemyAttackProjectile
-    , mkEnemyAttackProjectileWithMsgId
-    , mkPlayerEnemyAttackProjectile
-    , mkAttackProjectile
-    , mkAttackProjectileWithMsgId
-    , attackProjectileAttack
+    ( mkAttackProjectile
+    , mkAttackProjectileEx
     ) where
 
 import Control.Monad.IO.Class (MonadIO)
@@ -26,53 +21,35 @@ data AttackProjectileData = AttackProjectileData
     { _attack :: Attack
     }
 
-mkPlayerAttackProjectile :: MonadIO m => Pos2 -> Direction -> AttackDescription -> m (Some Projectile)
-mkPlayerAttackProjectile pos dir atkDesc = mkAttackProjectile pos dir atkDesc registeredCollisions
-    where registeredCollisions = [ProjRegisteredEnemyCollision, ProjRegisteredRoomItemCollision]
-
-mkEnemyAttackProjectile :: MonadIO m => Pos2 -> Direction -> AttackDescription -> m (Some Projectile)
-mkEnemyAttackProjectile pos dir atkDesc = mkAttackProjectile pos dir atkDesc [ProjRegisteredPlayerCollision]
-
-mkEnemyAttackProjectileWithMsgId :: MonadIO m => Pos2 -> Direction -> AttackDescription -> MsgId -> m (Some Projectile)
-mkEnemyAttackProjectileWithMsgId pos dir atkDesc msgId =
-    mkAttackProjectileWithMsgId pos dir atkDesc [ProjRegisteredPlayerCollision] msgId
-
-mkPlayerEnemyAttackProjectile :: MonadIO m => Pos2 -> Direction -> AttackDescription -> m (Some Projectile)
-mkPlayerEnemyAttackProjectile pos dir atkDesc = mkAttackProjectile pos dir atkDesc registeredCollisions
-    where
-        registeredCollisions =
-            [ ProjRegisteredPlayerCollision
-            , ProjRegisteredRoomItemCollision
-            , ProjRegisteredEnemyCollision
-            ]
-
 mkAttackProjectile
-    :: MonadIO m
+    :: forall m. MonadIO m
     => Pos2
     -> Direction
     -> AttackDescription
-    -> [ProjectileRegisteredCollision]
+    -> (Pos2 -> Direction -> AttackDescription -> m Attack)
+    -> S.Set ProjectileRegisteredCollision
     -> m (Some Projectile)
-mkAttackProjectile pos dir atkDesc registeredCollisions =
-    mkAttackProjectileWithMsgId pos dir atkDesc registeredCollisions =<< newId
+mkAttackProjectile pos dir atkDesc mkAttackF registeredCollisions =
+    mkAttackProjectileEx pos dir atkDesc mkAttackF registeredCollisions =<< newId
 
-mkAttackProjectileWithMsgId
-    :: MonadIO m
+mkAttackProjectileEx
+    :: forall m. MonadIO m
     => Pos2
     -> Direction
     -> AttackDescription
-    -> [ProjectileRegisteredCollision]
+    -> (Pos2 -> Direction -> AttackDescription -> m Attack)
+    -> S.Set ProjectileRegisteredCollision
     -> MsgId
     -> m (Some Projectile)
-mkAttackProjectileWithMsgId pos dir atkDesc registeredCollisions msgId = do
-    atk <- mkAttack pos dir atkDesc
+mkAttackProjectileEx pos dir atkDesc mkAttackF registeredCollisions msgId = do
+    atk <- mkAttackF pos dir atkDesc
     let
         hbx         = attackProjectileHitbox' atk
         atkProjData = AttackProjectileData {_attack = atk}
 
     return . Some $ (mkProjectile atkProjData msgId hbx maxSecs)
         { _hitbox               = attackProjectileHitbox
-        , _registeredCollisions = S.fromList registeredCollisions
+        , _registeredCollisions = registeredCollisions
         , _think                = thinkAttackProjectile
         , _update               = updateAttackProjectile
         , _draw                 = drawAttackProjectile

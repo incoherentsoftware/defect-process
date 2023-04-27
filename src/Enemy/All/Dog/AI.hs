@@ -154,9 +154,9 @@ thinkHurtBehaviorInstrs hurtTtl hurtType enemy = case hurtType of
 thinkPaceBehaviorInstrs :: PaceStatus -> Enemy DogEnemyData -> [DogEnemyBehaviorInstr]
 thinkPaceBehaviorInstrs paceStatus enemy = case paceStatus of
     PaceForwards paceForwardsTtl
-        | facingPlayer           -> [StartRunTowardsInstr]
-        | paceForwardsTtl <= 0.0 -> [StartPaceTurnAroundInstr]
-        | otherwise              -> [UpdatePaceForwardsInstr paceForwardsTtl]
+        | facingPlayer                           -> [StartRunTowardsInstr]
+        | paceForwardsTtl <= 0.0 || isFlippedDir -> [StartPaceTurnAroundInstr]
+        | otherwise                              -> [UpdatePaceForwardsInstr paceForwardsTtl]
 
     PaceTurnAround
         | enemySpriteFinished enemy -> [FlipDirectionInstr, StartPaceForwardsInstr]
@@ -164,6 +164,7 @@ thinkPaceBehaviorInstrs paceStatus enemy = case paceStatus of
 
     where
         dir          = E._dir enemy
+        isFlippedDir = enemyFlippedDirIfWallOrGround enemy /= dir
         x            = vecX $ E._pos enemy
         facingPlayer = case enemyKnownPlayerPos enemy of
             Nothing           -> False
@@ -184,12 +185,12 @@ thinkBehaviorInstrs enemy = case _behavior enemyData of
         | onGround                          -> [StartPaceForwardsInstr]
 
     RunTowardsBehavior runTowardsTtl
-        | dir' /= dir         -> [StartPaceTurnAroundInstr]
+        | isFlippedDir        -> [StartPaceTurnAroundInstr]
         | runTowardsTtl > 0.0 -> [UpdateRunTowardsInstr runTowardsTtl]
         | otherwise           -> [StartPaceForwardsInstr]
 
     RunFromBehavior runFromTtl
-        | dir' /= dir      -> [StartPaceTurnAroundInstr]
+        | isFlippedDir     -> [StartPaceTurnAroundInstr]
         | runFromTtl > 0.0 -> [UpdateRunFromInstr runFromTtl]
         | otherwise        -> [StartPaceForwardsInstr]
 
@@ -227,7 +228,7 @@ thinkBehaviorInstrs enemy = case _behavior enemyData of
     where
         health        = E._health enemy
         dir           = E._dir enemy
-        dir'          = enemyFlippedDirIfWallOrGround enemy
+        isFlippedDir  = enemyFlippedDirIfWallOrGround enemy /= dir
         enemyData     = _data enemy
         prevBehavior  = _prevBehavior enemyData
         sprFinished   = enemySpriteFinished enemy

@@ -110,7 +110,7 @@ createAttackPillarMessages enemy = [mkMsg $ NewThinkProjectileMsgAddM mkAtkPilla
 
         dir             = E._dir enemy
         atkPillarDesc   = _pillar $ _attackDescs enemyData
-        mkAtkPillarProj = mkLankyProjectile pillarPos dir atkPillarDesc
+        mkAtkPillarProj = mkLankyProjectile pillarPos dir atkPillarDesc (enemyTauntedStatus enemy)
 
 startDeathBehavior :: Enemy LankyEnemyData -> [Msg ThinkEnemyMsgsPhase]
 startDeathBehavior enemy = deathSoundMsg:updateMsg

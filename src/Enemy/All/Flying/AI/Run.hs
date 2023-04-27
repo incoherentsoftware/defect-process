@@ -7,6 +7,7 @@ import Data.Maybe             (fromMaybe)
 
 import Attack
 import Collision
+import Configs
 import Configs.All.Enemy
 import Configs.All.Enemy.Flying
 import Constants
@@ -96,9 +97,9 @@ createAttackProjMessages enemy = [mkMsg $ NewThinkProjectileMsgAddM mkFireball]
             Just knownPos -> knownPos
             Nothing       -> Pos2 (1.0 * directionNeg dir) 1.0  -- aim diagonally down if unknown player position
 
-        mkFireball :: MonadIO m => m (Some Projectile)
+        mkFireball :: (ConfigsRead m, MonadIO m) => m (Some Projectile)
         mkFireball = do
-            fireballAtk <- mkAttack atkPos dir (_fireball atkDescs)
+            fireballAtk <- mkEnemyAttack atkPos dir (_fireball atkDescs) (enemyTauntedStatus enemy)
             mkFlyingProjectile fireballAtk playerPos flyingCfg
 
 startIdleBehavior :: Enemy FlyingEnemyData -> [Msg ThinkEnemyMsgsPhase]

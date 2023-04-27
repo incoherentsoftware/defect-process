@@ -8,7 +8,6 @@ import Data.Foldable          (sequenceA_)
 import qualified Data.Map as M
 
 import Attack
-import Attack.Projectile
 import Configs
 import Configs.All.PlayerWeapon.Gauntlets
 import FileCache

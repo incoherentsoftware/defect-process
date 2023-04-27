@@ -1,6 +1,7 @@
 module Projectile.Types
     ( ProjectileRegisteredCollision(..)
     , ProjectileCollision(..)
+    , ProjectileVoluntaryClearData(..)
     , ProjectileUpdate
     , ProjectileThink
     , ProjectileHitbox
@@ -8,6 +9,7 @@ module Projectile.Types
     , ProjectileUpdateDynamic
     , ProjectileDraw
     , ProjectileProcessCollisions
+    , ProjectileVoluntaryClear
     , Projectile(..)
     ) where
 
@@ -21,6 +23,7 @@ import Enemy.Types
 import Level.Room.Item.Types
 import Msg.Types
 import Util
+import Window.Graphics
 import World.Surface.Types
 
 data ProjectileRegisteredCollision
@@ -39,13 +42,21 @@ data ProjectileCollision where
     ProjRoomItemCollision     :: Some RoomItem -> ProjectileCollision
     ProjPlayerAttackCollision :: Hitbox -> Attack -> ProjectileCollision
 
-type ProjectileUpdate d m          = Projectile d -> m (Projectile d)
-type ProjectileThink d m           = Projectile d -> m [Msg ThinkProjectileMsgsPhase]
+data ProjectileVoluntaryClearData = ProjectileVoluntaryClearData
+    { _pos    :: Pos2
+    , _dir    :: Direction
+    , _zIndex :: ZIndex
+    , _image  :: Image
+    }
+
 type ProjectileHitbox d            = Projectile d -> Hitbox
 type ProjectileSurface d           = Projectile d -> Maybe Surface
+type ProjectileThink d m           = Projectile d -> m [Msg ThinkProjectileMsgsPhase]
+type ProjectileUpdate d m          = Projectile d -> m (Projectile d)
 type ProjectileUpdateDynamic d m   = Dynamic -> Projectile d -> m (Projectile d)
 type ProjectileDraw d m            = Projectile d -> m ()
 type ProjectileProcessCollisions d = [ProjectileCollision] -> Projectile d -> [Msg ThinkCollisionMsgsPhase]
+type ProjectileVoluntaryClear d    = Projectile d -> Maybe ProjectileVoluntaryClearData
 
 data Projectile d = Projectile
     { _data                 :: d
@@ -61,6 +72,7 @@ data Projectile d = Projectile
     , _updateDynamic        :: ProjectileUpdateDynamic d (AppEnv UpdateProjectileMsgsPhase)
     , _draw                 :: ProjectileDraw d (AppEnv DrawMsgsPhase)
     , _processCollisions    :: ProjectileProcessCollisions d
+    , _voluntaryClear       :: ProjectileVoluntaryClear d
     }
 
 instance Eq (Projectile d) where

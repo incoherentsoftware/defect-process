@@ -25,6 +25,7 @@ module Player.Util
     , setPlayerSecondarySkillManagerOrder
     , updatePlayerBufferedInput
     , updatePlayerBufferedInputInHitlag
+    , mkPlayerAttackProjectile
     ) where
 
 import Control.Applicative    ((<|>))
@@ -32,8 +33,10 @@ import Control.Monad.IO.Class (MonadIO)
 import Data.Maybe             (fromMaybe, listToMaybe)
 import System.FilePath        (takeBaseName)
 import qualified Data.Map as M
+import qualified Data.Set as S
 
 import Attack
+import Attack.Projectile
 import Configs
 import Configs.All.Player
 import InfoMsg.Util
@@ -51,6 +54,7 @@ import Player.SecondarySkill.Types
 import Player.Sprites
 import Player.TimersCounters
 import Player.Types
+import Projectile.Types
 import Util
 import Window.Graphics
 import Window.InputState
@@ -234,3 +238,7 @@ updatePlayerBufferedInputInHitlag :: InputRead m => Player -> m Player
 updatePlayerBufferedInputInHitlag player = do
     bufferedInputState <- updatePlayerBufferedInputStateInHitlag $ _bufferedInputState player
     return $ (player :: Player) {_bufferedInputState = bufferedInputState}
+
+mkPlayerAttackProjectile :: MonadIO m => Pos2 -> Direction -> AttackDescription -> m (Some Projectile)
+mkPlayerAttackProjectile pos dir atkDesc = mkAttackProjectile pos dir atkDesc mkAttack registeredCollisions
+    where registeredCollisions = S.fromList [ProjRegisteredEnemyCollision, ProjRegisteredRoomItemCollision]

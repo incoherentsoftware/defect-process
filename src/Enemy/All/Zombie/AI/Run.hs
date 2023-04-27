@@ -220,7 +220,7 @@ createAttackProjMessages atkType enemy = [mkMsg $ NewThinkProjectileMsgAddM mkPr
     where
         pos    = E._pos enemy
         dir    = E._dir enemy
-        mkProj = mkZombieProjectile pos dir atkType (_data enemy)
+        mkProj = mkZombieProjectile pos dir atkType (_data enemy) (enemyTauntedStatus enemy)
 
 resetAtkCooldownMessages :: Enemy ZombieEnemyData -> [Msg ThinkEnemyMsgsPhase]
 resetAtkCooldownMessages enemy = mkEnemyUpdateMsgM enemy $ \e ->

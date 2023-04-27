@@ -41,12 +41,14 @@ mkHopEnemy pos dir = do
     enemy             <- mkEnemyWithId enemyId enemyData pos dir
     hopCfg            <- readEnemyConfig _hop
     lockOnReticleData <- readEnemyLockOnConfig _hop
+    tauntedData       <- mkEnemyTauntedData $ _tauntUnderlayDrawScale hopCfg
 
     return . Some $ enemy
         { _type                   = Just HopEnemy
         , _health                 = _health (hopCfg :: HopEnemyConfig)
         , _hitbox                 = hopEnemyHitbox
         , _lockOnReticleData      = lockOnReticleData
+        , _tauntedData            = Just tauntedData
         , _thinkAI                = thinkAI
         , _updateHurtResponse     = updateHurtResponse
         , _updateGroundResponse   = updateGroundResponse

@@ -13,8 +13,6 @@ import Particle as P
 import Util
 import Window.Graphics
 
-fakeAliveSecs = 999.0 :: Secs
-
 data SimpleData = SimpleData
     { _dir    :: Direction
     , _zIndex :: ZIndex
@@ -97,13 +95,12 @@ loadSimpleParticleInternal pos dir vel zIndex angle scale packSprFilePath = do
             , _sprite = spr
             }
 
-    return . Some $ (mkParticle simpleData pos fakeAliveSecs)
+    return . Some $ (mkParticle simpleData pos maxSecs)
         { _vel    = vel
         , _angle  = angle
         , _draw   = draw
         , _update = update
         }
-
 
 draw :: (GraphicsReadWrite m, MonadIO m) => ParticleDraw SimpleData m
 draw simple = drawSpriteEx pos dir zIndex angle FullOpacity scale spr
@@ -127,4 +124,4 @@ update simple = simple
         simpleData'              = simpleData {_sprite = spr}
         ttl
             | spriteFinished spr = 0.0
-            | otherwise          = fakeAliveSecs
+            | otherwise          = maxSecs

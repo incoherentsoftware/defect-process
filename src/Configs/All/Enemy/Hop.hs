@@ -25,6 +25,7 @@ data HopEnemyConfig = HopEnemyConfig
     , _hopLongVel                    :: Vel2
     , _hopShortVel                   :: Vel2
 
+    , _tauntUnderlayDrawScale      :: DrawScale
     , _groundImpactEffectDrawScale :: DrawScale
     , _wallImpactEffectDrawScale   :: DrawScale
 

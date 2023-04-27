@@ -32,7 +32,7 @@ mkGrappleProjectile shotType player grappleSkill =
         aimAngle    = _aimAngle (grappleData :: GrappleData)
         targetPos   = playerRawAimTargetWithAngle player (_projRange cfg) aimAngle
 
-        playerDir               = _dir player
+        playerDir               = _dir (player :: Player)
         fireDrawAngle           = calculateGunFireDrawAngle playerDir aimAngle
         startLeadShoulderOffset =
             maybe zeroPos2 (\v -> vecFlip v playerDir) (fireDrawAngle `M.lookup` _projStartLeadShoulderOffsets cfg)

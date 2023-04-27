@@ -44,12 +44,14 @@ mkFlailEnemy pos dir = do
     enemy             <- mkEnemyWithId enemyId enemyData pos dir
     flailCfg          <- readEnemyConfig _flail
     lockOnReticleData <- readEnemyLockOnConfig _flail
+    tauntedData       <- mkEnemyTauntedData $ _tauntUnderlayDrawScale flailCfg
 
     return . Some $ enemy
         { _type                   = Just FlailEnemy
         , _health                 = _health (flailCfg :: FlailEnemyConfig)
         , _hitbox                 = flailEnemyHitbox
         , _lockOnReticleData      = lockOnReticleData
+        , _tauntedData            = Just tauntedData
         , _thinkAI                = thinkAI
         , _updateHurtResponse     = updateHurtResponse
         , _updateGroundResponse   = updateGroundResponse

@@ -386,7 +386,7 @@ processFloatingAttackCollisions collisions floatingAtk = foldr processCollision 
                                             mkVertSlashLandAttack surfaceHbx fa
 
                                 -- prevent various attacks from going inside surfaces
-                                | faAtk `attackIn` noInsideSurfacesAtkDescs -> return $ faAtk
+                                | faAtk `attackIn` noInsideSurfacesAtkDescs -> return $ (faAtk :: Attack)
                                     { _pos = _pos (faAtk :: Attack) `vecAdd` offset
                                     }
 

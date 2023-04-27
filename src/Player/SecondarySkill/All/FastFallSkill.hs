@@ -5,7 +5,6 @@ module Player.SecondarySkill.All.FastFallSkill
 import Control.Monad.IO.Class (MonadIO)
 
 import Attack
-import Attack.Projectile
 import Collision
 import Configs
 import Configs.All.PlayerSkill

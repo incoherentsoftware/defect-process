@@ -39,6 +39,7 @@ data EnemyConfig = EnemyConfig
     , _minFallenSecs           :: Secs
     , _minHurtSecs             :: Secs
     , _hitstunLogBase          :: Float
+    , _tauntedDamageMultiplier :: Float
 
     , _axe          :: AxeEnemyConfig
     , _bat          :: BatEnemyConfig

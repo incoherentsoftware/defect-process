@@ -6,6 +6,7 @@ module Attack.Util
     , isHealthZero
     , isHealthMax
     , Damage(..)
+    , multiplyDamage
     , Stagger(..)
     , damageToStagger
     , AttackVel(..)
@@ -65,6 +66,10 @@ newtype Damage = Damage
     }
     deriving (Eq, Ord, Show)
     deriving newtype (FromJSON, Num)
+
+multiplyDamage :: Float -> Damage -> Damage
+multiplyDamage multiplier (Damage val) = Damage val'
+    where val' = ceiling $ fromIntegral val * multiplier
 
 newtype Stagger = Stagger
     { _int :: Int

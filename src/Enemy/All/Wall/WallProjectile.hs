@@ -9,11 +9,14 @@ import qualified Data.Set as S
 import Attack
 import Attack.Hit
 import Collision
+import Configs
 import Configs.All.Enemy
 import Configs.All.Enemy.Wall
 import Constants
 import Enemy.All.Wall.AttackDescriptions
 import Enemy.All.Wall.Data
+import Enemy.TauntedData
+import Enemy.Util
 import FileCache
 import Id
 import Msg
@@ -33,15 +36,21 @@ data WallProjectileData = WallProjectileData
     { _attack :: Attack
     }
 
-mkWallProjectile :: MonadIO m => Pos2 -> Direction -> WallEnemyData -> m (Some Projectile)
-mkWallProjectile enemyPos dir enemyData =
+mkWallProjectile
+    :: (ConfigsRead m, MonadIO m)
+    => Pos2
+    -> Direction
+    -> WallEnemyData
+    -> EnemyTauntedStatus
+    -> m (Some Projectile)
+mkWallProjectile enemyPos dir enemyData tauntedStatus =
     let
         releaseWallProjOffset  = _releaseWallProjOffset $ _wall (_config enemyData)
         releaseWallProjOffset' = releaseWallProjOffset `vecFlip` dir
         pos                    = enemyPos `vecAdd` releaseWallProjOffset'
         atkDesc                = _wallProj $ _attackDescs enemyData
     in do
-        atk <- mkAttack pos dir atkDesc
+        atk <- mkEnemyAttack pos dir atkDesc tauntedStatus
         let
             vel          = attackVelToVel2 (attackVel atk) zeroVel2
             wallProjData = WallProjectileData {_attack = atk}
@@ -54,6 +63,7 @@ mkWallProjectile enemyPos dir enemyData =
             , _update               = updateWallProjectile
             , _draw                 = drawWallProjectile
             , _processCollisions    = processCollisions
+            , _voluntaryClear       = voluntaryClearData
             }
 
 updateWallProjectile :: MsgsWrite UpdateProjectileMsgsPhase m => ProjectileUpdate WallProjectileData m
@@ -118,3 +128,14 @@ drawWallProjectile wallProj =
     in do
         pos' <- graphicsLerpPos pos vel
         drawSprite pos' dir enemyAttackProjectileZIndex spr
+
+voluntaryClearData :: ProjectileVoluntaryClear WallProjectileData
+voluntaryClearData wallProj = case attackImage atk of
+    Nothing  -> Nothing
+    Just img -> Just $ ProjectileVoluntaryClearData
+        { _pos    = _pos (atk :: Attack)
+        , _dir    = _dir (atk :: Attack)
+        , _zIndex = enemyAttackProjectileZIndex
+        , _image  = img
+        }
+    where atk = _attack (P._data wallProj :: WallProjectileData)

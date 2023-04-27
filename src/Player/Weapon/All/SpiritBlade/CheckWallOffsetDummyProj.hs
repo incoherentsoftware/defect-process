@@ -32,7 +32,7 @@ mkCheckWallOffsetDummyProj :: MonadIO m => Attack -> m (Some Projectile)
 mkCheckWallOffsetDummyProj atk = do
     msgId <- newId
     let
-        Pos2 x y = _pos atk
+        Pos2 x y = _pos (atk :: Attack)
         dir      = _dir (atk :: Attack)
         x'       = case dir of
             LeftDir  -> x - dummyProjWidth

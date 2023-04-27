@@ -9,11 +9,14 @@ import qualified Data.Set as S
 import Attack
 import Attack.Hit
 import Collision
+import Configs
 import Configs.All.Enemy
 import Configs.All.Enemy.Boss
 import Constants
 import Enemy.All.Boss.AttackDescriptions
 import Enemy.All.Boss.Data
+import Enemy.TauntedData
+import Enemy.Util
 import FileCache
 import Id
 import Msg
@@ -41,15 +44,21 @@ mkBlobProjectileData atk cfg = BlobProjectileData
     , _config = cfg
     }
 
-mkBlobProjectile :: MonadIO m => Pos2 -> Direction -> BossEnemyData -> m (Some Projectile)
-mkBlobProjectile enemyPos dir enemyData =
+mkBlobProjectile
+    :: (ConfigsRead m, MonadIO m)
+    => Pos2
+    -> Direction
+    -> BossEnemyData
+    -> EnemyTauntedStatus
+    -> m (Some Projectile)
+mkBlobProjectile enemyPos dir enemyData tauntedStatus =
     let
         bossCfg               = _boss $ _config (enemyData :: BossEnemyData)
         blobProjReleaseOffset = _blobProjReleaseOffset bossCfg `vecFlip` dir
         pos                   = enemyPos `vecAdd` blobProjReleaseOffset
         atkDesc               = _blobProjectile $ _attackDescs enemyData
     in do
-        atk <- mkAttack pos dir atkDesc
+        atk <- mkEnemyAttack pos dir atkDesc tauntedStatus
         let
             vel          = attackVelToVel2 (attackVel atk) zeroVel2
             blobProjData = mkBlobProjectileData atk bossCfg
@@ -63,6 +72,7 @@ mkBlobProjectile enemyPos dir enemyData =
             , _update               = updateBlobProjectile
             , _draw                 = drawBlobProjectile
             , _processCollisions    = processCollisions
+            , _voluntaryClear       = voluntaryClearData
             }
 
 thinkBlobProjectile :: Monad m => ProjectileThink BlobProjectileData m
@@ -142,3 +152,14 @@ drawBlobProjectile blobProj =
     in do
         pos' <- graphicsLerpPos pos vel
         drawSprite pos' dir enemyAttackProjectileZIndex spr
+
+voluntaryClearData :: ProjectileVoluntaryClear BlobProjectileData
+voluntaryClearData blobProj = case attackImage atk of
+    Nothing  -> Nothing
+    Just img -> Just $ ProjectileVoluntaryClearData
+        { _pos    = _pos (atk :: Attack)
+        , _dir    = _dir (atk :: Attack)
+        , _zIndex = enemyAttackProjectileZIndex
+        , _image  = img
+        }
+    where atk = _attack (P._data blobProj :: BlobProjectileData)

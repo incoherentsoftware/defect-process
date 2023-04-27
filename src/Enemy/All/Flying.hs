@@ -41,12 +41,14 @@ mkFlyingEnemy pos dir = do
     enemy             <- mkEnemy enData pos dir
     flyingCfg         <- readEnemyConfig _flying
     lockOnReticleData <- readEnemyLockOnConfig _flying
+    tauntedData       <- mkEnemyTauntedData $ _tauntUnderlayDrawScale flyingCfg
 
     return . Some $ enemy
         { _type                   = Just FlyingEnemy
         , _health                 = _health (flyingCfg :: FlyingEnemyConfig)
         , _hitbox                 = hitbox
         , _lockOnReticleData      = lockOnReticleData
+        , _tauntedData            = Just tauntedData
         , _thinkAI                = thinkAI
         , _updateHurtResponse     = updateHurtResponse
         , _updateGroundResponse   = updateGroundResponse

@@ -3,6 +3,7 @@ module Window.Graphics.Sprite
     , module Window.Graphics.Sprite.Parse
     , drawSprite
     , drawSpriteRotated
+    , drawSpriteScaled
     , drawSpriteEx
     , drawSpriteRect
     , updateSprite
@@ -36,6 +37,9 @@ drawSprite pos dir zIndex spr = drawSpriteEx pos dir zIndex 0.0 FullOpacity NonS
 
 drawSpriteRotated :: (GraphicsReadWrite m, MonadIO m) => Pos2 -> Direction -> ZIndex -> Radians -> Sprite -> m ()
 drawSpriteRotated pos dir zIndex angle spr = drawSpriteEx pos dir zIndex angle FullOpacity NonScaled spr
+
+drawSpriteScaled :: (GraphicsReadWrite m, MonadIO m) => Pos2 -> Direction -> ZIndex -> DrawScale -> Sprite -> m ()
+drawSpriteScaled pos dir zIndex drawScale spr = drawSpriteEx pos dir zIndex 0.0 FullOpacity drawScale spr
 
 drawSpriteEx
     :: (GraphicsReadWrite m, MonadIO m)
