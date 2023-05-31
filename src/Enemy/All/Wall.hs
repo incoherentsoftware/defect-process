@@ -46,6 +46,7 @@ mkWallEnemy pos dir = do
         { _type                   = Just WallEnemy
         , _health                 = _health (wallCfg :: WallEnemyConfig)
         , _hitbox                 = wallEnemyHitbox
+        , _inHitstun              = wallEnemyInHitstun
         , _lockOnReticleData      = lockOnReticleData
         , _tauntedData            = Just tauntedData
         , _thinkAI                = thinkAI
@@ -66,6 +67,15 @@ wallEnemyHitbox enemy
         width     = _width (cfg :: WallEnemyConfig)
         height    = _height (cfg :: WallEnemyConfig)
         pos       = Pos2 (x - width / 2.0) (y - height)
+
+wallEnemyInHitstun :: EnemyInHitstun WallEnemyData
+wallEnemyInHitstun enemy = case _behavior (_data enemy) of
+    HurtBehavior _ _    -> True
+    LaunchedBehavior _  -> True
+    FallenBehavior _    -> True
+    GetUpBehavior       -> True
+    WallSplatBehavior _ -> True
+    _                   -> False
 
 updateSpr :: EnemyUpdateSprite WallEnemyData
 updateSpr enemy = case _behavior enemyData of

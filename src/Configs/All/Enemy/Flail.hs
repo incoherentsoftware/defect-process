@@ -25,6 +25,9 @@ data FlailEnemyConfig = FlailEnemyConfig
     , _staggerThreshold       :: Stagger
     , _initialAtkCooldownSecs :: Secs
 
+    , _tauntedIdleSecs    :: Secs
+    , _tauntedRetreatSecs :: Secs
+
     , _attackCooldownSecs        :: Secs
     , _attackForwardsRangeX      :: Distance
     , _attackDiagUpwardsRangeX   :: Distance

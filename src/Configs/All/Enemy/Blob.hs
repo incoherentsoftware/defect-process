@@ -22,6 +22,7 @@ data BlobEnemyConfig = BlobEnemyConfig
     , _minAttackMoveLoops :: Int
     , _maxAttackMoveLoops :: Int
     , _staggerThreshold   :: Stagger
+    , _tauntedIdleSecs    :: Secs
 
     , _tauntUnderlayDrawScale      :: DrawScale
     , _groundImpactEffectDrawScale :: DrawScale

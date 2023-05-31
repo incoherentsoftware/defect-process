@@ -7,12 +7,12 @@ module Window.Graphics.Fonts.Types
 import qualified SDL.Font
 
 data FontType
-    = Font12
-    | Font14
-    | Font16
+    = Font16
     | Font22
     | Font26
+    | Font29
     | Font32
+    | Font36
     | Font44
     | AltFont36
     deriving Show
@@ -28,12 +28,12 @@ instance Show Font where
     show font = show (_type font) ++ show (_sdlFontStyles font)
 
 data GraphicsFonts = GraphicsFonts
-    { _font12    :: Font
-    , _font14    :: Font
-    , _font16    :: Font
+    { _font16    :: Font
     , _font22    :: Font
     , _font26    :: Font
+    , _font29    :: Font
     , _font32    :: Font
+    , _font36    :: Font
     , _font44    :: Font
     , _altFont36 :: Font
     }

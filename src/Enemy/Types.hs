@@ -5,6 +5,7 @@ module Enemy.Types
     , EnemyThinkAI
     , EnemyHitbox
     , EnemyPullable
+    , EnemyInHitstun
     , EnemyUpdateHurtResponse
     , EnemyUpdateGroundResponse
     , EnemyUpdateHangtimeResponse
@@ -96,6 +97,7 @@ data EnemyDummyType
 type EnemyThinkAI d m              = Enemy d -> m [Msg ThinkEnemyMsgsPhase]
 type EnemyHitbox d                 = Enemy d -> Hitbox
 type EnemyPullable d               = Enemy d -> Bool
+type EnemyInHitstun d              = Enemy d -> Bool
 type EnemyUpdateHurtResponse d m   = AttackHit -> Enemy d -> m (Enemy d)
 type EnemyUpdateGroundResponse d m = PosY -> Enemy d -> m (Enemy d)
 type EnemyUpdateHangtimeResponse d = Secs -> Enemy d -> Enemy d
@@ -120,6 +122,7 @@ data Enemy d = Enemy
     , _attack                 :: Maybe Attack
     , _hitbox                 :: EnemyHitbox d
     , _pullable               :: EnemyPullable d
+    , _inHitstun              :: EnemyInHitstun d
     , _lockOnReticleData      :: EnemyLockOnReticleData
     , _tauntedData            :: Maybe EnemyTauntedData
     , _stasisData             :: EnemyStasisData

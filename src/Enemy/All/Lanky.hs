@@ -55,6 +55,7 @@ mkLankyEnemy pos dir = do
         , _health                 = _health (lankyCfg :: LankyEnemyConfig)
         , _hitbox                 = lankyEnemyHitbox
         , _pullable               = lankyEnemyPullable
+        , _inHitstun              = lankyEnemyInHitstun
         , _lockOnReticleData      = lockOnReticleData
         , _tauntedData            = Just tauntedData
         , _thinkAI                = thinkAI
@@ -80,6 +81,16 @@ lankyEnemyHitbox enemy
 
 lankyEnemyPullable :: EnemyPullable LankyEnemyData
 lankyEnemyPullable enemy = not $ hasLankyEnemyDataAura (_data enemy)
+
+lankyEnemyInHitstun :: EnemyInHitstun LankyEnemyData
+lankyEnemyInHitstun enemy = case _behavior (_data enemy) of
+    AuraBreakBehavior   -> True
+    LaunchedBehavior _  -> True
+    HurtBehavior _ _    -> True
+    KneelingBehavior _  -> True
+    GetUpBehavior       -> True
+    WallSplatBehavior _ -> True
+    _                   -> False
 
 updateSpr :: EnemyUpdateSprite LankyEnemyData
 updateSpr enemy = case _behavior enemyData of

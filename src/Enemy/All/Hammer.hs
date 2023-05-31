@@ -53,7 +53,8 @@ mkHammerEnemy pos dir = do
     return . Some $ enemy
         { _type                   = Just HammerEnemy
         , _health                 = _health (hammerCfg :: HammerEnemyConfig)
-        , _hitbox                 = hitbox
+        , _hitbox                 = hammerEnemyHitbox
+        , _inHitstun              = hammerEnemyInHitstun
         , _lockOnReticleData      = lockOnReticleData
         , _tauntedData            = Just tauntedData
         , _thinkAI                = thinkAI
@@ -64,8 +65,8 @@ mkHammerEnemy pos dir = do
         , _setDebugBehavior       = setDebugBehavior
         }
 
-hitbox :: EnemyHitbox HammerEnemyData
-hitbox enemy
+hammerEnemyHitbox :: EnemyHitbox HammerEnemyData
+hammerEnemyHitbox enemy
     | _behavior enemyData `elem` intangibleBehaviors = dummyHitbox $ Pos2 x (y - height / 2.0)
     | otherwise                                      = hbx
     where
@@ -76,6 +77,15 @@ hitbox enemy
         height    = _height (cfg :: HammerEnemyConfig)
         pos       = Pos2 (x - width / 2.0) (y - height)
         hbx       = rectHitbox pos width height
+
+hammerEnemyInHitstun :: EnemyInHitstun HammerEnemyData
+hammerEnemyInHitstun enemy = case _behavior (_data enemy) of
+    HurtBehavior _ _     -> True
+    LaunchedBehavior _ _ -> True
+    FallenBehavior _     -> True
+    SitUpBehavior        -> True
+    WallSplatBehavior _  -> True
+    _                    -> False
 
 updateHammerSpr :: EnemyUpdateSprite HammerEnemyData
 updateHammerSpr enemy = case _behavior enemyData of

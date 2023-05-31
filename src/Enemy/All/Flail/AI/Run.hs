@@ -20,7 +20,7 @@ import Window.Graphics
 
 runBehaviorInstr :: Bool -> FlailEnemyBehaviorInstr -> Enemy FlailEnemyData -> [Msg ThinkEnemyMsgsPhase]
 runBehaviorInstr aiEnabled cmd enemy
-    | aiEnabled = aiEnabledMsgs
+    | aiEnabled = aiEnabledMsgs'
     | otherwise = aiDisabledMsgs
     where
         aiEnabledMsgs = case cmd of
@@ -48,6 +48,19 @@ runBehaviorInstr aiEnabled cmd enemy
             StartDeathInstr                   -> startDeathBehavior enemy
             SetDeadInstr                      -> enemySetDeadMessages enemy
 
+        cfg                = _flail $ _config (_data enemy)
+        tauntedIdleSecs    = _tauntedIdleSecs cfg
+        tauntedRetreatSecs = _tauntedRetreatSecs cfg
+
+        aiEnabledMsgs' = case enemyTauntedStatus enemy of
+            EnemyTauntedInactive -> aiEnabledMsgs
+            EnemyTauntedActive   -> case cmd of
+                UpdateIdleInstr idleTtl
+                    | idleTtl > tauntedIdleSecs       -> updateIdleBehavior tauntedIdleSecs enemy
+                UpdateRetreatInstr retreatTtl
+                    | retreatTtl > tauntedRetreatSecs -> updateRetreatBehavior tauntedRetreatSecs enemy
+                _                                     -> aiEnabledMsgs
+
         aiDisabledMsgs =
             let
                 setIdleMsgs = case _behavior (_data enemy) of
@@ -63,7 +76,7 @@ runBehaviorInstr aiEnabled cmd enemy
                 StartWalkToIdleInstr    -> setIdleMsgs
                 FacePlayerInstr         -> setIdleMsgs
                 StartAttackInstr _      -> setIdleMsgs
-                _                       -> aiEnabledMsgs
+                _                       -> aiEnabledMsgs'
 
 mkEnemyUpdateBehaviorMsg :: Enemy FlailEnemyData -> FlailEnemyBehavior -> [Msg ThinkEnemyMsgsPhase]
 mkEnemyUpdateBehaviorMsg enemy behavior = mkEnemyUpdateMsg enemy $ \e -> e

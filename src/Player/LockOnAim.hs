@@ -351,18 +351,24 @@ updateLockOnPosHealth lockOnAim = case _enemyLockOn (lockOnAim :: PlayerLockOnAi
     Just enLockOn ->
         let
             processLockOnDatas :: [EnemyLockOnData] -> PlayerLockOnAim
-            processLockOnDatas []              = clearPlayerLockOnAim lockOnAim
+            processLockOnDatas [] = clearPlayerLockOnAim lockOnAim
             processLockOnDatas (lockOnData:lockOnDatas)
                 | _enemyId (lockOnData :: EnemyLockOnData) == currentEnemyId =
-                    let enemyPos = hitboxBotCenter $ _enemyHitbox lockOnData
-                    in lockOnAim
-                        { _enemyLockOn = Just $ enLockOn
-                            { _enemyHealth = _enemyHealth (lockOnData :: EnemyLockOnData)
-                            , _enemyVel    = _enemyVel (lockOnData :: EnemyLockOnData)
-                            , _lockOnPos   = enemyPos `vecAdd` _reticleOffset lockOnData
+                    let
+                        enemyHbx = _enemyHitbox lockOnData
+                        enemyPos = hitboxBotCenter enemyHbx
+                    in if
+                        | isDummyHitbox enemyHbx -> clearPlayerLockOnAim lockOnAim
+                        | otherwise              -> lockOnAim
+                            { _enemyLockOn = Just $ enLockOn
+                                { _enemyHealth = _enemyHealth (lockOnData :: EnemyLockOnData)
+                                , _enemyVel    = _enemyVel (lockOnData :: EnemyLockOnData)
+                                , _lockOnPos   = enemyPos `vecAdd` _reticleOffset lockOnData
+                                }
                             }
-                        }
-                | otherwise                                                  = processLockOnDatas lockOnDatas
+
+                | otherwise = processLockOnDatas lockOnDatas
+
                 where currentEnemyId = _enemyId (enLockOn :: PlayerEnemyLockOn)
         in processLockOnDatas <$> readMsgsEnemyLockOnData
 

@@ -3,7 +3,7 @@ module Player.Think
     ) where
 
 import Control.Monad       (when)
-import Control.Monad.State (execState, gets, modify)
+import Control.Monad.State (execState, execStateT, gets, lift, modify)
 import Data.Maybe          (isNothing)
 import qualified Data.Set as S
 
@@ -21,7 +21,7 @@ import Player.LockOnAim
 import Player.MovementSkill as MS
 import Player.SecondarySkill as SS
 import Player.SecondarySkill.Manager
-import Player.Taunts
+import Player.TauntState
 import Player.Weapon as W
 import Player.Weapon.Manager
 import Util
@@ -30,7 +30,8 @@ import Window.InputState
 
 invalidActionSoundPath = "event:/SFX Events/Level/pickup-item-cant-buy" :: FilePath
 
-tauntFrameTag = FrameTagName "taunt" :: FrameTagName
+tauntActivateFrameTagName = FrameTagName "tauntActivate" :: FrameTagName
+preTauntFrameTagName      = FrameTagName "preTaunt"      :: FrameTagName
 
 playerInteractMsgs :: InputState -> Player -> [Msg ThinkPlayerMsgsPhase]
 playerInteractMsgs inputState player
@@ -146,7 +147,10 @@ playerInvalidActionUiMsgs inputState player =
         unlessM (gets null) $
             modify (mkMsg (AudioMsgPlaySoundCentered invalidActionSoundPath):)
 
-playerTauntMsgs :: (ConfigsRead m, InputRead m) => Player -> m [Msg ThinkPlayerMsgsPhase]
+playerTauntMsgs
+    :: (ConfigsRead m, InputRead m, MsgsRead ThinkPlayerMsgsPhase m)
+    => Player
+    -> m [Msg ThinkPlayerMsgsPhase]
 playerTauntMsgs player = do
     isTauntEnabled <- not <$> readSettingsConfig _debug _disablePlayerTaunt
     inputState     <- readInputState
@@ -156,16 +160,31 @@ playerTauntMsgs player = do
         isTauntInput =
             (UpAlias `aliasHold` inputState || DownAlias `aliasHold` inputState) &&
             InteractAlias `aliasPressed` inputState
+        tauntState   = _tauntState player
 
-    return $ flip execState [] $ do
+    flip execStateT [] $ do
         when (isTauntEnabled && onGround && isTauntInput) $
-            let tauntAtkDesc = _taunt $ _taunts player
-            in modify (mkMsg (PlayerMsgSetAttackDesc tauntAtkDesc):)
+            modify (mkMsg (PlayerMsgSetAttackDesc $ _tauntAttack tauntState):)
 
         case playerAttackSprite player of
-            Just atkSpr
-                | tauntFrameTag `isSpriteFrameTag` atkSpr && _frameChanged atkSpr -> modify (mkMsg PlayerMsgTaunt:)
-            _                                                                     -> return ()
+            Just atkSpr ->
+                let
+                    isFrameTag   = \t -> t `isSpriteFrameTag` atkSpr
+                    frameChanged = _frameChanged atkSpr
+                    frameIdx     = _frameIndex atkSpr
+                in do
+                    when (isFrameTag preTauntFrameTagName && frameChanged && frameIdx == 0) $
+                        modify (playerTauntStateClearHitstunEnemyIdsMsg tauntState:)
+
+                    when (isFrameTag preTauntFrameTagName) $ do
+                        msg <- lift $ playerTauntStateUpdateHitstunEnemyIdsMsg tauntState
+                        modify (msg:)
+
+                    when (isFrameTag tauntActivateFrameTagName && frameChanged) $ do
+                        msgs <- lift $ playerTauntStateActivateMsgs tauntState
+                        modify (msgs ++)
+
+            _ -> return ()
 
 thinkPlayer :: Player -> AppEnv ThinkPlayerMsgsPhase ()
 thinkPlayer player

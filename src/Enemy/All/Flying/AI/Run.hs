@@ -16,6 +16,7 @@ import Enemy.All.Flying.AttackDescriptions
 import Enemy.All.Flying.Behavior
 import Enemy.All.Flying.Data
 import Enemy.All.Flying.Projectile
+import Enemy.All.Flying.Util
 import Msg
 import Projectile
 import Util
@@ -23,7 +24,7 @@ import Window.Graphics
 
 runBehaviorInstr :: Bool -> FlyingEnemyBehaviorInstr -> Enemy FlyingEnemyData -> [Msg ThinkEnemyMsgsPhase]
 runBehaviorInstr aiEnabled cmd enemy
-    | aiEnabled = aiEnabledMsgs
+    | aiEnabled = aiEnabledMsgs'
     | otherwise = aiDisabledMsgs
     where
         aiEnabledMsgs = case cmd of
@@ -47,6 +48,16 @@ runBehaviorInstr aiEnabled cmd enemy
             StartDeathInstr                        -> startDeathBehavior enemy
             SetDeadInstr                           -> enemySetDeadMessages enemy
 
+        cfg             = _flying $ _config (E._data enemy)
+        tauntedIdleSecs = _tauntedIdleSecs cfg
+
+        aiEnabledMsgs' = case enemyTauntedStatus enemy of
+            EnemyTauntedInactive -> aiEnabledMsgs
+            EnemyTauntedActive   -> case cmd of
+                UpdateIdleInstr idleTtl
+                    | idleTtl > tauntedIdleSecs -> updateIdleBehavior tauntedIdleSecs enemy
+                _                               -> aiEnabledMsgs
+
         aiDisabledMsgs =
             let
                 setIdleMsgs = case _behavior (E._data enemy) of
@@ -57,7 +68,7 @@ runBehaviorInstr aiEnabled cmd enemy
                 FacePlayerInstr         -> setIdleMsgs
                 StartAttackInstr _      -> setIdleMsgs
                 CreateAttackProjInstr   -> setIdleMsgs
-                _                       -> aiEnabledMsgs
+                _                       -> aiEnabledMsgs'
 
 mkEnemyUpdateBehaviorMsg :: Enemy FlyingEnemyData -> FlyingEnemyBehavior -> [Msg ThinkEnemyMsgsPhase]
 mkEnemyUpdateBehaviorMsg enemy behavior = mkEnemyUpdateMsg enemy $ \e ->
@@ -153,7 +164,7 @@ startAttackBehavior atkDesc enemy = setAtkMsg:enemyUpdateMsg
 
         enemyUpdateMsg = mkEnemyUpdateMsg enemy $ \e -> e
             { _data = (E._data e)
-                { _attackCooldown = cooldown
+                { _attackCooldown = cooldown * attackCooldownMultiplier e
                 , _behavior       = AttackBehavior
                 , _prevAttackType = atkType
                 }

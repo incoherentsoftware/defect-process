@@ -269,7 +269,8 @@ processPlayerMsgs player = foldlM processMsg player =<< readMsgs
             PlayerMsgForceInAir                         -> return forcePlayerInAir
             PlayerMsgWarpOut                            -> return $ p {_flags = flags {_warpingOut = True}}
             PlayerMsgTouchingInfoSign                   -> return $ p {_flags = flags {_touchingInfoSign = True}}
-            PlayerMsgTaunt                              -> return p
+            PlayerMsgActivateTaunt                      -> return p
+            PlayerMsgUpdateTauntState update            -> return $ p {_tauntState = update (_tauntState p)}
             where
                 updatePlayerMovementSkill :: Typeable d => (MovementSkill d -> MovementSkill d) -> Player
                 updatePlayerMovementSkill update = p {_movementSkill = update' <$> _movementSkill p}

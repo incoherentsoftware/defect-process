@@ -47,6 +47,7 @@ mkHopEnemy pos dir = do
         { _type                   = Just HopEnemy
         , _health                 = _health (hopCfg :: HopEnemyConfig)
         , _hitbox                 = hopEnemyHitbox
+        , _inHitstun              = hopEnemyInHitstun
         , _lockOnReticleData      = lockOnReticleData
         , _tauntedData            = Just tauntedData
         , _thinkAI                = thinkAI
@@ -67,6 +68,15 @@ hopEnemyHitbox enemy
         width     = _width (cfg :: HopEnemyConfig)
         height    = _height (cfg :: HopEnemyConfig)
         pos       = Pos2 (x - width / 2.0) (y - height)
+
+hopEnemyInHitstun :: EnemyInHitstun HopEnemyData
+hopEnemyInHitstun enemy = case _behavior (_data enemy) of
+    HurtBehavior _ _    -> True
+    LaunchedBehavior _  -> True
+    FallenBehavior _    -> True
+    GetUpBehavior       -> True
+    WallSplatBehavior _ -> True
+    _                   -> False
 
 updateSpr :: EnemyUpdateSprite HopEnemyData
 updateSpr enemy = case _behavior enemyData of

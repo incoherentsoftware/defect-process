@@ -71,10 +71,10 @@ mkSettingsControlsTab = do
     let restoreDefaultsBtnPos = _settingsControlsTabRestoreDefaultsButtonPos menuCfg
     restoreDefaultsBtn       <- mkImageButtonCentered restoreDefaultsBtnPos restoreDefaultsButtonImgPath
 
-    notificationDisplayTxt      <- mkDisplayText T.empty Font32 notificationTextColor
-    rebindKeyInputDisplayTxt    <- mkInputDisplayText rebindKeyText Font22 whiteColor
-    clearKeyInputDisplayTxt     <- mkInputDisplayText clearKeyText Font22 whiteColor
-    cancelRebindInputDisplayTxt <- mkInputDisplayText cancelRebindText Font22 whiteColor
+    notificationDisplayTxt      <- mkDisplayText T.empty Font36 notificationTextColor
+    rebindKeyInputDisplayTxt    <- mkInputDisplayText rebindKeyText Font29 whiteColor
+    clearKeyInputDisplayTxt     <- mkInputDisplayText clearKeyText Font29 whiteColor
+    cancelRebindInputDisplayTxt <- mkInputDisplayText cancelRebindText Font29 whiteColor
 
     return $ SettingsControlsTab
         { _buttons                      = tabBtns

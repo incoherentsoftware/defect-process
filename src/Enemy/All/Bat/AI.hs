@@ -46,7 +46,9 @@ isBelowStartPosY :: Enemy BatEnemyData -> Bool
 isBelowStartPosY enemy = vecY (E._pos enemy) > _startPosY (_data enemy)
 
 canAttackPlayer :: Enemy BatEnemyData -> Bool
-canAttackPlayer enemy = _behavior (_data enemy) == PatrolBehavior
+canAttackPlayer enemy = case _behavior (_data enemy) of
+    PatrolBehavior atkCooldownTtl -> atkCooldownTtl <= 0.0
+    _                             -> False
 
 thinkAttackBehaviorInstrs :: Enemy BatEnemyData -> [BatEnemyBehaviorInstr]
 thinkAttackBehaviorInstrs enemy = case _attack enemy of
@@ -107,9 +109,9 @@ thinkBehaviorInstrs enemy = case _behavior enemyData of
         | idleTtl > 0.0                     -> [UpdateIdleInstr idleTtl]
         | otherwise                         -> [StartPatrolInstr]
 
-    PatrolBehavior
-        | prevBehavior /= PatrolBehavior -> [StartPatrolInstr]
-        | otherwise                      -> [UpdatePatrolInstr]
+    PatrolBehavior atkCooldownTtl
+        | not (isPatrolBehavior prevBehavior) -> [StartPatrolInstr]
+        | otherwise                           -> [UpdatePatrolInstr atkCooldownTtl]
 
     AttackBehavior                -> thinkAttackBehaviorInstrs enemy
     HurtBehavior hurtTtl hurtType -> thinkHurtBehaviorInstrs hurtTtl hurtType enemy

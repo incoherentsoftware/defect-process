@@ -23,7 +23,6 @@ data AxeEnemyConfig = AxeEnemyConfig
     , _advanceSpeed   :: Speed
     , _minAdvanceSecs :: Secs
     , _maxAdvanceSecs :: Secs
-
     , _retreatSpeed   :: Speed
     , _minRetreatSecs :: Secs
     , _maxRetreatSecs :: Secs
@@ -37,7 +36,10 @@ data AxeEnemyConfig = AxeEnemyConfig
     , _hurtSecs              :: Secs
     , _staggerThreshold      :: Stagger
 
-    , _tauntUnderlayDrawScale      :: DrawScale
+    , _tauntedIdleSecs       :: Secs
+    , _tauntedMaxRetreatSecs :: Secs
+
+    , _tauntedUnderlayDrawScale    :: DrawScale
     , _groundImpactEffectDrawScale :: DrawScale
     , _wallImpactEffectDrawScale   :: DrawScale
 

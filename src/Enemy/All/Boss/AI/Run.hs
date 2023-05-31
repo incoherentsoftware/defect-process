@@ -2,10 +2,9 @@ module Enemy.All.Boss.AI.Run
     ( runBehaviorInstr
     ) where
 
-import Control.Monad          (when)
-import Control.Monad.IO.Class (MonadIO)
-import Control.Monad.State    (execState, modify)
-import Data.Traversable       (for)
+import Control.Monad       (when)
+import Control.Monad.State (execState, modify)
+import Data.Traversable    (for)
 import qualified Data.List.NonEmpty as NE
 import qualified Data.Map as M
 
@@ -56,47 +55,49 @@ lankyProjPosMultiplierChoices =
     , NE.fromList [0.75, 0.85]
     ] :: [NE.NonEmpty Float]
 
-runBehaviorInstr :: MonadIO m => Bool -> BossEnemyBehaviorInstr -> Enemy BossEnemyData -> m [Msg ThinkEnemyMsgsPhase]
-runBehaviorInstr aiEnabled cmd enemy = do
-    aiEnabledMsgs <- case cmd of
-        StartIdleInstr                     -> return $ startIdleBehavior enemy
-        UpdateIdleInstr idleTtl            -> return $ updateIdleBehavior idleTtl enemy
-        FacePlayerInstr                    -> return $ facePlayerMessages enemy
-        SetAttackInstr atkDesc             -> return $ setAttackMessages atkDesc enemy
-        StartHpThresholdSummonFlyingInstr  -> return $ startHpThresholdSummonFlyingBehavior enemy
-        StartHpThresholdSummonSpearsInstr  -> return $ startHpThresholdSummonSpearsBehavior enemy
-        StartHpThresholdSummonWallsInstr   -> return $ startHpThresholdSummonWallsBehavior enemy
-        StartHpThresholdPhaseOutInstr      -> startHpThresholdPhaseOutBehavior enemy
-        StartHpThresholdAttackInstr        -> return $ startHpThresholdAttackBehavior enemy
-        TeleportToPreHpThresholdPosInstr   -> return $ teleportToPreHpThresholdPosBehavior enemy
-        StartAttackShortInstr              -> return $ startAttackShortBehavior enemy
-        StartAttackMediumAirInstr          -> return $ startAttackMediumAirBehavior enemy
-        StartAttackLongInstr               -> return $ startAttackLongBehavior enemy
-        CreateBlobProjectileInstr          -> return $ createBlobProjectileMessages enemy
-        CreateTurret1ProjectileInstr       -> return $ createTurret1ProjectileMessages enemy
-        CreateTurret2ProjectileInstr       -> return $ createTurret2ProjectileMessages enemy
-        CreateHopProjectilesInstr          -> return $ createHopProjectilesMessages enemy
-        CreateLankyProjectilesInstr        -> return $ createLankyProjectilesMessages enemy
-        StartGuardInstr                    -> return $ startGuardBehavior enemy
-        StartAirGuardInstr                 -> return $ startAirGuardBehavior enemy
-        UpdateAirGuardInstr                -> return $ updateAirGuardBehavior enemy
-        UpdateHurtInstr hurtSecs hurtTtl   -> return $ updateHurtBehavior hurtSecs hurtTtl enemy
-        StartLaunchedInstr hangtimeTtl     -> return $ startLaunchedBehavior hangtimeTtl enemy
-        LaunchedHangtimeInstr hangtimeTtl  -> return $ launchedHangtimeBehavior hangtimeTtl enemy
-        UpdateKneelingInstr kneelingTtl    -> return $ updateKneelingBehavior kneelingTtl enemy
-        StartGetUpInstr                    -> return $ startGetUpBehavior enemy
-        StartWallSplatInstr wallSplatTtl   -> return $ startWallSplatBehavior wallSplatTtl enemy
-        UpdateWallSplatInstr wallSplatTtl  -> return $ updateWallSplatBehavior wallSplatTtl enemy
-        UpdateSpawnInstr                   -> return $ updateSpawnBehavior enemy
-        StartDeathInstr                    -> return $ startDeathBehavior enemy
-        UpdateDeathInstr                   -> return $ updateDeathBehavior enemy
-        StartAirDeathInstr                 -> return $ startAirDeathBehavior enemy
-        UpdateAirDeathInstr                -> return $ updateAirDeathBehavior enemy
-        SetDeadInstr                       -> return $ enemySetDeadMessages enemy
-        PlaySoundContinuousInstr soundPath -> return $ playSoundContinuousMessages soundPath enemy
-        TeleportToPlayerInstr              -> return $ teleportToPlayerMessages enemy
+runBehaviorInstr :: Bool -> BossEnemyBehaviorInstr -> Enemy BossEnemyData -> [Msg ThinkEnemyMsgsPhase]
+runBehaviorInstr aiEnabled cmd enemy
+    | aiEnabled = aiEnabledMsgs
+    | otherwise = aiDisabledMsgs
+    where
+        aiEnabledMsgs = case cmd of
+            StartIdleInstr                     -> startIdleBehavior enemy
+            UpdateIdleInstr idleTtl            -> updateIdleBehavior idleTtl enemy
+            FacePlayerInstr                    -> facePlayerMessages enemy
+            SetAttackInstr atkDesc             -> setAttackMessages atkDesc enemy
+            StartHpThresholdSummonFlyingInstr  -> startHpThresholdSummonFlyingBehavior enemy
+            StartHpThresholdSummonSpearsInstr  -> startHpThresholdSummonSpearsBehavior enemy
+            StartHpThresholdSummonWallsInstr   -> startHpThresholdSummonWallsBehavior enemy
+            StartHpThresholdPhaseOutInstr      -> startHpThresholdPhaseOutBehavior enemy
+            StartHpThresholdAttackInstr        -> startHpThresholdAttackBehavior enemy
+            TeleportToPreHpThresholdPosInstr   -> teleportToPreHpThresholdPosBehavior enemy
+            StartAttackShortInstr              -> startAttackShortBehavior enemy
+            StartAttackMediumAirInstr          -> startAttackMediumAirBehavior enemy
+            StartAttackLongInstr               -> startAttackLongBehavior enemy
+            CreateBlobProjectileInstr          -> createBlobProjectileMessages enemy
+            CreateTurret1ProjectileInstr       -> createTurret1ProjectileMessages enemy
+            CreateTurret2ProjectileInstr       -> createTurret2ProjectileMessages enemy
+            CreateHopProjectilesInstr          -> createHopProjectilesMessages enemy
+            CreateLankyProjectilesInstr        -> createLankyProjectilesMessages enemy
+            StartGuardInstr                    -> startGuardBehavior enemy
+            StartAirGuardInstr                 -> startAirGuardBehavior enemy
+            UpdateAirGuardInstr                -> updateAirGuardBehavior enemy
+            UpdateHurtInstr hurtSecs hurtTtl   -> updateHurtBehavior hurtSecs hurtTtl enemy
+            StartLaunchedInstr hangtimeTtl     -> startLaunchedBehavior hangtimeTtl enemy
+            LaunchedHangtimeInstr hangtimeTtl  -> launchedHangtimeBehavior hangtimeTtl enemy
+            UpdateKneelingInstr kneelingTtl    -> updateKneelingBehavior kneelingTtl enemy
+            StartGetUpInstr                    -> startGetUpBehavior enemy
+            StartWallSplatInstr wallSplatTtl   -> startWallSplatBehavior wallSplatTtl enemy
+            UpdateWallSplatInstr wallSplatTtl  -> updateWallSplatBehavior wallSplatTtl enemy
+            UpdateSpawnInstr                   -> updateSpawnBehavior enemy
+            StartDeathInstr                    -> startDeathBehavior enemy
+            UpdateDeathInstr                   -> updateDeathBehavior enemy
+            StartAirDeathInstr                 -> startAirDeathBehavior enemy
+            UpdateAirDeathInstr                -> updateAirDeathBehavior enemy
+            SetDeadInstr                       -> enemySetDeadMessages enemy
+            PlaySoundContinuousInstr soundPath -> playSoundContinuousMessages soundPath enemy
+            TeleportToPlayerInstr              -> teleportToPlayerMessages enemy
 
-    let
         aiDisabledMsgs =
             let
                 setIdleMsgs = case _behavior (_data enemy) of
@@ -108,10 +109,6 @@ runBehaviorInstr aiEnabled cmd enemy = do
                 StartAttackMediumAirInstr -> setIdleMsgs
                 StartAttackLongInstr      -> setIdleMsgs
                 _                         -> aiEnabledMsgs
-
-    return $ if
-        | aiEnabled -> aiEnabledMsgs
-        | otherwise -> aiDisabledMsgs
 
 mkEnemyUpdateBehaviorMsg :: Enemy BossEnemyData -> BossEnemyBehavior -> [Msg ThinkEnemyMsgsPhase]
 mkEnemyUpdateBehaviorMsg enemy behavior = mkEnemyUpdateMsg enemy $ \e ->
@@ -328,9 +325,9 @@ startHpThresholdAttackBehavior enemy = [setPosMsg, attackMsg] ++ behaviorMsgs
         attackMsg    = mkMsgTo (EnemyMsgSetAttackDesc atkDesc) (E._msgId enemy)
         behaviorMsgs = mkEnemyUpdateBehaviorMsg enemy AttackBehavior
 
-startHpThresholdPhaseOutBehavior :: MonadIO m => Enemy BossEnemyData -> m [Msg ThinkEnemyMsgsPhase]
-startHpThresholdPhaseOutBehavior enemy = do
-    let
+startHpThresholdPhaseOutBehavior :: Enemy BossEnemyData -> [Msg ThinkEnemyMsgsPhase]
+startHpThresholdPhaseOutBehavior enemy = attackMsg:updateDataMsgs
+    where
         enemyData             = E._data enemy
         phaseOutAtkDesc       = _phaseOut $ _attackDescs enemyData
         attackMsg             = mkMsgTo (EnemyMsgSetAttackDesc phaseOutAtkDesc) (E._msgId enemy)
@@ -359,8 +356,6 @@ startHpThresholdPhaseOutBehavior enemy = do
                         }
                     }
                 }
-
-    return $ attackMsg:updateDataMsgs
 
 teleportToPreHpThresholdPosBehavior :: Enemy BossEnemyData -> [Msg ThinkEnemyMsgsPhase]
 teleportToPreHpThresholdPosBehavior enemy =

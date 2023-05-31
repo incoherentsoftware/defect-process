@@ -19,7 +19,7 @@ import Window.Graphics
 
 runBehaviorInstr :: Bool -> AxeEnemyBehaviorInstr -> Enemy AxeEnemyData -> [Msg ThinkEnemyMsgsPhase]
 runBehaviorInstr aiEnabled cmd enemy
-    | aiEnabled = aiEnabledMsgs
+    | aiEnabled = aiEnabledMsgs'
     | otherwise = aiDisabledMsgs
     where
         aiEnabledMsgs = case cmd of
@@ -43,6 +43,19 @@ runBehaviorInstr aiEnabled cmd enemy
             StartDeathInstr                   -> startDeathBehavior enemy
             SetDeadInstr                      -> enemySetDeadMessages enemy
 
+        cfg                   = _axe $ _config (_data enemy)
+        tauntedIdleSecs       = _tauntedIdleSecs cfg
+        tauntedMaxRetreatSecs = _tauntedMaxRetreatSecs cfg
+
+        aiEnabledMsgs' = case enemyTauntedStatus enemy of
+            EnemyTauntedInactive -> aiEnabledMsgs
+            EnemyTauntedActive   -> case cmd of
+                UpdateIdleInstr idleTtl
+                    | idleTtl > tauntedIdleSecs          -> updateIdleBehavior tauntedIdleSecs enemy
+                UpdateRetreatInstr retreatTtl
+                    | retreatTtl > tauntedMaxRetreatSecs -> updateRetreatBehavior tauntedMaxRetreatSecs enemy
+                _                                        -> aiEnabledMsgs
+
         aiDisabledMsgs =
             let
                 setIdleMsgs = case _behavior (_data enemy) of
@@ -54,7 +67,7 @@ runBehaviorInstr aiEnabled cmd enemy
                 StartAttackInstr _   -> setIdleMsgs
                 StartAdvanceInstr    -> setIdleMsgs
                 StartRetreatInstr    -> setIdleMsgs
-                _                    -> aiEnabledMsgs
+                _                    -> aiEnabledMsgs'
 
 mkEnemyUpdateBehaviorMsg :: Enemy AxeEnemyData -> AxeEnemyBehavior -> [Msg ThinkEnemyMsgsPhase]
 mkEnemyUpdateBehaviorMsg enemy behavior = mkEnemyUpdateMsg enemy $ \e -> e

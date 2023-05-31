@@ -16,14 +16,14 @@ import Window.Graphics
 
 runBehaviorInstr :: Bool -> BatEnemyBehaviorInstr -> Enemy BatEnemyData -> [Msg ThinkEnemyMsgsPhase]
 runBehaviorInstr aiEnabled cmd enemy
-    | aiEnabled = aiEnabledMsgs
+    | aiEnabled = aiEnabledMsgs'
     | otherwise = aiDisabledMsgs
     where
         aiEnabledMsgs = case cmd of
             StartIdleInstr                         -> startIdleBehavior enemy
             UpdateIdleInstr idleTtl                -> updateIdleBehavior idleTtl enemy
             StartPatrolInstr                       -> startPatrolBehavior enemy
-            UpdatePatrolInstr                      -> updatePatrolBehavior enemy
+            UpdatePatrolInstr atkCooldownTtl       -> updatePatrolBehavior atkCooldownTtl enemy
             SetDirectionInstr dir                  -> setDirectionMessages dir enemy
             StartAttackInstr                       -> startAttackBehavior enemy
             UpdateHurtInstr hurtTtl hurtType       -> updateHurtBehavior hurtTtl hurtType enemy
@@ -41,16 +41,26 @@ runBehaviorInstr aiEnabled cmd enemy
             StartDeathInstr                        -> startDeathBehavior enemy
             SetDeadInstr                           -> enemySetDeadMessages enemy
 
+        cfg                      = _bat $ _config (_data enemy)
+        tauntedPatrolAtkCooldown = _tauntedPatrolAttackCooldown cfg
+
+        aiEnabledMsgs' = case enemyTauntedStatus enemy of
+            EnemyTauntedInactive -> aiEnabledMsgs
+            EnemyTauntedActive   -> case cmd of
+                UpdatePatrolInstr atkCooldownTtl
+                    | atkCooldownTtl > tauntedPatrolAtkCooldown -> updatePatrolBehavior tauntedPatrolAtkCooldown enemy
+                _                                               -> aiEnabledMsgs
+
         aiDisabledMsgs =
             let
                 setIdleMsgs = case _behavior (_data enemy) of
                     IdleBehavior _ -> []
                     _              -> startIdleBehavior enemy
             in case cmd of
-                StartPatrolInstr  -> setIdleMsgs
-                UpdatePatrolInstr -> setIdleMsgs
-                StartAttackInstr  -> setIdleMsgs
-                _                 -> aiEnabledMsgs
+                StartPatrolInstr    -> setIdleMsgs
+                UpdatePatrolInstr _ -> setIdleMsgs
+                StartAttackInstr    -> setIdleMsgs
+                _                   -> aiEnabledMsgs'
 
 mkBatUpdateMsg :: Enemy BatEnemyData -> (Enemy BatEnemyData -> Enemy BatEnemyData) -> [Msg ThinkEnemyMsgsPhase]
 mkBatUpdateMsg enemy update = mkEnemyUpdateMsg enemy (update . updatePrevBehavior)
@@ -198,15 +208,22 @@ startDeathBehavior enemy = deathSoundMsg:enemyUpdateMsg
             }
 
 startPatrolBehavior :: Enemy BatEnemyData -> [Msg ThinkEnemyMsgsPhase]
-startPatrolBehavior enemy = mkBatUpdateBehaviorMsg enemy PatrolBehavior
-
-updatePatrolBehavior :: Enemy BatEnemyData -> [Msg ThinkEnemyMsgsPhase]
-updatePatrolBehavior enemy = mkBatUpdateMsg enemy $ \e ->
-    let
-        dir         = enemyFlippedDirIfWallOrGround e
-        patrolSpeed = _patrolSpeed . _bat . _config $ _data e
-        vel         = Vel2 (patrolSpeed * directionNeg dir) 0.0
+startPatrolBehavior enemy = mkBatUpdateMsg enemy $ \e ->
+    let patrolAtkCooldown = _patrolAttackCooldown . _bat $ _config (_data e)
     in e
-        { _dir = dir
-        , _vel = vel
+        { _data   = (_data e) {_behavior = PatrolBehavior patrolAtkCooldown}
+        , _attack = Nothing
+        }
+
+updatePatrolBehavior :: Secs -> Enemy BatEnemyData -> [Msg ThinkEnemyMsgsPhase]
+updatePatrolBehavior atkCooldownTtl enemy = mkBatUpdateMsg enemy $ \e ->
+    let
+        atkCooldownTtl' = atkCooldownTtl - timeStep
+        dir             = enemyFlippedDirIfWallOrGround e
+        patrolSpeed     = _patrolSpeed . _bat . _config $ _data e
+        vel             = Vel2 (patrolSpeed * directionNeg dir) 0.0
+    in e
+        { _data = (_data e) {_behavior = PatrolBehavior atkCooldownTtl'}
+        , _dir  = dir
+        , _vel  = vel
         }

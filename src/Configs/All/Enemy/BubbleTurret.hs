@@ -17,12 +17,14 @@ data BubbleTurretEnemyConfig = BubbleTurretEnemyConfig
     , _width  :: Float
     , _height :: Float
 
-    , _aggroRange               :: Distance
-    , _turnAroundTimerSecs      :: Secs
-    , _turnAroundAttackCooldown :: Secs
-    , _initialAttackCooldown    :: Secs
-    , _bubbleAttackCooldown     :: Secs
-    , _bubbleAttackMouthOffset  :: Pos2
+    , _aggroRange                 :: Distance
+    , _turnAroundTimerSecs        :: Secs
+    , _turnAroundAttackCooldown   :: Secs
+    , _initialAttackCooldown      :: Secs
+    , _bubbleAttackCooldown       :: Secs
+    , _bubbleAttackMouthOffset    :: Pos2
+    , _tauntedTurnAroundTimerSecs :: Secs
+    , _tauntedCooldownMultiplier  :: Float
 
     , _bubbleProjWidth              :: Float
     , _bubbleProjHeight             :: Float

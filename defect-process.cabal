@@ -1,11 +1,11 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.35.1.
+-- This file has been generated from package.yaml by hpack version 0.35.2.
 --
 -- see: https://github.com/sol/hpack
 
 name:           defect-process
-version:        1.0.5
+version:        1.0.6
 synopsis:       2d hack n' slash game
 category:       Game
 author:         Garrick Chin
@@ -169,6 +169,7 @@ executable defect-process
       Enemy.All.BubbleTurret.BubbleProjectile
       Enemy.All.BubbleTurret.Data
       Enemy.All.BubbleTurret.Sprites
+      Enemy.All.BubbleTurret.Util
       Enemy.All.Claws
       Enemy.All.Claws.AI
       Enemy.All.Claws.AI.Run
@@ -202,6 +203,7 @@ executable defect-process
       Enemy.All.Flying.Data
       Enemy.All.Flying.Projectile
       Enemy.All.Flying.Sprites
+      Enemy.All.Flying.Util
       Enemy.All.Giant
       Enemy.All.Giant.AI
       Enemy.All.Giant.AI.Run
@@ -551,7 +553,8 @@ executable defect-process
       Player.SecondarySkill.Types
       Player.SoundHashedIds
       Player.Sprites
-      Player.Taunts
+      Player.TauntState
+      Player.TauntState.Types
       Player.Think
       Player.TimersCounters
       Player.Types

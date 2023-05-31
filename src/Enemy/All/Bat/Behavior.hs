@@ -4,6 +4,7 @@ module Enemy.All.Bat.Behavior
     , HangtimeStatus(..)
     , BatEnemyBehavior(..)
     , isIdleBehavior
+    , isPatrolBehavior
     , isHurtBehavior
     , isFallenBehavior
     , isFallenHurtBehavior
@@ -18,7 +19,7 @@ data BatEnemyBehaviorInstr
     = StartIdleInstr
     | UpdateIdleInstr Secs
     | StartPatrolInstr
-    | UpdatePatrolInstr
+    | UpdatePatrolInstr Secs
     | SetDirectionInstr Direction
     | StartAttackInstr
     | UpdateHurtInstr Secs HurtType
@@ -53,7 +54,7 @@ data HangtimeStatus
 data BatEnemyBehavior
     = SpawnBehavior
     | IdleBehavior Secs
-    | PatrolBehavior
+    | PatrolBehavior Secs
     | HurtBehavior Secs HurtType
     | LaunchedBehavior Secs HangtimeStatus
     | FlyUpwardsBehavior
@@ -68,6 +69,11 @@ isIdleBehavior :: BatEnemyBehavior -> Bool
 isIdleBehavior = \case
     IdleBehavior _ -> True
     _              -> False
+
+isPatrolBehavior :: BatEnemyBehavior -> Bool
+isPatrolBehavior = \case
+    PatrolBehavior _ -> True
+    _                -> False
 
 isHurtBehavior :: BatEnemyBehavior -> Bool
 isHurtBehavior = \case

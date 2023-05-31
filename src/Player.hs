@@ -64,7 +64,7 @@ import Player.SecondarySkill as SS
 import Player.SecondarySkill.Manager
 import Player.SoundHashedIds
 import Player.Sprites
-import Player.Taunts
+import Player.TauntState
 import Player.TimersCounters
 import Player.Types
 import Player.Upgrade
@@ -87,8 +87,8 @@ mkPlayer = do
     images             <- mkPlayerImages
     sprites            <- mkPlayerSprites
     overlays           <- mkPlayerOverlays
-    taunts             <- mkPlayerTaunts
     soundHashedIds     <- mkPlayerSoundHashedIds
+    tauntState         <- mkPlayerTauntState
     cfg                <- _player <$> readConfigs
 
     startingSpr <- readSettingsConfig _debug _skipPlayerSpawnAnim <&> \case
@@ -122,8 +122,8 @@ mkPlayer = do
         , _images                = images
         , _sprites               = sprites
         , _overlays              = overlays
-        , _taunts                = taunts
         , _soundHashedIds        = soundHashedIds
+        , _tauntState            = tauntState
         , _config                = cfg
         }
 

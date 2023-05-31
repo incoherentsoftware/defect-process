@@ -46,9 +46,9 @@ insufficientGoldImagePath = unlocksMenuPack "insufficient-gold-overlay.image" ::
 unlockOverlaySpritePath   = unlocksMenuPack "unlock-overlay.spr"              :: PackResourceFilePath
 
 lockedImageNameSuffix          = "-locked.image"                  :: FileName
+insufficientGoldSpacerWidth    = 74.0                             :: Float
 insufficientGoldFadeMultiplier = 2.0                              :: Float
 maxDisplayedTotalGoldValue     = GoldValue 999999                 :: GoldValue
-unlocksText                    = "Unlocks"                        :: T.Text
 unavailableText                = "Unavailable"                    :: T.Text
 viewInfoText                   = "View Info: {MenuSelectAlias.0}" :: T.Text
 unlocksCreditsColor            = Color 158 207 206 255            :: Color
@@ -210,7 +210,6 @@ mkUnlocksMenuData = do
         (\t -> Just $ secondarySkillTypeToHelpPopupDescription t SecondarySkillNeutralSlot)
 
     selectedOverlayImg      <- loadPackImage selectedOverlayImagePath
-    unlocksDisplayTxt       <- mkDisplayText unlocksText Font32 whiteColor
     unavailableDisplayTxt   <- mkDisplayText unavailableText Font32 whiteColor
     viewInfoInputDisplayTxt <- mkInputDisplayText viewInfoText Font26 whiteColor
     mainMenuBtn             <- mkImageButtonCentered (_unlocksMainMenuButtonPos menuCfg) mainMenuButtonImagePath
@@ -227,7 +226,6 @@ mkUnlocksMenuData = do
         , _movementSkillEntries     = movementSkillEntries
         , _secondarySkillEntries    = secondarySkillEntries
         , _selectedOverlayImage     = selectedOverlayImg
-        , _unlocksDisplayText       = unlocksDisplayTxt
         , _unavailableDisplayText   = unavailableDisplayTxt
         , _viewInfoInputDisplayText = viewInfoInputDisplayTxt
         , _mainMenuButton           = mainMenuBtn
@@ -509,7 +507,6 @@ drawUnlocksMenu game =
     let
         unlocksMenuData     = _unlocksMenuData $ _menu (game :: Game)
         backgroundImg       = _backgroundImage unlocksMenuData
-        unlocksDisplayTxt   = _unlocksDisplayText unlocksMenuData
         totalGoldDisplayTxt = _totalGoldDisplayText unlocksMenuData
         mainMenuBtn         = _mainMenuButton (unlocksMenuData :: UnlocksMenuData)
     in do
@@ -521,7 +518,6 @@ drawUnlocksMenu game =
         let unlocksTotalGoldTextPos = _unlocksTotalGoldTextPos menuCfg
 
         drawImage zeroPos2 RightDir menuZIndex backgroundImg
-        drawDisplayTextCentered (_unlocksUnlocksTextPos menuCfg) menuZIndex unlocksDisplayTxt
         drawSymbolDisplayTextRightAligned unlocksTotalGoldTextPos menuZIndex totalGoldDisplayTxt
         drawButton menuZIndex mainMenuBtn
 
@@ -538,7 +534,7 @@ drawUnlocksMenu game =
         totalGoldWidth  <- symbolDisplayTextWidth totalGoldDisplayTxt
         totalGoldHeight <- symbolDisplayTextHeight totalGoldDisplayTxt
         let
-            insufficientGoldOffsetX = -(totalGoldWidth - symbolDisplayTextImageWidth totalGoldDisplayTxt) / 2.0
+            insufficientGoldOffsetX = -(totalGoldWidth - insufficientGoldSpacerWidth) / 2.0
             insufficientGoldOffset  = Pos2 insufficientGoldOffsetX (totalGoldHeight / 2.0)
             insufficientGoldPos     = unlocksTotalGoldTextPos `vecAdd` insufficientGoldOffset
             insufficientGoldOpacity = _insufficientGoldOpacity unlocksMenuData

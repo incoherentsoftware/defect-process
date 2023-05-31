@@ -16,6 +16,7 @@ import Enemy.All.Flying.AI.Run
 import Enemy.All.Flying.AttackDescriptions
 import Enemy.All.Flying.Behavior
 import Enemy.All.Flying.Data
+import Enemy.All.Flying.Util
 import Msg
 import Util
 import Window.Graphics
@@ -49,14 +50,19 @@ mkGravityMsg enemy = case _behavior (E._data enemy) of
 
 mkEnemyUpdateDataMsg :: Enemy FlyingEnemyData -> [Msg ThinkEnemyMsgsPhase]
 mkEnemyUpdateDataMsg enemy = mkEnemyUpdateMsg enemy $ \e ->
-    let eData = E._data e
+    let
+        prevBehavior = _behavior $ E._data enemy
+        eData        = E._data e
+        atkCooldown  = _attackCooldown eData
+        atkCooldown' = case (enemyTauntedPrevStatus enemy, enemyTauntedStatus enemy) of
+            (EnemyTauntedInactive, EnemyTauntedActive) -> atkCooldown * attackCooldownMultiplier e
+            _                                          -> max 0.0 (atkCooldown - timeStep)
     in e
         { _data = eData
-            { _attackCooldown = max 0.0 (_attackCooldown eData - timeStep)
+            { _attackCooldown = atkCooldown'
             , _prevBehavior   = prevBehavior
             }
         }
-    where prevBehavior = _behavior $ E._data enemy
 
 isBelowStartPosY :: Enemy FlyingEnemyData -> Bool
 isBelowStartPosY enemy = vecY (E._pos enemy) > _startPosY (E._data enemy)

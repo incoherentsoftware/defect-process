@@ -32,9 +32,9 @@ instructionTextColor              = Color 192 192 192 255                 :: Col
 interactOverlayBackdropColor      = Color 0 0 0 200                       :: Color
 interactOverlayBackdropBorderSize = 20.0                                  :: Float
 interactOverlayBackdropOffsetY    = -245.0                                :: OffsetY
-interactOverlayBackdropHeight     = 75.0                                  :: Float
+interactOverlayBackdropHeight     = 85.0                                  :: Float
 interactOverlayText0OffsetY       = interactOverlayBackdropOffsetY + 18.0 :: OffsetY
-interactOverlayText1OffsetY       = interactOverlayText0OffsetY + 34.0    :: OffsetY
+interactOverlayText1OffsetY       = interactOverlayText0OffsetY + 44.0    :: OffsetY
 
 packPath           = \f -> PackResourceFilePath "data/levels/level-items.pack" f
 inactiveSpritePath = packPath "event-sign-inactive.spr"        :: PackResourceFilePath
@@ -55,7 +55,7 @@ eventTypeToImagePath = packPath . \case
 mkEventActivatorData :: (FileCache m, GraphicsRead m, InputRead m, MonadIO m) => RoomEventType -> m EventActivatorData
 mkEventActivatorData eventType = do
     img             <- loadPackImage $ eventTypeToImagePath eventType
-    displayTxt      <- mkDisplayText (eventTypeToInstructionText eventType) Font22 instructionTextColor
+    displayTxt      <- mkDisplayText (eventTypeToInstructionText eventType) Font29 instructionTextColor
     inputDisplayTxt <- mkInputDisplayText interactText Font32 whiteColor
 
     return $ EventActivatorData

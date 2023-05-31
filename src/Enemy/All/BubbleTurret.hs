@@ -42,8 +42,9 @@ mkBubbleTurretEnemy pos dir = do
     return . Some $ enemy
         { _type                 = Just BubbleTurretEnemy
         , _health               = _health (bubbleTurretCfg :: BubbleTurretEnemyConfig)
-        , _hitbox               = turretEnemyHitbox
+        , _hitbox               = bubbleTurretEnemyHitbox
         , _pullable             = const False
+        , _inHitstun            = bubbleTurretEnemyInHitstun
         , _lockOnReticleData    = lockOnReticleData
         , _tauntedData          = Just tauntedData
         , _thinkAI              = thinkAI
@@ -52,8 +53,8 @@ mkBubbleTurretEnemy pos dir = do
         , _updateSprite         = updateSpr
         }
 
-turretEnemyHitbox :: EnemyHitbox BubbleTurretEnemyData
-turretEnemyHitbox enemy
+bubbleTurretEnemyHitbox :: EnemyHitbox BubbleTurretEnemyData
+bubbleTurretEnemyHitbox enemy
     | _behavior enemyData `elem` [SpawnBehavior, DeathBehavior] = dummyHitbox $ Pos2 x (y - height / 2.0)
     | otherwise                                                 = rectHitbox pos width height
     where
@@ -63,6 +64,11 @@ turretEnemyHitbox enemy
         width     = _width (cfg :: BubbleTurretEnemyConfig)
         height    = _height (cfg :: BubbleTurretEnemyConfig)
         pos       = Pos2 (x - width / 2.0) (y - height)
+
+bubbleTurretEnemyInHitstun :: EnemyInHitstun BubbleTurretEnemyData
+bubbleTurretEnemyInHitstun enemy = case _behavior (_data enemy) of
+    HurtBehavior _ -> True
+    _              -> False
 
 updateSpr :: EnemyUpdateSprite BubbleTurretEnemyData
 updateSpr enemy = case _behavior enemyData of

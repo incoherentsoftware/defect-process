@@ -25,6 +25,7 @@ data PlayerConfig = PlayerConfig
     , _hurtHitlagSecs             :: Secs
     , _deathHitlagSecs            :: Secs
     , _initialGold                :: GoldValue
+    , _tauntGainMeterMultiplier   :: Int
 
     , _jumpVelY               :: VelY
     , _shortJumpReleaseSecs   :: Secs

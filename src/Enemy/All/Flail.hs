@@ -50,6 +50,7 @@ mkFlailEnemy pos dir = do
         { _type                   = Just FlailEnemy
         , _health                 = _health (flailCfg :: FlailEnemyConfig)
         , _hitbox                 = flailEnemyHitbox
+        , _inHitstun              = flailEnemyInHitstun
         , _lockOnReticleData      = lockOnReticleData
         , _tauntedData            = Just tauntedData
         , _thinkAI                = thinkAI
@@ -71,6 +72,15 @@ flailEnemyHitbox enemy
         width     = _width (cfg :: FlailEnemyConfig)
         height    = _height (cfg :: FlailEnemyConfig)
         pos       = Pos2 (x - width / 2.0) (y - height)
+
+flailEnemyInHitstun :: EnemyInHitstun FlailEnemyData
+flailEnemyInHitstun enemy = case _behavior (_data enemy) of
+    HurtBehavior _ _    -> True
+    LaunchedBehavior _  -> True
+    FallenBehavior _    -> True
+    GetUpBehavior       -> True
+    WallSplatBehavior _ -> True
+    _                   -> False
 
 updateSpr :: EnemyUpdateSprite FlailEnemyData
 updateSpr enemy = case _behavior enemyData of

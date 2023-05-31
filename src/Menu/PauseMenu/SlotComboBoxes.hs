@@ -25,9 +25,9 @@ upSlotText      = "Up Input"      :: T.Text
 downSlotText    = "Down Input"    :: T.Text
 
 slotComboBoxValueOffset = Pos2 3.0 27.0     :: Pos2
-neutralSlotComboBoxPos  = Pos2 850.0 636.0  :: Pos2
-upSlotComboBoxPos       = Pos2 968.0 636.0  :: Pos2
-downSlotComboBoxPos     = Pos2 1086.0 636.0 :: Pos2
+neutralSlotComboBoxPos  = Pos2 858.0 636.0  :: Pos2
+upSlotComboBoxPos       = Pos2 976.0 636.0  :: Pos2
+downSlotComboBoxPos     = Pos2 1094.0 636.0 :: Pos2
 
 secondarySkillSlotComboBoxImagePath =
     PackResourceFilePath "data/menu/pause-menu.pack" "secondary-skill-slot-combo-box.image" :: PackResourceFilePath
@@ -39,7 +39,7 @@ mkSlotComboBoxes =
             pos
             defaultTxt
             [neutralSlotText, upSlotText, downSlotText]
-            Font16
+            Font29
             menuOptionBtnColor
             hoverMenuOptionBtnColor
             slotComboBoxValueOffset

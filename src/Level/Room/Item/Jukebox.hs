@@ -30,9 +30,9 @@ interactCurrentTrackTextColor     = Color 192 192 192 255                 :: Col
 interactOverlayBackdropColor      = Color 0 0 0 200                       :: Color
 interactOverlayBackdropBorderSize = 20.0                                  :: Float
 interactOverlayBackdropOffsetY    = -245.0                                :: OffsetY
-interactOverlayBackdropHeight     = 75.0                                  :: Float
+interactOverlayBackdropHeight     = 85.0                                  :: Float
 interactOverlayText0OffsetY       = interactOverlayBackdropOffsetY + 18.0 :: OffsetY
-interactOverlayText1OffsetY       = interactOverlayText0OffsetY + 34.0    :: OffsetY
+interactOverlayText1OffsetY       = interactOverlayText0OffsetY + 44.0    :: OffsetY
 
 jukeboxCycleSoundPath = "event:/SFX Events/Level/jukebox-cycle" :: FilePath
 
@@ -45,7 +45,7 @@ mkJukeboxSprites =
 
 mkJukeboxData :: (FileCache m, GraphicsRead m, InputRead m, MonadIO m) => JukeboxType -> m JukeboxData
 mkJukeboxData jukeboxType = do
-    currentTrackDisplayTxt     <- mkDisplayText "" Font22 interactCurrentTrackTextColor
+    currentTrackDisplayTxt     <- mkDisplayText "" Font29 interactCurrentTrackTextColor
     switchTrackInputDisplayTxt <- mkInputDisplayText interactSwitchTrackText Font32 whiteColor
     sprs                       <- mkJukeboxSprites
 

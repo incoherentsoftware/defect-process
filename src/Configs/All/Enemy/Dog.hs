@@ -26,6 +26,10 @@ data DogEnemyConfig = DogEnemyConfig
     , _maxRunFromSecs   :: Secs
     , _staggerThreshold :: Stagger
 
+    , _tauntedIdleSecs       :: Secs
+    , _tauntedPaceSecs       :: Secs
+    , _tauntedMaxRunFromSecs :: Secs
+
     , _initialAttackCooldown    :: Secs
     , _postAttackCooldown       :: Secs
     , _headbuttRangeX           :: Distance

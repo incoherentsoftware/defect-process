@@ -67,7 +67,6 @@ data UnlocksMenuData = UnlocksMenuData
     , _movementSkillEntries     :: [UnlocksEntry MovementSkillType]
     , _secondarySkillEntries    :: [UnlocksEntry SecondarySkillType]
     , _selectedOverlayImage     :: Image
-    , _unlocksDisplayText       :: DisplayText
     , _unavailableDisplayText   :: DisplayText
     , _viewInfoInputDisplayText :: InputDisplayText
     , _mainMenuButton           :: Button

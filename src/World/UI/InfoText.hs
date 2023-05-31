@@ -124,10 +124,10 @@ mkInfoTextUI =
         moveControlsLeftDisplayTxt                 <- mkInputDisplayText' moveControlsLeftText
         moveControlsRightDisplayTxt                <- mkInputDisplayText' moveControlsRightText
         equipmentInfoInputDisplayTxt               <- mkInputDisplayText' equipmentInfoText
-        equipmentInfoSmallInputDisplayTxt          <- mkInputDisplayText equipmentInfoText Font22 whiteColor
+        equipmentInfoSmallInputDisplayTxt          <- mkInputDisplayText equipmentInfoText Font26 whiteColor
         switchWeaponInputDisplayTxt                <- mkInputDisplayText' switchWeaponText
         switchGunInputDisplayTxt                   <- mkInputDisplayText' switchGunText
-        secondarySkillInputDisplayTxt              <- mkInputDisplayText secondarySkillInputText Font26 whiteColor
+        secondarySkillInputDisplayTxt              <- mkInputDisplayText secondarySkillInputText Font29 whiteColor
         secondarySkillNeutralInputSymbolDisplayTxt <- mkSymbolDisplayText' "{SecondarySkillNeutralInputSymbol}"
         secondarySkillUpInputSymbolDisplayTxt      <- mkSymbolDisplayText' "{SecondarySkillUpInputSymbol}"
         secondarySkillDownInputSymbolDisplayTxt    <- mkSymbolDisplayText' "{SecondarySkillDownInputSymbol}"
@@ -180,9 +180,9 @@ processUiMsgs infoTextUI (p:ps) = case p of
             neutralText = formatSecondarySkillText $ _secondarySkillNeutralType playerEquipment
             upText      = formatSecondarySkillText $ _secondarySkillUpType playerEquipment
             downText    = formatSecondarySkillText $ _secondarySkillDownType playerEquipment
-        neutralDisplayTxt <- mkDisplayText neutralText Font26 whiteColor
-        upDisplayTxt      <- mkDisplayText upText Font26 whiteColor
-        downDisplayTxt    <- mkDisplayText downText Font26 whiteColor
+        neutralDisplayTxt <- mkDisplayText neutralText Font29 whiteColor
+        upDisplayTxt      <- mkDisplayText upText Font29 whiteColor
+        downDisplayTxt    <- mkDisplayText downText Font29 whiteColor
 
         let
             equipmentInfoSmlInputDisplayTxt = _equipmentInfoSmallInputDisplayText infoTextUI

@@ -77,28 +77,28 @@ mkBuyPromptItemCostInputDisplayText goldValue = mkInputDisplayText txt Font32 go
 
 mkItemPickupBuyConfirmData :: (FileCache m, GraphicsRead m, InputRead m, MonadIO m) => m ItemPickupBuyConfirmData
 mkItemPickupBuyConfirmData = do
-    selectDisplayTxt             <- mkDisplayText selectText Font22 whiteColor
+    selectDisplayTxt             <- mkDisplayText selectText Font29 whiteColor
     upAliasInputDisplayTxt       <- mkInputDisplayText " {UpAlias}" Font32 whiteColor
     downAliasInputDisplayTxt     <- mkInputDisplayText " {DownAlias}" Font32 whiteColor
-    confirmDisplayTxt            <- mkDisplayText confirmText Font22 whiteColor
+    confirmDisplayTxt            <- mkDisplayText confirmText Font29 whiteColor
     interactAliasInputDisplayTxt <- mkInputDisplayText " {InteractAlias}" Font32 whiteColor
 
-    replace0DisplayTxt      <- mkDisplayText "" Font22 replaceTextColor
-    replace1DisplayTxt      <- mkDisplayText "" Font22 replaceTextColor
-    replace2DisplayTxt      <- mkDisplayText "" Font22 replaceTextColor
-    line0DisplayTxt         <- mkDisplayText "" Font26 whiteColor
-    line1DisplayTxt         <- mkDisplayText "" Font26 whiteColor
-    line1SelectedDisplayTxt <- mkDisplayText "" Font26 textSelectedColor
-    line2DisplayTxt         <- mkDisplayText "" Font26 whiteColor
-    line2SelectedDisplayTxt <- mkDisplayText "" Font26 textSelectedColor
-    line3DisplayTxt         <- mkDisplayText "" Font26 whiteColor
-    line3SelectedDisplayTxt <- mkDisplayText "" Font26 textSelectedColor
-    line4DisplayTxt         <- mkDisplayText "" Font26 whiteColor
+    replace0DisplayTxt      <- mkDisplayText "" Font26 replaceTextColor
+    replace1DisplayTxt      <- mkDisplayText "" Font26 replaceTextColor
+    replace2DisplayTxt      <- mkDisplayText "" Font26 replaceTextColor
+    line0DisplayTxt         <- mkDisplayText "" Font29 whiteColor
+    line1DisplayTxt         <- mkDisplayText "" Font29 whiteColor
+    line1SelectedDisplayTxt <- mkDisplayText "" Font29 textSelectedColor
+    line2DisplayTxt         <- mkDisplayText "" Font29 whiteColor
+    line2SelectedDisplayTxt <- mkDisplayText "" Font29 textSelectedColor
+    line3DisplayTxt         <- mkDisplayText "" Font29 whiteColor
+    line3SelectedDisplayTxt <- mkDisplayText "" Font29 textSelectedColor
+    line4DisplayTxt         <- mkDisplayText "" Font29 whiteColor
 
     slotsOverlayNeutralSelectedImg <- loadPackImage slotsOverlayNeutralSelectedImagePath
     slotsOverlayUpSelectedImg      <- loadPackImage slotsOverlayUpSelectedImagePath
     slotsOverlayDownSelectedImg    <- loadPackImage slotsOverlayDownSelectedImagePath
-    literalEmptyDisplayTxt         <- mkDisplayText literalEmptyText Font26 literalEmptyTextColor
+    literalEmptyDisplayTxt         <- mkDisplayText literalEmptyText Font29 literalEmptyTextColor
 
     return $ ItemPickupBuyConfirmData
         { _literalEmptyText                 = literalEmptyDisplayTxt

@@ -71,11 +71,11 @@ changeSlotText = "Reassign Input: {MenuSlotChangeAlias}" :: T.Text
 selectionInfoCenterTextPos@(Pos2 selectionInfoCenterTextX selectionInfoCenterTextY) = Pos2 960.0 834.0 :: Pos2
 selectionInfoSpacerWidth                                                            = 30.0             :: Float
 
-infoOverlayLeftImagePos                     = Pos2 99.0 498.0   :: Pos2
-infoOverlayRightImagePos                    = Pos2 1225.0 249.0 :: Pos2
+infoOverlayLeftImagePos                     = Pos2 37.0 498.0   :: Pos2
+infoOverlayRightImagePos                    = Pos2 1260.0 249.0 :: Pos2
 emptySecondarySkillUpDownIconOverlayOpacity = Opacity 128       :: Opacity
 upgradeCountOverlayOffset                   = Pos2 10.0 10.0    :: Pos2
-secondarySkillInputOverlayImageOffset       = Pos2 130.0 126.0  :: Pos2
+secondarySkillInputOverlayImageOffset       = Pos2 205.0 126.0  :: Pos2
 
 secondarySkillSelections = S.fromList
     [ PauseMenuSecondarySkillLeftSelection
@@ -102,7 +102,7 @@ mkPauseMenuData = do
     settingsBtn <- mkImageButtonCentered (_pausedSettingsButtonPos cfg) settingsButtonImgPath
 
     settingsMenuData          <- mkSettingsMenuData
-    changeSlotInputDisplayTxt <- mkInputDisplayText changeSlotText Font22 whiteColor
+    changeSlotInputDisplayTxt <- mkInputDisplayText changeSlotText Font29 whiteColor
     slotComboBoxes            <- mkSlotComboBoxes
 
     generalHelpEntry   <- mkPauseMenuHelpEntry (_pausedGeneralInfoHelpEntryPos cfg) () generalInfoHelpPopupDescription

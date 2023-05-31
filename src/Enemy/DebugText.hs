@@ -21,7 +21,7 @@ data EnemyDebugText = EnemyDebugText
 
 mkEnemyDebugText :: (GraphicsRead m, MonadIO m) => Health -> m EnemyDebugText
 mkEnemyDebugText health = do
-    healthText <- mkDisplayText (prettyShow health) Font12 whiteColor
+    healthText <- mkDisplayText (prettyShow health) Font16 whiteColor
     return $ EnemyDebugText {_healthDisplayText  = healthText}
 
 updateEnemyDebugText :: Health -> EnemyDebugText -> EnemyDebugText

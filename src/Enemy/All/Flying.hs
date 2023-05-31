@@ -46,7 +46,8 @@ mkFlyingEnemy pos dir = do
     return . Some $ enemy
         { _type                   = Just FlyingEnemy
         , _health                 = _health (flyingCfg :: FlyingEnemyConfig)
-        , _hitbox                 = hitbox
+        , _hitbox                 = flyingEnemyHitbox
+        , _inHitstun              = flyingEnemyInHitstun
         , _lockOnReticleData      = lockOnReticleData
         , _tauntedData            = Just tauntedData
         , _thinkAI                = thinkAI
@@ -57,8 +58,8 @@ mkFlyingEnemy pos dir = do
         , _setDebugBehavior       = setDebugBehavior
         }
 
-hitbox :: EnemyHitbox FlyingEnemyData
-hitbox enemy
+flyingEnemyHitbox :: EnemyHitbox FlyingEnemyData
+flyingEnemyHitbox enemy
     | _behavior enemyData `elem` [SpawnBehavior, DeathBehavior] = dummyHitbox $ Pos2 x (y - height / 2.0)
     | otherwise                                                 = rectHitbox pos width height
     where
@@ -68,6 +69,15 @@ hitbox enemy
         width     = _width (cfg :: FlyingEnemyConfig)
         height    = _height (cfg :: FlyingEnemyConfig)
         pos       = Pos2 (x - width / 2.0) (y - height)
+
+flyingEnemyInHitstun :: EnemyInHitstun FlyingEnemyData
+flyingEnemyInHitstun enemy = case _behavior (_data enemy) of
+    HurtBehavior _ _     -> True
+    LaunchedBehavior _ _ -> True
+    FallenBehavior _     -> True
+    GetUpBehavior        -> True
+    WallSplatBehavior _  -> True
+    _                    -> False
 
 updateFlyingSpr :: EnemyUpdateSprite FlyingEnemyData
 updateFlyingSpr enemy = case _behavior enemyData of

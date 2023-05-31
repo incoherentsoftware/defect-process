@@ -93,22 +93,22 @@ mkStepsFakeProjectileData stepsData =
     pure (InstructionsStep1 0) <*>
     pure stepsData <*>
     mkDisplayText topText Font32 whiteColor <*>
-    mkInputDisplayText ("{CheckboxSymbol} " <> step1N0Text) Font26 whiteColor <*>
-    mkInputDisplayText ("{CheckboxSymbol} " <> step1N1Text) Font26 whiteColor <*>
-    mkInputDisplayText ("{CheckboxFilledSymbol} " <> step1CompletedText) Font26 textCompletedColor <*>
-    mkInputDisplayText ("{CheckboxSymbol} " <> step2Text) Font26 whiteColor <*>
-    mkInputDisplayText ("{CheckboxFilledSymbol} " <> step2Text) Font26 textCompletedColor <*>
-    mkInputDisplayText ("{CheckboxSymbol} " <> mouseKbStep3Text) Font26 whiteColor <*>
-    mkInputDisplayText ("{CheckboxFilledSymbol} " <> mouseKbStep3Text) Font26 textCompletedColor <*>
-    mkInputDisplayText ("{CheckboxSymbol} " <> gamepadStep3Text) Font26 whiteColor <*>
-    mkInputDisplayText ("{CheckboxFilledSymbol} " <> gamepadStep3Text) Font26 textCompletedColor <*>
-    mkDisplayText skipText Font26 textSkipColor <*>
-    mkDisplayText continueText Font26 whiteColor <*>
-    mkDisplayText exitText Font26 whiteColor <*>
-    mkInputDisplayText interactText Font26 textSkipColor <*>
-    mkInputDisplayText interactText Font26 whiteColor <*>
-    mkDisplayText rangedAttackText Font26 whiteColor <*>
-    mkInputDisplayText shootText Font26 whiteColor
+    mkInputDisplayText ("{CheckboxSymbol} " <> step1N0Text) Font29 whiteColor <*>
+    mkInputDisplayText ("{CheckboxSymbol} " <> step1N1Text) Font29 whiteColor <*>
+    mkInputDisplayText ("{CheckboxFilledSymbol} " <> step1CompletedText) Font29 textCompletedColor <*>
+    mkInputDisplayText ("{CheckboxSymbol} " <> step2Text) Font29 whiteColor <*>
+    mkInputDisplayText ("{CheckboxFilledSymbol} " <> step2Text) Font29 textCompletedColor <*>
+    mkInputDisplayText ("{CheckboxSymbol} " <> mouseKbStep3Text) Font29 whiteColor <*>
+    mkInputDisplayText ("{CheckboxFilledSymbol} " <> mouseKbStep3Text) Font29 textCompletedColor <*>
+    mkInputDisplayText ("{CheckboxSymbol} " <> gamepadStep3Text) Font29 whiteColor <*>
+    mkInputDisplayText ("{CheckboxFilledSymbol} " <> gamepadStep3Text) Font29 textCompletedColor <*>
+    mkDisplayText skipText Font29 textSkipColor <*>
+    mkDisplayText continueText Font29 whiteColor <*>
+    mkDisplayText exitText Font29 whiteColor <*>
+    mkInputDisplayText interactText Font29 textSkipColor <*>
+    mkInputDisplayText interactText Font29 whiteColor <*>
+    mkDisplayText rangedAttackText Font29 whiteColor <*>
+    mkInputDisplayText shootText Font29 whiteColor
 
 mkStepsFakeProjectile
     :: (FileCache m, GraphicsRead m, InputRead m, MonadIO m)

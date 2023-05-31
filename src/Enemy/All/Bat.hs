@@ -43,7 +43,8 @@ mkBatEnemy pos dir = do
     return . Some $ enemy
         { _type                   = Just BatEnemy
         , _health                 = _health (batCfg :: BatEnemyConfig)
-        , _hitbox                 = hitbox
+        , _hitbox                 = batEnemyHitbox
+        , _inHitstun              = batEnemyInHitstun
         , _lockOnReticleData      = lockOnReticleData
         , _tauntedData            = Just tauntedData
         , _thinkAI                = thinkAI
@@ -53,8 +54,8 @@ mkBatEnemy pos dir = do
         , _updateSprite           = updateBatSpr
         }
 
-hitbox :: EnemyHitbox BatEnemyData
-hitbox enemy
+batEnemyHitbox :: EnemyHitbox BatEnemyData
+batEnemyHitbox enemy
     | _behavior enemyData `elem` [SpawnBehavior, DeathBehavior] = dummyHitbox $ Pos2 x (y - height / 2.0)
     | otherwise                                                 = rectHitbox pos width height
     where
@@ -65,13 +66,22 @@ hitbox enemy
         height    = _height (cfg :: BatEnemyConfig)
         pos       = Pos2 (x - width / 2.0) (y - height)
 
+batEnemyInHitstun :: EnemyInHitstun BatEnemyData
+batEnemyInHitstun enemy = case _behavior (_data enemy) of
+    HurtBehavior _ _     -> True
+    LaunchedBehavior _ _ -> True
+    FallenBehavior _     -> True
+    GetUpBehavior        -> True
+    WallSplatBehavior _  -> True
+    _                    -> False
+
 updateBatSpr :: EnemyUpdateSprite BatEnemyData
 updateBatSpr enemy = case _behavior enemyData of
     IdleBehavior _                     -> setOrUpdateEnemySpr $ _idle sprs
     LaunchedBehavior _ _
         | velY <= 0.0 || inHangtimeVel -> setOrUpdateEnemySpr $ _launched sprs
         | otherwise                    -> setOrUpdateEnemySpr $ _fall sprs
-    PatrolBehavior                     -> setOrUpdateEnemySpr $ _forwardsFly sprs
+    PatrolBehavior _                   -> setOrUpdateEnemySpr $ _forwardsFly sprs
     HurtBehavior _ hurtType
         | justGotHit                   -> setEnemyHurtSprite enemy $ case hurtType of
             AirHurt       -> _hurt sprs

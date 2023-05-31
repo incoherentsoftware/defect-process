@@ -47,6 +47,7 @@ mkDogEnemy pos dir = do
         { _type                   = Just ClawsEnemy
         , _health                 = _health (dogCfg :: DogEnemyConfig)
         , _hitbox                 = dogEnemyHitbox
+        , _inHitstun              = dogEnemyInHitstun
         , _lockOnReticleData      = lockOnReticleData
         , _tauntedData            = Just tauntedData
         , _thinkAI                = thinkAI
@@ -68,6 +69,15 @@ dogEnemyHitbox enemy
         width     = _width (cfg :: DogEnemyConfig)
         height    = _height (cfg :: DogEnemyConfig)
         pos       = Pos2 (x - width / 2.0) (y - height)
+
+dogEnemyInHitstun :: EnemyInHitstun DogEnemyData
+dogEnemyInHitstun enemy = case _behavior (_data enemy) of
+    HurtBehavior _ _    -> True
+    LaunchedBehavior _  -> True
+    FallenBehavior _    -> True
+    GetUpBehavior       -> True
+    WallSplatBehavior _ -> True
+    _                   -> False
 
 updateSpr :: EnemyUpdateSprite DogEnemyData
 updateSpr enemy = case _behavior enemyData of

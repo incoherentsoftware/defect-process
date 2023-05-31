@@ -20,7 +20,7 @@ import Window.Graphics
 
 runBehaviorInstr :: Bool -> BlobEnemyBehaviorInstr -> Enemy BlobEnemyData -> [Msg ThinkEnemyMsgsPhase]
 runBehaviorInstr aiEnabled cmd enemy
-    | aiEnabled = aiEnabledMsgs
+    | aiEnabled = aiEnabledMsgs'
     | otherwise = aiDisabledMsgs
     where
         aiEnabledMsgs = case cmd of
@@ -41,6 +41,16 @@ runBehaviorInstr aiEnabled cmd enemy
             StartDeathInstr                   -> startDeathBehavior enemy
             SetDeadInstr                      -> enemySetDeadMessages enemy
 
+        cfg             = _blob $ _config (_data enemy)
+        tauntedIdleSecs = _tauntedIdleSecs cfg
+
+        aiEnabledMsgs' = case enemyTauntedStatus enemy of
+            EnemyTauntedInactive -> aiEnabledMsgs
+            EnemyTauntedActive   -> case cmd of
+                UpdateIdleInstr idleTtl
+                    | idleTtl > tauntedIdleSecs -> updateIdleBehavior tauntedIdleSecs enemy
+                _                               -> aiEnabledMsgs
+
         aiDisabledMsgs =
             let
                 setIdleMsgs = case _behavior (_data enemy) of
@@ -49,7 +59,7 @@ runBehaviorInstr aiEnabled cmd enemy
             in case cmd of
                 StartAttackInstr _ -> setIdleMsgs
                 UpdateAttackInstr  -> setIdleMsgs
-                _                  -> aiEnabledMsgs
+                _                  -> aiEnabledMsgs'
 
 mkEnemyUpdateBehaviorMsg :: Enemy BlobEnemyData -> BlobEnemyBehavior -> [Msg ThinkEnemyMsgsPhase]
 mkEnemyUpdateBehaviorMsg enemy behavior = mkEnemyUpdateMsg enemy $ \e -> e

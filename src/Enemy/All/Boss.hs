@@ -71,6 +71,7 @@ mkBossEnemy pos dir = do
         , _health                 = _health (bossCfg :: BossEnemyConfig)
         , _hitbox                 = bossEnemyHitbox
         , _pullable               = bossEnemyPullable
+        , _inHitstun              = bossEnemyInHitstun
         , _lockOnReticleData      = lockOnReticleData
         , _tauntedData            = Just tauntedData
         , _thinkAI                = thinkAI
@@ -102,6 +103,15 @@ bossEnemyHitbox enemy = case behavior of
 
 bossEnemyPullable :: EnemyPullable BossEnemyData
 bossEnemyPullable enemy = not $ isSuperArmorState enemy || isGuardState enemy
+
+bossEnemyInHitstun :: EnemyInHitstun BossEnemyData
+bossEnemyInHitstun enemy = case _behavior (_data enemy) of
+    LaunchedBehavior _  -> True
+    HurtBehavior _ _    -> True
+    KneelingBehavior _  -> True
+    GetUpBehavior       -> True
+    WallSplatBehavior _ -> True
+    _                   -> False
 
 updateSpr :: EnemyUpdateSprite BossEnemyData
 updateSpr enemy = case _behavior enemyData of
@@ -159,7 +169,7 @@ updateHurtResponse atkHit enemy
                 ]
             return enemy
 
-    | _incapacitatedSecs enemyData >= _maxIncapacitatedSecs cfg =
+    | _incapacitatedSecs enemyData >= maxIncapacitatedSecs =
         let guardBehavior = if onGround then GuardBehavior else AirGuardBehavior
         in return $ enemy
             { _data = enemyData {_behavior = guardBehavior}
@@ -233,14 +243,18 @@ updateHurtResponse atkHit enemy
             }
 
     where
-        enemyData      = _data enemy
-        cfg            = _boss (_config enemyData :: EnemyConfig)
-        hurtEffectData = _hurtEffectData cfg
-        behavior       = _behavior enemyData
-        onGround       = enemyTouchingGround enemy
-        inAir          = not onGround
-        pos            = E._pos enemy
-        isSuperArmor   = isSuperArmorState enemy
+        enemyData            = _data enemy
+        cfg                  = _boss (_config enemyData :: EnemyConfig)
+        hurtEffectData       = _hurtEffectData cfg
+        maxIncapacitatedSecs = case enemyTauntedStatus enemy of
+            EnemyTauntedInactive -> _maxIncapacitatedSecs cfg
+            EnemyTauntedActive   -> _tauntedMaxIncapacitatedSecs cfg
+
+        behavior     = _behavior enemyData
+        onGround     = enemyTouchingGround enemy
+        inAir        = not onGround
+        pos          = E._pos enemy
+        isSuperArmor = isSuperArmorState enemy
 
         isWeakAtkHitVel = _isWeakVel atkHit
         velY            = vecY $ E._vel enemy

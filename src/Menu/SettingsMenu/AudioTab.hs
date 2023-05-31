@@ -65,7 +65,7 @@ mkSettingsAudioTab = do
                 color            = menuOptionBtnColor
                 hoverColor       = hoverMenuOptionBtnColor
                 defaultValueText = formatVolume volume
-            in mkComboBox pos defaultValueText comboBoxValues Font22 color hoverColor offset comboBoxImagePath
+            in mkComboBox pos defaultValueText comboBoxValues Font32 color hoverColor offset comboBoxImagePath
 
     soundComboBox      <- mkComboBox' (_settingsAudioTabSoundComboBoxPos menuCfg) (_soundVolume audioCfg)
     musicComboBox      <- mkComboBox' (_settingsAudioTabMusicComboBoxPos menuCfg) (_musicVolume audioCfg)

@@ -15,6 +15,7 @@ import Enemy as E
 import Enemy.All.BubbleTurret.AI.Run
 import Enemy.All.BubbleTurret.Behavior
 import Enemy.All.BubbleTurret.Data
+import Enemy.All.BubbleTurret.Util
 import Msg
 import Util
 import Window.Graphics
@@ -44,10 +45,12 @@ thinkAI enemy = do
 mkEnemyUpdateDataMsgs :: Enemy BubbleTurretEnemyData -> [Msg ThinkEnemyMsgsPhase]
 mkEnemyUpdateDataMsgs enemy = mkEnemyUpdateMsg enemy $ \e ->
     let
+        prevBehavior = _behavior $ E._data enemy
         eData        = E._data e
         atkCooldown  = _attackCooldown eData
-        atkCooldown' = max 0.0 (atkCooldown - timeStep)
-        prevBehavior = _behavior $ E._data enemy
+        atkCooldown' = case (enemyTauntedPrevStatus enemy, enemyTauntedStatus enemy) of
+            (EnemyTauntedInactive, EnemyTauntedActive) -> atkCooldown * attackCooldownMultiplier e
+            _                                          -> max 0.0 (atkCooldown - timeStep)
     in e
         { _data = eData
             { _attackCooldown = atkCooldown'

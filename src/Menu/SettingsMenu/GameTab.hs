@@ -40,8 +40,8 @@ restoreDefaultsButtonImgPath = settingsMenuPack "restore-default-game.image"    
 
 enemyHealthText       = "Enemy Health"     :: T.Text
 pauseMenuHintsText    = "Pause Menu Hints" :: T.Text
-enemyHealthTextPos    = Pos2 825.0 197.0   :: Pos2
-pauseMenuHintsTextPos = Pos2 825.0 277.0   :: Pos2
+enemyHealthTextPos    = Pos2 825.0 191.0   :: Pos2
+pauseMenuHintsTextPos = Pos2 825.0 272.0   :: Pos2
 
 comboBoxImgPath              = settingsMenuPack "game-combo-box.image"   :: PackResourceFilePath
 enemyHealthComboBoxValues    = map formatEnemyHealthPercent [minBound..] :: [T.Text]
@@ -78,8 +78,8 @@ mkSettingsGameTab = do
     tabBtns                  <-
         mkSettingsTabButtons controlsBtnImgPath graphicsBtnImgPath audioBtnImgPath gameBtnImgPath creditsBtnImgPath
     backgroundImg            <- loadPackImage backgroundImgPath
-    enemyHealthDisplayTxt    <- mkDisplayText enemyHealthText Font22 whiteColor
-    pauseMenuHintsDisplayTxt <- mkDisplayText pauseMenuHintsText Font22 whiteColor
+    enemyHealthDisplayTxt    <- mkDisplayText enemyHealthText Font32 whiteColor
+    pauseMenuHintsDisplayTxt <- mkDisplayText pauseMenuHintsText Font32 whiteColor
     restoreDefaultsBtnPos    <- readSettingsConfig _menu _settingsGameTabRestoreDefaultsButtonPos
     restoreDefaultsBtn       <- mkImageButtonCentered restoreDefaultsBtnPos restoreDefaultsButtonImgPath
     menuCfg                  <- readConfig _settings (_menu :: SettingsConfig -> MenuConfig)
@@ -88,7 +88,7 @@ mkSettingsGameTab = do
         (_settingsGameTabEnemyHealthComboBoxPos menuCfg)
         (formatEnemyHealthPercent EnemyHealth100Percent)
         enemyHealthComboBoxValues
-        Font22
+        Font32
         menuOptionBtnColor
         hoverMenuOptionBtnColor
         (_settingsGameTabEnemyHealthComboBoxValueOffset menuCfg)
@@ -98,7 +98,7 @@ mkSettingsGameTab = do
         (_settingsGameTabPauseMenuHintsComboBoxPos menuCfg)
         (formatEnabled True)
         pauseMenuHintsComboBoxValues
-        Font22
+        Font32
         menuOptionBtnColor
         hoverMenuOptionBtnColor
         (_settingsGameTabPauseMenuHintsComboBoxValueOffset menuCfg)

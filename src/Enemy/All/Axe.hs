@@ -41,12 +41,13 @@ mkAxeEnemy pos dir = do
     enemy             <- mkEnemy enemyData pos dir
     axeCfg            <- readEnemyConfig _axe
     lockOnReticleData <- readEnemyLockOnConfig _axe
-    tauntedData       <- mkEnemyTauntedData $ _tauntUnderlayDrawScale axeCfg
+    tauntedData       <- mkEnemyTauntedData $ _tauntedUnderlayDrawScale axeCfg
 
     return . Some $ enemy
         { _type                   = Just AxeEnemy
         , _health                 = _health (axeCfg :: AxeEnemyConfig)
         , _hitbox                 = axeEnemyHitbox
+        , _inHitstun              = axeEnemyInHitstun
         , _lockOnReticleData      = lockOnReticleData
         , _tauntedData            = Just tauntedData
         , _thinkAI                = thinkAI
@@ -70,6 +71,15 @@ axeEnemyHitbox enemy = case _behavior enemyData of
         height    = _height (cfg :: AxeEnemyConfig)
         pos       = Pos2 (x - width / 2.0) (y - height)
         dummyHbx  = dummyHitbox $ Pos2 x (y - height / 2.0)
+
+axeEnemyInHitstun :: EnemyInHitstun AxeEnemyData
+axeEnemyInHitstun enemy = case _behavior (_data enemy) of
+    HurtBehavior _ _    -> True
+    LaunchedBehavior _  -> True
+    FallenBehavior _    -> True
+    GetUpBehavior       -> True
+    WallSplatBehavior _ -> True
+    _                   -> False
 
 updateSpr :: EnemyUpdateSprite AxeEnemyData
 updateSpr enemy = case _behavior enemyData of

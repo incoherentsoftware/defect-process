@@ -7,7 +7,6 @@ import Control.Monad.IO.Class (MonadIO)
 import Control.Monad.State    (get, gets, execStateT, lift, modify, put)
 import Data.Dynamic           (toDyn)
 import Data.Foldable          (foldlM, for_)
-import Data.Functor           ((<&>))
 import qualified Data.List as L
 import qualified Data.Set as S
 
@@ -286,7 +285,5 @@ processTauntMessages enemy = processMsgs <$> readMsgs
         processMsgs :: [PlayerMsgPayload] -> Enemy d
         processMsgs []     = enemy
         processMsgs (p:ps) = case p of
-            PlayerMsgTaunt -> enemy
-                { _tauntedData = _tauntedData enemy <&> \td -> td {_status = EnemyTauntedActive}
-                }
-            _              -> processMsgs ps
+            PlayerMsgActivateTaunt -> enemy {_tauntedData = activateEnemyTauntedData <$> _tauntedData enemy}
+            _                      -> processMsgs ps

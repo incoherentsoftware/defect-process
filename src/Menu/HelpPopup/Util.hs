@@ -29,11 +29,11 @@ import Window.Graphics
 import Window.InputState
 
 symbolInputAliasTextPos        = Pos2 1488.0 914.0 :: Pos2
-stoneFormSkillSlotText0Pos     = Pos2 795.0 593.0  :: Pos2
-stoneFormSkillSlotText1Pos     = Pos2 1125.0 593.0 :: Pos2
+stoneFormSkillSlotText0Pos     = Pos2 775.0 607.0  :: Pos2
+stoneFormSkillSlotText1Pos     = Pos2 1101.0 607.0 :: Pos2
 flightSkillSlotTextPos         = Pos2 815.0 573.0  :: Pos2
 fastFallSkillSlotTextPos       = Pos2 811.0 605.0  :: Pos2
-stasisBlastSkillSlotTextPos    = Pos2 959.0 570.0  :: Pos2
+stasisBlastSkillSlotTextPos    = Pos2 961.0 557.0  :: Pos2
 markRecallSkillSlotText0Pos    = Pos2 670.0 605.0  :: Pos2
 markRecallSkillSlotText1Pos    = Pos2 1250.0 605.0 :: Pos2
 summonPlatformSkillSlotTextPos = Pos2 959.0 513.0  :: Pos2
@@ -94,15 +94,16 @@ mkLockOnTargetingHelpPosTexts :: MenuConfig -> [HelpPopupTextOverlayDescription]
 mkLockOnTargetingHelpPosTexts menuCfg =
     [ mkDescMouseKb pos0 "Cycle lock-on target: {LockOnSwitchTargetAlias}"
     , mkDescMouseKb pos1 "Clear lock-on target: {LockOnClearAlias}"
-    , mkDescMouseKb pos2 "Set lock-on target at mouse cursor: {LockOnCursorAlias.0}"
-    , mkDescMouseKb pos3 "{LockOnCursorAlias.1}"
+    , mkDescMouseKb pos2 "Set lock-on target at mouse cursor:"
+    , mkDescMouseKb pos3 "{LockOnCursorAlias}"
     , mkDescGamepad pos4 "Cycle lock-on target: {LockOnSwitchTargetAlias}"
     , mkDescGamepad pos5 "Clear lock-on target: {LockOnClearAlias}"
-    , mkDescGamepad pos6 "Set lock-on target manually aiming right analog stick"
+    , mkDescGamepad pos6 "Set lock-on target manually aiming"
+    , mkDescGamepad pos7 "right analog stick"
     ]
     where
         drawMouseKb :: (GraphicsReadWrite m, MonadIO m) => Pos2 -> HelpPopupTextOverlayDraw m
-        drawMouseKb pos popupTextOverlay = do
+        drawMouseKb pos popupTextOverlay =
             drawInputDisplayTextMouseKb pos menuOverZIndex (_inputDisplayText popupTextOverlay)
 
         drawGamepad :: (GraphicsReadWrite m, MonadIO m) => Pos2 -> HelpPopupTextOverlayDraw m
@@ -112,7 +113,7 @@ mkLockOnTargetingHelpPosTexts menuCfg =
         mkDescMouseKb = \pos txt -> HelpPopupTextOverlayDescription txt (drawMouseKb pos)
         mkDescGamepad = \pos txt -> HelpPopupTextOverlayDescription txt (drawGamepad pos)
 
-        (pos0, pos1, pos2, pos3, pos4, pos5, pos6) = _helpPopupTargetingTextPositions menuCfg
+        (pos0, pos1, pos2, pos3, pos4, pos5, pos6, pos7) = _helpPopupTargetingTextPositions menuCfg
 
 targetingInfoHelpPopupDescription :: MenuConfig -> HelpPopupDescription
 targetingInfoHelpPopupDescription menuCfg = HelpPopupDescription

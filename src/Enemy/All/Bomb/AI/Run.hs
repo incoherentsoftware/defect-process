@@ -27,7 +27,7 @@ runBehaviorInstr :: Bool -> BombEnemyBehaviorInstr -> Enemy BombEnemyData -> [Ms
 runBehaviorInstr aiEnabled cmd enemy
     | not aiEnabled                  = aiDisabledMsgs
     | isExplodeTimerActive enemyData = aiDisabledMsgs
-    | otherwise                      = aiEnabledMsgs
+    | otherwise                      = aiEnabledMsgs'
     where
         enemyData = E._data enemy
 
@@ -48,6 +48,15 @@ runBehaviorInstr aiEnabled cmd enemy
             UpdateSpawnInstr                     -> updateSpawnBehavior enemy
             SetDeadInstr                         -> enemySetDeadMessages enemy
 
+        aiEnabledMsgs' = case enemyTauntedStatus enemy of
+            EnemyTauntedInactive -> aiEnabledMsgs
+            EnemyTauntedActive   -> case cmd of
+                StartIdleInstr        -> startSprintBehavior enemy
+                UpdateIdleInstr _     -> startSprintBehavior enemy
+                StartSearchInstr      -> startSprintBehavior enemy
+                UpdateSearchInstr _ _ -> startSprintBehavior enemy
+                _                     -> aiEnabledMsgs
+
         aiDisabledMsgs =
             let
                 setIdleMsgs = case _behavior enemyData of
@@ -58,7 +67,7 @@ runBehaviorInstr aiEnabled cmd enemy
                 StartSprintInstr    -> setIdleMsgs
                 UpdateSprintInstr _ -> setIdleMsgs
                 StartExplodeInstr   -> setIdleMsgs
-                _                   -> aiEnabledMsgs
+                _                   -> aiEnabledMsgs'
 
 mkEnemyUpdateBehaviorMsg :: Enemy BombEnemyData -> BombEnemyBehavior -> [Msg ThinkEnemyMsgsPhase]
 mkEnemyUpdateBehaviorMsg enemy behavior = mkEnemyUpdateMsg enemy $ \e -> e

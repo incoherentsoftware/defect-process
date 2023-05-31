@@ -19,13 +19,13 @@ data BossEnemyConfig = BossEnemyConfig
     , _skipSpawnAnim :: Bool
     , _noSuperArmor  :: Bool
 
-    , _staggerThreshold     :: Stagger
-    , _idleSecs             :: Secs
-    , _maxIncapacitatedSecs :: Secs
-    , _healthbarBackdropPos :: Pos2
-    , _attackShortRange     :: Distance
-    , _attackMediumRange    :: Distance
-    , _attackLongRange      :: Distance
+    , _staggerThreshold            :: Stagger
+    , _idleSecs                    :: Secs
+    , _maxIncapacitatedSecs        :: Secs
+    , _tauntedMaxIncapacitatedSecs :: Secs
+    , _attackShortRange            :: Distance
+    , _attackMediumRange           :: Distance
+    , _attackLongRange             :: Distance
 
     , _blobProjReleaseOffset      :: Pos2
     , _blobScreenshakeMagnitude   :: ScreenshakeMagnitude
@@ -37,6 +37,7 @@ data BossEnemyConfig = BossEnemyConfig
     , _turretScreenshakeMagnitude :: ScreenshakeMagnitude
     , _hopScreenshakeMagnitude    :: ScreenshakeMagnitude
 
+    , _healthbarBackdropPos  :: Pos2
     , _hpThresholdBodyOffset :: Pos2
 
     , _tauntUnderlayDrawScale      :: DrawScale

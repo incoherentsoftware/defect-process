@@ -2,8 +2,7 @@ module Enemy.All.Boss.AI
     ( thinkAI
     ) where
 
-import Control.Monad.IO.Class (MonadIO)
-import Control.Monad.State    (execStateT, modify)
+import Control.Monad.State (execStateT, modify)
 import qualified Data.Map as M
 
 import Attack
@@ -32,7 +31,7 @@ fallSoundFrameTagName = FrameTagName "fallSound" :: FrameTagName
 
 attackHammerFallSoundPath = "event:/SFX Events/Enemy/Boss/attack-hammer-fall" :: FilePath
 
-thinkAI :: (ConfigsRead m, MonadIO m) => EnemyThinkAI BossEnemyData m
+thinkAI :: ConfigsRead m => EnemyThinkAI BossEnemyData m
 thinkAI enemy = do
     aiEnabled <- not <$> readSettingsConfig _debug _disableAI
 
@@ -42,8 +41,8 @@ thinkAI enemy = do
         let
             runBehaviorInstr' = \cmd -> runBehaviorInstr aiEnabled cmd enemy
             behaviorInstrs    = thinkBehaviorInstrs enemy
-        behaviorMsgs <- concat <$> traverse runBehaviorInstr' behaviorInstrs
-        modify (++ behaviorMsgs)
+        modify (++ concatMap runBehaviorInstr' behaviorInstrs)
+
         modify (mkEnemyUpdateDataMsgs enemy ++)
         modify (mkSeekWallsMsgs enemy ++)
 

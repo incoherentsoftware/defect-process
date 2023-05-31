@@ -50,6 +50,7 @@ mkSpearEnemy pos dir = do
         , _health                 = _health (spearCfg :: SpearEnemyConfig)
         , _hitbox                 = spearEnemyHitbox
         , _pullable               = not . isSpearEnemySuperArmor
+        , _inHitstun              = spearEnemyInHitstun
         , _lockOnReticleData      = lockOnReticleData
         , _tauntedData            = Just tauntedData
         , _thinkAI                = thinkAI
@@ -74,6 +75,15 @@ spearEnemyHitbox enemy
 
 isSpearEnemySuperArmor :: Enemy SpearEnemyData -> Bool
 isSpearEnemySuperArmor enemy = maybe False (isAttackFrameTag superArmorFrameTagName) (_attack enemy)
+
+spearEnemyInHitstun :: EnemyInHitstun SpearEnemyData
+spearEnemyInHitstun enemy = case _behavior (_data enemy) of
+    HurtBehavior _ _    -> True
+    LaunchedBehavior _  -> True
+    FallenBehavior _    -> True
+    GetUpBehavior       -> True
+    WallSplatBehavior _ -> True
+    _                   -> False
 
 updateSpr :: EnemyUpdateSprite SpearEnemyData
 updateSpr enemy = case _behavior enemyData of

@@ -40,15 +40,15 @@ thinkInfoMsgManager world =
     in do
         enemyCfg <- _enemy <$> readConfigs
 
-        let
-            playerInfoMsgs    = processPlayerInfoMsgs player surfaces enemies enemyCfg
-            enemyPosMsgs      = processEnemyPosMsgs enemies
-            enemyInStasisMsgs = processEnemyInStasisMsgs enemies
-            projPosMsgs       = processProjectilePosMsgs projectiles
-            roomInfoMsgs      = processRoomInfoMsgs room
-            musicInfoMsgs     = processMusicInfoMsgs $ _audio world
-
-        writeMsgs $ playerInfoMsgs ++ enemyPosMsgs ++ enemyInStasisMsgs ++ projPosMsgs ++ roomInfoMsgs ++ musicInfoMsgs
+        writeMsgs $ concat
+            [ processPlayerInfoMsgs player surfaces enemies enemyCfg
+            , processEnemyPosMsgs enemies
+            , processEnemyInStasisMsgs enemies
+            , processEnemyInHitstunMsgs enemies
+            , processProjectilePosMsgs projectiles
+            , processRoomInfoMsgs room
+            , processMusicInfoMsgs $ _audio world
+            ]
 
 calculatePlayerInfo :: Player -> [Surface] -> PlayerInfo
 calculatePlayerInfo player surfaces = PlayerInfo
@@ -132,6 +132,13 @@ processEnemyInStasisMsgs enemies =
     [ mkMsg $ InfoMsgEnemyInStasis (E._msgId enemy)
     | Some enemy <- enemies
     , isEnemyInStasis enemy
+    ]
+
+processEnemyInHitstunMsgs :: [Some Enemy] -> [Msg ThinkInfoMsgsPhase]
+processEnemyInHitstunMsgs enemies =
+    [ mkMsg $ InfoMsgEnemyInHitstun (E._msgId enemy)
+    | Some enemy <- enemies
+    , isEnemyInHitstun enemy
     ]
 
 processProjectilePosMsgs :: [Some Projectile] -> [Msg ThinkInfoMsgsPhase]

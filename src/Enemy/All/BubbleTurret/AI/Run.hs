@@ -11,6 +11,7 @@ import Enemy.All.BubbleTurret.AttackDescriptions
 import Enemy.All.BubbleTurret.Behavior
 import Enemy.All.BubbleTurret.BubbleProjectile
 import Enemy.All.BubbleTurret.Data
+import Enemy.All.BubbleTurret.Util
 import Msg
 import Util
 import Window.Graphics
@@ -32,7 +33,7 @@ runBehaviorInstr aiEnabled cmd enemy
 
         aiDisabledMsgs =
             let
-                setIdleMsgs = case _behavior (E._data enemy) of
+                setIdleMsgs = case _behavior (_data enemy) of
                     IdleBehavior -> []
                     _            -> startIdleBehavior enemy
             in case cmd of
@@ -74,16 +75,19 @@ updateHurtBehavior hurtTtl enemy = mkEnemyUpdateMsg enemy $ \e -> e
 startAttackBehavior :: Enemy BubbleTurretEnemyData -> [Msg ThinkEnemyMsgsPhase]
 startAttackBehavior enemy = attackMsg:behaviorDataMsgs
     where
-        enemyData        = E._data enemy
-        atk1Desc         = _attack1 $ _attackDescs enemyData
+        atk1Desc         = _attack1 $ _attackDescs (E._data enemy)
         enemyId          = E._msgId enemy
         attackMsg        = mkMsgTo (EnemyMsgSetAttackDesc atk1Desc) enemyId
-        behaviorDataMsgs = mkEnemyUpdateMsg enemy $ \e -> e
-            { _data = (E._data e)
-                { _behavior       = AttackBehavior
-                , _attackCooldown = _bubbleAttackCooldown . _bubbleTurret $ _config enemyData
+        behaviorDataMsgs = mkEnemyUpdateMsg enemy $ \e ->
+            let
+                eData = E._data e
+                cfg   = _bubbleTurret $ _config eData
+            in e
+                { _data = eData
+                    { _behavior       = AttackBehavior
+                    , _attackCooldown = _bubbleAttackCooldown cfg * attackCooldownMultiplier e
+                    }
                 }
-            }
 
 attackProjOffset :: Enemy BubbleTurretEnemyData -> Pos2
 attackProjOffset enemy = E._pos enemy `vecAdd` Pos2 mouthOffsetX' mouthOffsetY
@@ -107,6 +111,13 @@ updateIdleBehavior enemy = mkEnemyUpdateMsg enemy $ \e ->
     let
         eData = E._data e
         cfg   = _bubbleTurret $ _config eData
+
+        cooldownMultiplier       = attackCooldownMultiplier enemy
+        turnAroundAttackCooldown = _turnAroundAttackCooldown cfg * cooldownMultiplier
+        attackCooldown           = _attackCooldown eData * cooldownMultiplier
+        turnAroundTimerSecs      = case enemyTauntedStatus enemy of
+            EnemyTauntedInactive -> _turnAroundTimerSecs cfg
+            EnemyTauntedActive   -> _tauntedTurnAroundTimerSecs cfg
     in case _turnAroundTimerTtl eData of
         _
             | isEnemyFacingPlayer e -> e
@@ -118,7 +129,7 @@ updateIdleBehavior enemy = mkEnemyUpdateMsg enemy $ \e ->
             in if
                 | ttl' <= 0.0 -> e
                     { _data = eData
-                        { _attackCooldown     = max (_turnAroundAttackCooldown cfg) (_attackCooldown eData)
+                        { _attackCooldown     = max turnAroundAttackCooldown attackCooldown
                         , _turnAroundTimerTtl = Just ttl'
                         }
                     , _dir  = flipDirection $ E._dir e
@@ -128,7 +139,7 @@ updateIdleBehavior enemy = mkEnemyUpdateMsg enemy $ \e ->
                     }
 
         Nothing -> e
-            { _data = eData {_turnAroundTimerTtl = Just $ _turnAroundTimerSecs cfg}
+            { _data = eData {_turnAroundTimerTtl = Just turnAroundTimerSecs}
             }
 
 updateSpawnBehavior :: Enemy BubbleTurretEnemyData -> [Msg ThinkEnemyMsgsPhase]

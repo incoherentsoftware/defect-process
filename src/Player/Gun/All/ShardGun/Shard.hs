@@ -109,10 +109,17 @@ updateShard shard = update <$> readMsgs <*> pure shard
             InfoMsgEnemyPos enHbx enId
                 | enId == _enemyMsgId shardData ->
                     let
+                        ttl
+                            | isDummyHitbox enHbx = 0.0  -- remove shard if enemy phased (dummy hitbox)
+                            | otherwise           = _ttl shardProj
+
                         hitbox         = projectileHitbox shardProj
                         hitboxTopLeft' = hitboxBotCenter enHbx `vecAdd` _enemyOffset shardData
                         hitbox'        = setHitboxTopLeft hitboxTopLeft' hitbox
-                    in shardProj {_hitbox = const hitbox'}
+                    in shardProj
+                        { _ttl    = ttl
+                        , _hitbox = const hitbox'
+                        }
             _                                   -> update ds shardProj
             where shardData = P._data shard
 

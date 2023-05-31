@@ -47,7 +47,7 @@ mkHelpPopupTextOverlay
     -> m HelpPopupTextOverlay
 mkHelpPopupTextOverlay popupTextOverlayDesc = do
     let txt         = _text (popupTextOverlayDesc :: HelpPopupTextOverlayDescription)
-    inputDisplayTxt <- mkInputDisplayText txt Font22 whiteColor
+    inputDisplayTxt <- mkInputDisplayText txt Font29 whiteColor
 
     return $ HelpPopupTextOverlay
         { _inputDisplayText = inputDisplayTxt

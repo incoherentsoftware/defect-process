@@ -83,7 +83,7 @@ mkControlsKeyButton keyBtnType keyBtnJSON =
         inputRawDatas <- lookupInputAliasRawDatas keyBtnType inputAlias
 
         let txt          = "{" <> prettyShow inputAlias <> "}"
-        inputDisplayTxt <- mkInputDisplayText txt Font22 controlsTextColor
+        inputDisplayTxt <- mkInputDisplayText txt Font32 controlsTextColor
 
         let pos = _pos (keyBtnJSON :: ControlsKeyButtonJSON)
         btn    <- mkImageButton pos controlsKeyButtonImagePath

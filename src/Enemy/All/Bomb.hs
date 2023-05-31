@@ -44,6 +44,7 @@ mkBombEnemy pos dir = do
         { _type                   = Just BombEnemy
         , _health                 = _health (bombCfg :: BombEnemyConfig)
         , _hitbox                 = bombEnemyHitbox
+        , _inHitstun              = bombEnemyInHitstun
         , _lockOnReticleData      = lockOnReticleData
         , _tauntedData            = Just tauntedData
         , _thinkAI                = thinkAI
@@ -64,6 +65,13 @@ bombEnemyHitbox enemy
         width     = _width (cfg :: BombEnemyConfig)
         height    = _height (cfg :: BombEnemyConfig)
         pos       = Pos2 (x - width / 2.0) (y - height)
+
+bombEnemyInHitstun :: EnemyInHitstun BombEnemyData
+bombEnemyInHitstun enemy = case _behavior (_data enemy) of
+    HurtBehavior _ _    -> True
+    LaunchedBehavior _  -> True
+    WallSplatBehavior _ -> True
+    _                   -> False
 
 updateSpr :: EnemyUpdateSprite BombEnemyData
 updateSpr enemy = case behavior of

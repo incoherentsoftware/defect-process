@@ -47,6 +47,7 @@ mkClawsEnemy pos dir = do
         { _type                   = Just ClawsEnemy
         , _health                 = _health (clawsCfg :: ClawsEnemyConfig)
         , _hitbox                 = clawsEnemyHitbox
+        , _inHitstun              = clawsEnemyInHitstun
         , _lockOnReticleData      = lockOnReticleData
         , _tauntedData            = Just tauntedData
         , _thinkAI                = thinkAI
@@ -80,6 +81,15 @@ clawsEnemyHitbox enemy = case _behavior enemyData of
         airHurtPos     = Pos2 (x - airHurtWidth / 2.0) (y - airHurtHeight + airHurtOffsetY)
 
         dummyHbx = dummyHitbox $ Pos2 x (y - height / 2.0)
+
+clawsEnemyInHitstun :: EnemyInHitstun ClawsEnemyData
+clawsEnemyInHitstun enemy = case _behavior (_data enemy) of
+    HurtBehavior _ _    -> True
+    LaunchedBehavior _  -> True
+    FallenBehavior _    -> True
+    GetUpBehavior       -> True
+    WallSplatBehavior _ -> True
+    _                   -> False
 
 updateSpr :: EnemyUpdateSprite ClawsEnemyData
 updateSpr enemy = case _behavior enemyData of

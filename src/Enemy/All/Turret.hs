@@ -44,6 +44,7 @@ mkTurretEnemy pos dir = do
         , _health               = _health (turretCfg :: TurretEnemyConfig)
         , _hitbox               = turretEnemyHitbox
         , _pullable             = const False
+        , _inHitstun            = turretEnemyInHitstun
         , _lockOnReticleData    = lockOnReticleData
         , _tauntedData          = Just tauntedData
         , _thinkAI              = thinkAI
@@ -63,6 +64,11 @@ turretEnemyHitbox enemy
         width     = _width (cfg :: TurretEnemyConfig)
         height    = _height (cfg :: TurretEnemyConfig)
         pos       = Pos2 (x - width / 2.0) (y - height)
+
+turretEnemyInHitstun :: EnemyInHitstun TurretEnemyData
+turretEnemyInHitstun enemy = case _behavior (_data enemy) of
+    HurtBehavior _ -> True
+    _              -> False
 
 updateSpr :: EnemyUpdateSprite TurretEnemyData
 updateSpr enemy = case _behavior enemyData of

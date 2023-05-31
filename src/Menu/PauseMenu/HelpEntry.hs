@@ -44,7 +44,7 @@ mkPauseMenuHelpEntry
 mkPauseMenuHelpEntry iconButtonPos menuHelpPopupType menuHelpPopupDesc = do
     iconBtn                 <- mkImageButton iconButtonPos (_iconButtonImagePath menuHelpPopupDesc)
     helpPopup               <- mkHelpPopup menuHelpPopupDesc
-    viewInfoInputDisplayTxt <- mkInputDisplayText (_viewInfoText menuHelpPopupDesc) Font22 whiteColor
+    viewInfoInputDisplayTxt <- mkInputDisplayText (_viewInfoText menuHelpPopupDesc) Font29 whiteColor
     soundIndices            <- mkMenuSoundIndices
 
     return $ PauseMenuHelpEntry

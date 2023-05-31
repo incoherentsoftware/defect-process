@@ -49,6 +49,7 @@ mkZombieEnemy pos dir = do
         { _type                   = Just ZombieEnemy
         , _health                 = _health (zombieCfg :: ZombieEnemyConfig)
         , _hitbox                 = zombieEnemyHitbox
+        , _inHitstun              = zombieEnemyInHitstun
         , _lockOnReticleData      = lockOnReticleData
         , _tauntedData            = Just tauntedData
         , _thinkAI                = thinkAI
@@ -70,6 +71,15 @@ zombieEnemyHitbox enemy
         width     = _width (cfg :: ZombieEnemyConfig)
         height    = _height (cfg :: ZombieEnemyConfig)
         pos       = Pos2 (x - width / 2.0) (y - height)
+
+zombieEnemyInHitstun :: EnemyInHitstun ZombieEnemyData
+zombieEnemyInHitstun enemy = case _behavior (_data enemy) of
+    HurtBehavior _ _    -> True
+    LaunchedBehavior _  -> True
+    FallenBehavior _    -> True
+    GetUpBehavior       -> True
+    WallSplatBehavior _ -> True
+    _                   -> False
 
 updateSpr :: EnemyUpdateSprite ZombieEnemyData
 updateSpr enemy = case _behavior enemyData of

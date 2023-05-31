@@ -27,6 +27,9 @@ data FlyingEnemyConfig = FlyingEnemyConfig
     , _shootCooldown          :: Secs
     , _shockCooldown          :: Secs
 
+    , _tauntedIdleSecs           :: Secs
+    , _tauntedCooldownMultiplier :: Float
+
     , _riseRecoverVelY        :: VelY
     , _idleSecs               :: Secs
     , _getUpUprightFrameIndex :: FrameIndex

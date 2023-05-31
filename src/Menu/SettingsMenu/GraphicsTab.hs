@@ -84,7 +84,7 @@ mkResolutionComboBox = do
 
     value  <- getCurrentResolutionText
     values <- map formatResolutionText <$> getGraphicsAvailableResolutions
-    mkComboBox pos value values Font22 menuOptionBtnColor hoverMenuOptionBtnColor offset comboBoxImagePath
+    mkComboBox pos value values Font32 menuOptionBtnColor hoverMenuOptionBtnColor offset comboBoxImagePath
 
 mkDisplayModeComboBox :: (ConfigsRead m, FileCache m, GraphicsRead m, MonadIO m) => m ComboBox
 mkDisplayModeComboBox = do
@@ -94,7 +94,7 @@ mkDisplayModeComboBox = do
         offset = _settingsGraphicsTabDisplayModeComboBoxValueOffset menuCfg
 
     value <- formatWindowMode <$> readSettingsConfig _render _winMode
-    mkComboBox pos value displayModeValues Font22 menuOptionBtnColor hoverMenuOptionBtnColor offset comboBoxImagePath
+    mkComboBox pos value displayModeValues Font32 menuOptionBtnColor hoverMenuOptionBtnColor offset comboBoxImagePath
 
 mkSettingsGraphicsTab :: (ConfigsRead m, FileCache m, GraphicsRead m, MonadIO m) => m SettingsGraphicsTab
 mkSettingsGraphicsTab = do

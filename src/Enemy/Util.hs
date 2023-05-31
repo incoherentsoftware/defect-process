@@ -12,6 +12,7 @@ module Enemy.Util
     , enemySpriteFinished
     , enemyFlippedDirIfWallOrGround
     , enemyTauntedStatus
+    , enemyTauntedPrevStatus
     , mkEnemyUpdateMsg
     , mkEnemyUpdateMsgM
     , updateEnemySprite
@@ -31,6 +32,7 @@ module Enemy.Util
     , enemyWallImpactMessages
     , isEnemyFacingPlayer
     , isEnemyInStasis
+    , isEnemyInHitstun
     , mkEnemyAttack
     , mkEnemyAttackProjectile
     , mkEnemyAttackProjectileEx
@@ -102,6 +104,9 @@ enemyFlippedDirIfWallOrGround enemy
 
 enemyTauntedStatus :: Enemy d -> EnemyTauntedStatus
 enemyTauntedStatus enemy = maybe EnemyTauntedInactive _status (_tauntedData enemy)
+
+enemyTauntedPrevStatus :: Enemy d -> EnemyTauntedStatus
+enemyTauntedPrevStatus enemy = maybe EnemyTauntedInactive _prevStatus (_tauntedData enemy)
 
 mkEnemyUpdateMsg :: Typeable d => Enemy d -> (Enemy d -> Enemy d) -> [Msg ThinkEnemyMsgsPhase]
 mkEnemyUpdateMsg enemy update = [mkMsgTo (EnemyMsgUpdate update) enemyId]
@@ -240,6 +245,9 @@ isEnemyFacingPlayer enemy = case vecX . playerInfoPos <$> _knownPlayerInfo enemy
 
 isEnemyInStasis :: Enemy d -> Bool
 isEnemyInStasis = isEnemyStasisDataInStasis . _stasisData
+
+isEnemyInHitstun :: Enemy d -> Bool
+isEnemyInHitstun enemy = (_inHitstun enemy) enemy
 
 mkEnemyAttack :: (ConfigsRead m, MonadIO m) => Pos2 -> Direction -> AttackDescription -> EnemyTauntedStatus -> m Attack
 mkEnemyAttack pos dir atkDesc tauntedStatus = do

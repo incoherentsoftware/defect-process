@@ -17,10 +17,12 @@ data BatEnemyConfig = BatEnemyConfig
     , _width   :: Float
     , _height  :: Float
 
-    , _riseRecoverVelY  :: VelY
-    , _idleSecs         :: Secs
-    , _patrolSpeed      :: Speed
-    , _staggerThreshold :: Stagger
+    , _riseRecoverVelY             :: VelY
+    , _idleSecs                    :: Secs
+    , _patrolSpeed                 :: Speed
+    , _staggerThreshold            :: Stagger
+    , _patrolAttackCooldown        :: Secs
+    , _tauntedPatrolAttackCooldown :: Secs
 
     , _tauntUnderlayDrawScale      :: DrawScale
     , _groundImpactEffectDrawScale :: DrawScale

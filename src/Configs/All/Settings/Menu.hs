@@ -61,7 +61,7 @@ data MenuConfig = MenuConfig
     , _helpPopupCloseButtonPos                 :: Pos2
     , _helpPopupControlsButtonPos              :: Pos2
     , _helpPopupAltControlsButtonPos           :: Pos2
-    , _helpPopupTargetingTextPositions         :: (Pos2, Pos2, Pos2, Pos2, Pos2, Pos2, Pos2)
+    , _helpPopupTargetingTextPositions         :: (Pos2, Pos2, Pos2, Pos2, Pos2, Pos2, Pos2, Pos2)
     , _helpPopupSwordBasicTabButtonPos         :: Pos2
     , _helpPopupSwordSpecialTabButtonPos       :: Pos2
     , _helpPopupGauntletsBasicTabButtonPos     :: Pos2
@@ -92,7 +92,6 @@ data MenuConfig = MenuConfig
     , _unlocksMainMenuButtonPos     :: Pos2
     , _unlocksTitleTextPos          :: Pos2
     , _unlocksSubTitleTextPos       :: Pos2
-    , _unlocksUnlocksTextPos        :: Pos2
     , _unlocksUnavailableTextPos    :: Pos2
     , _unlocksMusicEntries          :: [UnlocksEntryJSON LayeredMusicType]
     , _unlocksWeaponEntries         :: [UnlocksEntryJSON WeaponType]

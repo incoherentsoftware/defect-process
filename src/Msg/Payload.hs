@@ -48,6 +48,7 @@ import Player.Gun.Types
 import Player.Meter
 import Player.MovementSkill.Types
 import Player.SecondarySkill.Types
+import Player.TauntState.Types
 import Player.Upgrade
 import Player.Weapon.Types
 import Projectile.Types
@@ -137,6 +138,7 @@ data InfoMsgPayload
     | InfoMsgEnemyPos Hitbox MsgId
     | InfoMsgEnemyLockOnReticle EnemyLockOnData
     | InfoMsgEnemyInStasis MsgId
+    | InfoMsgEnemyInHitstun MsgId
     | InfoMsgRoomArenaWalls RoomArenaWallsInfo
     | InfoMsgRoomTopBounds PosY
     | InfoMsgBattleMusic LayeredMusicType
@@ -225,7 +227,8 @@ data PlayerMsgPayload where
     PlayerMsgForceInAir                   :: PlayerMsgPayload
     PlayerMsgWarpOut                      :: PlayerMsgPayload
     PlayerMsgTouchingInfoSign             :: PlayerMsgPayload
-    PlayerMsgTaunt                        :: PlayerMsgPayload
+    PlayerMsgActivateTaunt                :: PlayerMsgPayload
+    PlayerMsgUpdateTauntState             :: (PlayerTauntState -> PlayerTauntState) -> PlayerMsgPayload
 
 data ProjectileMsgPayload where
     ProjectileMsgSetVelocity     :: Vel2 -> ProjectileMsgPayload

@@ -82,8 +82,8 @@ data GoldUI = GoldUI
 
 mkGoldUI :: (FileCache m, GraphicsRead m, MonadIO m) => m GoldUI
 mkGoldUI = do
-    symbolDisplayTxt       <- mkSymbolDisplayText (formatGoldSymbolText $ GoldValue 0) Font22 goldTextColor
-    goldDropDisplayText    <- mkDisplayText (formatGoldFloatingTextValue (GoldValue 0)) Font14 goldTextColor
+    symbolDisplayTxt       <- mkSymbolDisplayText (formatGoldSymbolText $ GoldValue 0) Font32 goldTextColor
+    goldDropDisplayText    <- mkDisplayText (formatGoldFloatingTextValue (GoldValue 0)) Font32 goldTextColor
     insufficientOverlayImg <- loadUiPackImage "insufficient-gold-overlay.image"
 
     return $ GoldUI

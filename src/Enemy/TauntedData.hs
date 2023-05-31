@@ -2,8 +2,9 @@ module Enemy.TauntedData
     ( EnemyTauntedStatus(..)
     , EnemyTauntedData(..)
     , mkEnemyTauntedData
+    , activateEnemyTauntedData
     , updateEnemyTauntedData
-    , drawEnemyTauntedUnderlay
+    , drawEnemyTauntedData
     ) where
 
 import Control.Monad.IO.Class (MonadIO)
@@ -23,6 +24,7 @@ data EnemyTauntedStatus
 
 data EnemyTauntedData = EnemyTauntedData
     { _status            :: EnemyTauntedStatus
+    , _prevStatus        :: EnemyTauntedStatus
     , _underlaySprite    :: Sprite
     , _underlayDrawScale :: DrawScale
     }
@@ -32,23 +34,28 @@ mkEnemyTauntedData underlayDrawScale = do
     spr <- loadPackSprite underlaySpritePath
     return $ EnemyTauntedData
         { _status            = EnemyTauntedInactive
+        , _prevStatus        = EnemyTauntedInactive
         , _underlaySprite    = spr
         , _underlayDrawScale = underlayDrawScale
         }
 
+activateEnemyTauntedData :: EnemyTauntedData -> EnemyTauntedData
+activateEnemyTauntedData tauntedData = tauntedData {_status = EnemyTauntedActive}
+
 updateEnemyTauntedData :: EnemyTauntedData -> EnemyTauntedData
 updateEnemyTauntedData tauntedData = tauntedData
-    { _underlaySprite = updateSprite $ _underlaySprite tauntedData
+    { _prevStatus     = _status tauntedData
+    , _underlaySprite = updateSprite $ _underlaySprite tauntedData
     }
 
-drawEnemyTauntedUnderlay
+drawEnemyTauntedData
     :: (GraphicsReadWrite m, MonadIO m)
     => Pos2
     -> Direction
     -> EnemyLockOnData
     -> EnemyTauntedData
     -> m ()
-drawEnemyTauntedUnderlay pos dir lockOnData tauntedData = case _status tauntedData of
+drawEnemyTauntedData pos dir lockOnData tauntedData = case _status tauntedData of
     EnemyTauntedInactive -> return ()
     EnemyTauntedActive   ->
         let

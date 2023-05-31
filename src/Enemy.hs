@@ -23,7 +23,7 @@ module Enemy
     ) where
 
 import Control.Applicative    ((<|>))
-import Control.Monad          (when)
+import Control.Monad          (unless, when)
 import Control.Monad.IO.Class (MonadIO)
 import Data.Dynamic           (fromDynamic)
 import Data.Foldable          (sequenceA_)
@@ -52,6 +52,8 @@ import Msg
 import Util
 import Window.Graphics
 import World.ZIndex
+
+noTauntUnderlayFrameTagName = FrameTagName "noTauntUnderlay" :: FrameTagName
 
 spawnVel    = Vel2 0.0 0.1    :: Vel2
 dummyHealth = mkHealth 999999 :: Health
@@ -106,6 +108,7 @@ mkEnemyInternal enMsgId enData pos dir enDummyType = do
         , _attack                 = Nothing
         , _hitbox                 = const $ dummyHitbox pos
         , _pullable               = const True
+        , _inHitstun              = const False
         , _lockOnReticleData      = dummyLockOnReticleData
         , _tauntedData            = Nothing
         , _stasisData             = stasisData
@@ -218,9 +221,10 @@ drawEnemy enemy = case _draw enemy of
             when isDrawStasis $
                 setGraphicsBlendMode BlendModeAlpha
 
-            case _tauntedData enemy of
-                Nothing          -> return ()
-                Just tauntedData -> drawEnemyTauntedUnderlay pos dir (enemyLockOnData enemy) tauntedData
+            unless (maybe False (noTauntUnderlayFrameTagName `isSpriteFrameTag`) spr) $
+                case _tauntedData enemy of
+                    Just tauntedData -> drawEnemyTauntedData pos dir (enemyLockOnData enemy) tauntedData
+                    Nothing          -> return ()
 
             drawEnemyOverlay
 

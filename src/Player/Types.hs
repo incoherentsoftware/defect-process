@@ -22,7 +22,7 @@ import Player.Overlay.Types
 import Player.SecondarySkill.Manager.Types
 import Player.SoundHashedIds
 import Player.Sprites
-import Player.Taunts
+import Player.TauntState.Types
 import Player.TimersCounters
 import Player.Upgrade.Manager
 import Player.Weapon.Manager.Types
@@ -58,8 +58,8 @@ data Player = Player
     , _images                :: PlayerImages
     , _sprites               :: PlayerSprites
     , _overlays              :: PlayerOverlays
-    , _taunts                :: PlayerTaunts
     , _soundHashedIds        :: PlayerSoundHashedIds
+    , _tauntState            :: PlayerTauntState
     , _config                :: PlayerConfig
     }
 

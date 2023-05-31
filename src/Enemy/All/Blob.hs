@@ -28,7 +28,7 @@ import Particle.All.EnemyHurt
 import Util
 import Window.Graphics
 
-allBlobEnemyPreloadPackFilePaths = ["data/enemies/axe-enemy.pack"] :: [FilePath]
+allBlobEnemyPreloadPackFilePaths = ["data/enemies/blob-enemy.pack"] :: [FilePath]
 
 hurtSoundPath = "event:/SFX Events/Enemy/Blob/hurt" :: FilePath
 
@@ -44,6 +44,7 @@ mkBlobEnemy pos dir = do
         { _type                   = Just BlobEnemy
         , _health                 = _health (blobCfg :: BlobEnemyConfig)
         , _hitbox                 = blobEnemyHitbox
+        , _inHitstun              = blobEnemyInHitstun
         , _lockOnReticleData      = lockOnReticleData
         , _tauntedData            = Just tauntedData
         , _thinkAI                = thinkAI
@@ -64,6 +65,15 @@ blobEnemyHitbox enemy
         width     = _width (cfg :: BlobEnemyConfig)
         height    = _height (cfg :: BlobEnemyConfig)
         pos       = Pos2 (x - width / 2.0) (y - height)
+
+blobEnemyInHitstun :: EnemyInHitstun BlobEnemyData
+blobEnemyInHitstun enemy = case _behavior (_data enemy) of
+    HurtBehavior _ _    -> True
+    LaunchedBehavior _  -> True
+    FallenBehavior _    -> True
+    GetUpBehavior       -> True
+    WallSplatBehavior _ -> True
+    _                   -> False
 
 updateSpr :: EnemyUpdateSprite BlobEnemyData
 updateSpr enemy = case _behavior enemyData of
