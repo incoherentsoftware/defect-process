@@ -41,7 +41,7 @@ mkFlyingEnemy pos dir = do
     enemy             <- mkEnemy enData pos dir
     flyingCfg         <- readEnemyConfig _flying
     lockOnReticleData <- readEnemyLockOnConfig _flying
-    tauntedData       <- mkEnemyTauntedData $ _tauntUnderlayDrawScale flyingCfg
+    tauntedData       <- mkEnemyTauntedData $ _tauntedUnderlayDrawScale flyingCfg
 
     return . Some $ enemy
         { _type                   = Just FlyingEnemy

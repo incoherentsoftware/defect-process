@@ -48,7 +48,7 @@ mkHammerEnemy pos dir = do
     enemy             <- mkEnemy enData pos dir
     hammerCfg         <- readEnemyConfig _hammer
     lockOnReticleData <- readEnemyLockOnConfig _hammer
-    tauntedData       <- mkEnemyTauntedData $ _tauntUnderlayDrawScale hammerCfg
+    tauntedData       <- mkEnemyTauntedData $ _tauntedUnderlayDrawScale hammerCfg
 
     return . Some $ enemy
         { _type                   = Just HammerEnemy

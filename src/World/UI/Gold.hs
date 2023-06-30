@@ -63,7 +63,7 @@ updateGoldFloatingText cfg floatingText = floatingText
 
 drawGoldFloatingText :: (GraphicsReadWrite m, MonadIO m) => Pos2 -> DrawScale -> GoldFloatingText -> m ()
 drawGoldFloatingText pos drawScale floatingText =
-    drawDisplayTextCenteredEx pos' uiFrontZIndex drawScale opacity displayText
+    drawDisplayTextRightAlignedEx pos' uiFrontZIndex drawScale opacity displayText
     where
         offset      = _offset floatingText `vecMul` drawScaleToFloat drawScale
         pos'        = pos `vecAdd` offset
@@ -175,4 +175,4 @@ drawGoldUI goldUI = do
     drawRect backdropPos backdropWidth backdropHeight insufficientOverlayColor uiFrontZIndex
     drawImageEx goldCenterPos RightDir uiFrontZIndex 0.0 insufficientOverlayOpacity drawScale insufficientOverlayImg
 
-    traverse_ (drawGoldFloatingText goldCenterPos drawScale) (_goldFloatingTexts goldUI)
+    traverse_ (drawGoldFloatingText goldRightPos drawScale) (_goldFloatingTexts goldUI)

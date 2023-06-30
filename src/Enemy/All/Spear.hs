@@ -43,7 +43,7 @@ mkSpearEnemy pos dir = do
     enemy             <- mkEnemy enemyData pos dir
     spearCfg          <- readEnemyConfig _spear
     lockOnReticleData <- readEnemyLockOnConfig _spear
-    tauntedData       <- mkEnemyTauntedData $ _tauntUnderlayDrawScale spearCfg
+    tauntedData       <- mkEnemyTauntedData $ _tauntedUnderlayDrawScale spearCfg
 
     return . Some $ enemy
         { _type                   = Just SpearEnemy

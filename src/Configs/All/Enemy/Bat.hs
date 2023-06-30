@@ -24,7 +24,7 @@ data BatEnemyConfig = BatEnemyConfig
     , _patrolAttackCooldown        :: Secs
     , _tauntedPatrolAttackCooldown :: Secs
 
-    , _tauntUnderlayDrawScale      :: DrawScale
+    , _tauntedUnderlayDrawScale    :: DrawScale
     , _groundImpactEffectDrawScale :: DrawScale
     , _wallImpactEffectDrawScale   :: DrawScale
 

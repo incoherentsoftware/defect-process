@@ -42,12 +42,16 @@ mkGravityMsgs enemy
 mkEnemyUpdateDataMsgs :: Enemy TurretEnemyData -> [Msg ThinkEnemyMsgsPhase]
 mkEnemyUpdateDataMsgs enemy = mkEnemyUpdateMsg enemy $ \e ->
     let
-        eData        = E._data e
-        atkCooldown  = _attackCooldown eData
-        behavior     = _behavior $ E._data enemy
-        atkCooldown' = case behavior of
-            SpawnBehavior -> atkCooldown
-            _             -> max 0.0 (atkCooldown - timeStep)
+        behavior           = _behavior $ E._data enemy
+        eData              = E._data e
+        atkCooldown        = _attackCooldown eData
+        tauntedAtkCooldown = _tauntedAttackCooldown $ _turret (_config eData)
+        atkCooldown'       = case enemyTauntedStatus enemy of
+            EnemyTauntedActive
+                | atkCooldown > tauntedAtkCooldown -> tauntedAtkCooldown
+            _                                      -> case behavior of
+                SpawnBehavior -> atkCooldown
+                _             -> max 0.0 (atkCooldown - timeStep)
     in e
         { _data = eData
             { _attackCooldown = atkCooldown'

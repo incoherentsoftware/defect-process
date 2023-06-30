@@ -30,8 +30,7 @@ import Window.Graphics
 spritePrefix = "dummy-ground-" :: String
 
 additionalLockOnReticleDataOffsetMap = M.fromList
-    [ ("dummy-ground-dematerialize", repeat (Pos2 (-30.0) 51.0))
-    , ("dummy-ground-rematerialize", repeat (Pos2 0.0 (-28.0)))
+    [ ("dummy-ground-dematerialize", repeat (Pos2 (-30.0) (-24.0)))
     ] :: M.Map String [Pos2]
 
 readLockOnReticleData :: ConfigsRead m => m EnemyLockOnReticleData
@@ -48,12 +47,15 @@ mkSandbagGround pos dir = do
     enemy             <- mkEnemy enemyData pos dir
     axeCfg            <- readEnemyConfig _axe
     lockOnReticleData <- readLockOnReticleData
+    tauntedData       <- mkEnemyTauntedData $ _tauntedUnderlayDrawScale axeCfg
 
     return . Some $ enemy
         { _type                   = Just AxeEnemy  -- pretend to be axe enemy
         , _health                 = _health (axeCfg :: AxeEnemyConfig)
         , _hitbox                 = sandbagGroundHitbox
+        , _inHitstun              = sandbagGroundInHitstun
         , _lockOnReticleData      = lockOnReticleData
+        , _tauntedData            = Just tauntedData
         , _thinkAI                = thinkAI
         , _updateHurtResponse     = updateHurtResponse
         , _updateGroundResponse   = updateGroundResponse
@@ -76,6 +78,14 @@ sandbagGroundHitbox enemy = case _behavior enemyData of
         height    = _height (cfg :: AxeEnemyConfig)
         pos       = Pos2 (x - width / 2.0) (y - height)
         dummyHbx  = dummyHitbox $ Pos2 x (y - height / 2.0)
+
+sandbagGroundInHitstun :: EnemyInHitstun SandbagGroundData
+sandbagGroundInHitstun enemy = case _behavior (_data enemy) of
+    HurtBehavior _ _    -> True
+    LaunchedBehavior _  -> True
+    FallenBehavior _    -> True
+    WallSplatBehavior _ -> True
+    _                   -> False
 
 updateSpr :: EnemyUpdateSprite SandbagGroundData
 updateSpr enemy = case _behavior enemyData of

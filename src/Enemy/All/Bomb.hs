@@ -38,7 +38,7 @@ mkBombEnemy pos dir = do
     enemy             <- mkEnemy enemyData pos dir
     bombCfg           <- readEnemyConfig _bomb
     lockOnReticleData <- readEnemyLockOnConfig _bomb
-    tauntedData       <- mkEnemyTauntedData $ _tauntUnderlayDrawScale bombCfg
+    tauntedData       <- mkEnemyTauntedData $ _tauntedUnderlayDrawScale bombCfg
 
     return . Some $ enemy
         { _type                   = Just BombEnemy

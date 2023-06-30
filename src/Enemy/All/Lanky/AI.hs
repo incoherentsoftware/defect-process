@@ -16,6 +16,7 @@ import Enemy.All.Lanky.AI.Run
 import Enemy.All.Lanky.AttackType
 import Enemy.All.Lanky.Behavior
 import Enemy.All.Lanky.Data
+import Enemy.All.Lanky.Util
 import InfoMsg.Util
 import Msg
 import Util
@@ -62,11 +63,23 @@ mkEnemyUpdateDataMsgs enemy = mkEnemyUpdateMsg enemy $ \e ->
     let
         eData                    = E._data e
         lastKnownPlayerGroundPos = maybe (_lastKnownPlayerGroundPos eData) _groundBeneathPos (_knownPlayerInfo e)
+
+        atkCooldownMultiplier                      = attackCooldownMultiplier e
+        (summonAtkCooldownTtl, beamAtkCooldownTtl) =
+            case (enemyTauntedPrevStatus e, enemyTauntedStatus e) of
+                (EnemyTauntedInactive, EnemyTauntedActive) ->
+                    ( _summonAtkCooldownTtl eData * atkCooldownMultiplier
+                    , _beamAtkCooldownTtl eData * atkCooldownMultiplier
+                    )
+                _                                          ->
+                    ( max 0.0 (_summonAtkCooldownTtl eData - timeStep)
+                    , max 0.0 (_beamAtkCooldownTtl eData - timeStep)
+                    )
     in e
         { _data = eData
             { _lastKnownPlayerGroundPos = lastKnownPlayerGroundPos
-            , _summonAtkCooldownTtl     = max 0.0 (_summonAtkCooldownTtl eData - timeStep)
-            , _beamAtkCooldownTtl       = max 0.0 (_beamAtkCooldownTtl eData - timeStep)
+            , _summonAtkCooldownTtl     = summonAtkCooldownTtl
+            , _beamAtkCooldownTtl       = beamAtkCooldownTtl
             , _prevBehavior             = prevBehavior
             }
         }

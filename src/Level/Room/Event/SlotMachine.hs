@@ -122,6 +122,7 @@ mkRoomEventSlotMachine (Pos2 x y) =
             , _think           = thinkSlotMachine
             , _update          = updateSlotMachine
             , _playerCollision = slotMachinePlayerCollision
+            , _inInteractRange = _touchingPlayer . _data
             }
 
 pos2ApproxEq :: Pos2 -> Pos2 -> Bool

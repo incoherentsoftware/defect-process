@@ -28,7 +28,7 @@ runBehaviorInstr
     -> Enemy ZombieEnemyData
     -> m [Msg ThinkEnemyMsgsPhase]
 runBehaviorInstr aiEnabled cmd enemy
-    | aiEnabled = aiEnabledMsgs
+    | aiEnabled = aiEnabledMsgs'
     | otherwise = aiDisabledMsgs
     where
         aiEnabledMsgs = case cmd of
@@ -52,6 +52,19 @@ runBehaviorInstr aiEnabled cmd enemy
             StartDeathInstr                        -> return $ startDeathBehavior enemy
             SetDeadInstr                           -> return $ enemySetDeadMessages enemy
 
+        cfg                = _zombie $ _config (_data enemy)
+        tauntedIdleSecs    = _tauntedIdleSecs cfg
+        tauntedMaxWalkSecs = _tauntedMaxWalkSecs cfg
+
+        aiEnabledMsgs' = case enemyTauntedStatus enemy of
+            EnemyTauntedInactive -> aiEnabledMsgs
+            EnemyTauntedActive   -> case cmd of
+                UpdateIdleInstr idleTtl postIdleAction
+                    | idleTtl > tauntedIdleSecs    -> return $ updateIdleBehavior tauntedIdleSecs postIdleAction enemy
+                UpdateWalkInstr walkTtl
+                    | walkTtl > tauntedMaxWalkSecs -> return $ updateWalkBehavior tauntedMaxWalkSecs enemy
+                _                                  -> aiEnabledMsgs
+
         aiDisabledMsgs =
             let
                 setIdleMsgs = return $ case _behavior (E._data enemy) of
@@ -62,7 +75,7 @@ runBehaviorInstr aiEnabled cmd enemy
                 StartWalkInstr     -> setIdleMsgs
                 UpdateWalkInstr _  -> setIdleMsgs
                 StartAttackInstr   -> setIdleMsgs
-                _                  -> aiEnabledMsgs
+                _                  -> aiEnabledMsgs'
 
 mkEnemyUpdateBehaviorMsg :: Enemy ZombieEnemyData -> ZombieEnemyBehavior -> [Msg ThinkEnemyMsgsPhase]
 mkEnemyUpdateBehaviorMsg enemy behavior = mkEnemyUpdateMsg enemy $ \e ->

@@ -14,17 +14,18 @@ import Player.Meter
 import Util
 
 data PlayerInfo = PlayerInfo
-    { _msgId            :: MsgId
-    , _vel              :: Vel2
-    , _dir              :: Direction
-    , _hitbox           :: Hitbox
-    , _groundBeneathPos :: Pos2
-    , _touchingGround   :: Bool
-    , _touchingWall     :: Bool
-    , _onPlatform       :: Bool
-    , _equipment        :: PlayerEquipmentInfo
-    , _meter            :: PlayerMeter
-    , _enemyLockOn      :: Maybe PlayerEnemyLockOn
+    { _msgId               :: MsgId
+    , _vel                 :: Vel2
+    , _dir                 :: Direction
+    , _hitbox              :: Hitbox
+    , _groundBeneathPos    :: Pos2
+    , _touchingGround      :: Bool
+    , _touchingWall        :: Bool
+    , _onPlatform          :: Bool
+    , _inItemInteractRange :: Bool
+    , _equipment           :: PlayerEquipmentInfo
+    , _meter               :: PlayerMeter
+    , _enemyLockOn         :: Maybe PlayerEnemyLockOn
     }
 
 data RoomArenaWallsInfo = RoomArenaWallsInfo

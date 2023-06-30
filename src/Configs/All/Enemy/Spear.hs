@@ -30,11 +30,16 @@ data SpearEnemyConfig = SpearEnemyConfig
     , _staggerThreshold       :: Stagger
     , _releaseSpearProjOffset :: Pos2
 
+    , _tauntedIdleSecs              :: Secs
+    , _tauntedRetreatSecs           :: Secs
+    , _tauntedMaxWalkSecs           :: Secs
+    , _tauntedAtkCooldownMultiplier :: Float
+
     , _spearProjSurfaceOffset :: Pos2
     , _spearProjSurfaceWidth  :: Float
     , _spearProjSurfaceHeight :: Float
 
-    , _tauntUnderlayDrawScale      :: DrawScale
+    , _tauntedUnderlayDrawScale    :: DrawScale
     , _groundImpactEffectDrawScale :: DrawScale
     , _wallImpactEffectDrawScale   :: DrawScale
 

@@ -30,8 +30,7 @@ import Window.Graphics
 spritePrefix = "dummy-air-" :: String
 
 additionalLockOnReticleDataOffsetMap = M.fromList
-    [ ("dummy-air-dematerialize", repeat (Pos2 0.0 30.0))
-    , ("dummy-air-rematerialize", repeat (Pos2 0.0 (-32.0)))
+    [ ("dummy-air-dematerialize", repeat (Pos2 0.0 (-25.0)))
     ] :: M.Map String [Pos2]
 
 readLockOnReticleData :: ConfigsRead m => m EnemyLockOnReticleData
@@ -48,12 +47,15 @@ mkSandbagAir pos dir = do
     enemy             <- mkEnemy enData pos dir
     flyingCfg         <- readEnemyConfig _flying
     lockOnReticleData <- readLockOnReticleData
+    tauntedData       <- mkEnemyTauntedData $ _tauntedUnderlayDrawScale flyingCfg
 
     return . Some $ enemy
         { _type                   = Just FlyingEnemy  -- pretend to be flying enemy
         , _health                 = _health (flyingCfg :: FlyingEnemyConfig)
-        , _hitbox                 = hitbox
+        , _hitbox                 = sandbagAirHitbox
+        , _inHitstun              = sandbagAirInHitstun
         , _lockOnReticleData      = lockOnReticleData
+        , _tauntedData            = Just tauntedData
         , _thinkAI                = thinkAI
         , _updateHurtResponse     = updateHurtResponse
         , _updateGroundResponse   = updateGroundResponse
@@ -61,8 +63,8 @@ mkSandbagAir pos dir = do
         , _updateSprite           = updateSpr
         }
 
-hitbox :: EnemyHitbox SandbagAirData
-hitbox enemy = case _behavior enemyData of
+sandbagAirHitbox :: EnemyHitbox SandbagAirData
+sandbagAirHitbox enemy = case _behavior enemyData of
     SpawnBehavior         -> dummyHbx
     DeathBehavior         -> dummyHbx
     DematerializeBehavior -> dummyHbx
@@ -76,6 +78,14 @@ hitbox enemy = case _behavior enemyData of
         height    = _height (cfg :: FlyingEnemyConfig)
         pos       = Pos2 (x - width / 2.0) (y - height)
         dummyHbx  = dummyHitbox $ Pos2 x (y - height / 2.0)
+
+sandbagAirInHitstun :: EnemyInHitstun SandbagAirData
+sandbagAirInHitstun enemy = case _behavior (_data enemy) of
+    HurtBehavior _ _     -> True
+    LaunchedBehavior _ _ -> True
+    FallenBehavior _     -> True
+    WallSplatBehavior _  -> True
+    _                    -> False
 
 updateSpr :: EnemyUpdateSprite SandbagAirData
 updateSpr enemy = case _behavior enemyData of

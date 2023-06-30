@@ -4,6 +4,7 @@ module Menu.HelpPopup.Util
     , HelpPopupDescription(..)
     , generalInfoHelpPopupDescription
     , targetingInfoHelpPopupDescription
+    , tauntingInfoHelpPopupDescription
     , weaponTypeToHelpPopupDescription
     , gunTypeToHelpPopupDescription
     , movementSkillTypeToHelpPopupDescription
@@ -68,6 +69,7 @@ inputAliasToSymbolText = \case
     ShootAlias          -> "{ShootSymbol}"
     MovementSkillAlias  -> "{MovementSkillSymbol}"
     SecondarySkillAlias -> "{SecondarySkillSymbol}"
+    InteractAlias       -> "Interact"
     _                   -> "???"
 
 mkSymbolInputAliasPosTextDesc :: InputAlias -> HelpPopupTextOverlayDescription
@@ -123,6 +125,16 @@ targetingInfoHelpPopupDescription menuCfg = HelpPopupDescription
         { _imagePath               = variousHelpPackPath "targeting-info-help.image"
         , _textOverlayDescriptions = mkLockOnTargetingHelpPosTexts menuCfg
         }
+    }
+
+tauntingInfoHelpPopupDescription :: HelpPopupDescription
+tauntingInfoHelpPopupDescription = HelpPopupDescription
+    { _iconButtonImagePath = buttonImagePath "taunting-info-icon-button.image"
+    , _viewInfoText        = "View Taunting Info: {MenuSelectAlias.0}"
+    , _popupDescription    = Left $ HelpPopupScreenDescription
+            { _imagePath               = variousHelpPackPath "taunting-info-help.image"
+            , _textOverlayDescriptions = [mkSymbolInputAliasPosTextDesc InteractAlias]
+            }
     }
 
 weaponTypeToHelpPopupDescription :: MenuConfig -> WeaponType -> HelpPopupDescription

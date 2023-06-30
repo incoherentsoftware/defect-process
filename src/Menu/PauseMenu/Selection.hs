@@ -24,7 +24,7 @@ readSelection inputState prevGameMode pauseMenuData = case _selection (pauseMenu
         | isSlotComboBoxesExpanded (_slotComboBoxes pauseMenuData) -> selection
 
     Just PauseMenuMainSelection
-        | upPressed                   -> PauseMenuTargetingInfoSelection
+        | upPressed                   -> PauseMenuTauntingInfoSelection
         | downPressed                 -> PauseMenuGeneralInfoSelection
         | leftPressed || rightPressed -> PauseMenuResumeSelection
 
@@ -72,7 +72,7 @@ readSelection inputState prevGameMode pauseMenuData = case _selection (pauseMenu
 
     Just PauseMenuTargetingInfoSelection
         | upPressed                                      -> PauseMenuGeneralInfoSelection
-        | downPressed                                    -> PauseMenuMainSelection
+        | downPressed                                    -> PauseMenuTauntingInfoSelection
         | rightPressed && isGunHelpEntryLeft             -> PauseMenuGunLeftSelection
         | rightPressed && isMovementSkillHelpEntry       -> PauseMenuMovementSkillSelection
         | rightPressed && isSecondarySkillHelpEntryLeft  -> PauseMenuSecondarySkillLeftSelection
@@ -86,6 +86,30 @@ readSelection inputState prevGameMode pauseMenuData = case _selection (pauseMenu
         | leftPressed && isGunHelpEntryRight             -> PauseMenuGunRightSelection
         | leftPressed && isGunHelpEntryLeft              -> PauseMenuGunLeftSelection
         | leftPressed && isMovementSkillHelpEntry        -> PauseMenuMovementSkillSelection
+        | leftPressed && isSecondarySkillHelpEntryRight  -> PauseMenuSecondarySkillRightSelection
+        | leftPressed && isSecondarySkillHelpEntryMid    -> PauseMenuSecondarySkillMidSelection
+        | leftPressed && isSecondarySkillHelpEntryLeft   -> PauseMenuSecondarySkillLeftSelection
+        | leftPressed && isWeaponHelpEntryRight          -> PauseMenuWeaponRightSelection
+        | leftPressed && isWeaponHelpEntryLeft           -> PauseMenuWeaponLeftSelection
+
+    Just PauseMenuTauntingInfoSelection
+        | upPressed                                      -> PauseMenuTargetingInfoSelection
+        | downPressed                                    -> PauseMenuMainSelection
+        | rightPressed && isMovementSkillHelpEntry       -> PauseMenuMovementSkillSelection
+        | rightPressed && isGunHelpEntryLeft             -> PauseMenuGunLeftSelection
+        | rightPressed && isSecondarySkillHelpEntryLeft  -> PauseMenuSecondarySkillLeftSelection
+        | rightPressed && isSecondarySkillHelpEntryMid   -> PauseMenuSecondarySkillMidSelection
+        | rightPressed && isSecondarySkillHelpEntryRight -> PauseMenuSecondarySkillRightSelection
+        | rightPressed && isWeaponHelpEntryLeft          -> PauseMenuWeaponLeftSelection
+        | rightPressed && upgradeSelectionCount > 2      -> PauseMenuUpgradeSelection 2
+        | rightPressed && upgradeSelectionCount > 1      -> PauseMenuUpgradeSelection 1
+        | rightPressed && upgradeSelectionCount > 0      -> PauseMenuUpgradeSelection 0
+        | leftPressed && upgradeSelectionCount > 2       -> PauseMenuUpgradeSelection 2
+        | leftPressed && upgradeSelectionCount > 1       -> PauseMenuUpgradeSelection 1
+        | leftPressed && upgradeSelectionCount > 0       -> PauseMenuUpgradeSelection 0
+        | leftPressed && isMovementSkillHelpEntry        -> PauseMenuMovementSkillSelection
+        | leftPressed && isGunHelpEntryRight             -> PauseMenuGunRightSelection
+        | leftPressed && isGunHelpEntryLeft              -> PauseMenuGunLeftSelection
         | leftPressed && isSecondarySkillHelpEntryRight  -> PauseMenuSecondarySkillRightSelection
         | leftPressed && isSecondarySkillHelpEntryMid    -> PauseMenuSecondarySkillMidSelection
         | leftPressed && isSecondarySkillHelpEntryLeft   -> PauseMenuSecondarySkillLeftSelection
@@ -148,7 +172,8 @@ readSelection inputState prevGameMode pauseMenuData = case _selection (pauseMenu
         | rightPressed && upgradeSelectionCount > 2     -> PauseMenuUpgradeSelection 2
         | rightPressed && upgradeSelectionCount > 1     -> PauseMenuUpgradeSelection 1
         | rightPressed && upgradeSelectionCount > 0     -> PauseMenuUpgradeSelection 0
-        | leftPressed || rightPressed                   -> PauseMenuTargetingInfoSelection
+        | rightPressed && isGunHelpEntryRight           -> PauseMenuGunRightSelection
+        | leftPressed || rightPressed                   -> PauseMenuTauntingInfoSelection
         | upPressed && isGunHelpEntryLeft               -> PauseMenuGunLeftSelection
         | upPressed && isWeaponHelpEntryLeft            -> PauseMenuWeaponLeftSelection
         | downPressed && isSecondarySkillHelpEntryLeft  -> PauseMenuSecondarySkillLeftSelection
@@ -159,7 +184,10 @@ readSelection inputState prevGameMode pauseMenuData = case _selection (pauseMenu
     Just PauseMenuSecondarySkillLeftSelection
         | rightPressed && isSecondarySkillHelpEntryMid   -> PauseMenuSecondarySkillMidSelection
         | rightPressed && isSecondarySkillHelpEntryRight -> PauseMenuSecondarySkillRightSelection
-        | leftPressed || rightPressed                    -> PauseMenuTargetingInfoSelection
+        | rightPressed && upgradeSelectionCount > 2      -> PauseMenuUpgradeSelection 2
+        | rightPressed && upgradeSelectionCount > 1      -> PauseMenuUpgradeSelection 1
+        | rightPressed && upgradeSelectionCount > 0      -> PauseMenuUpgradeSelection 0
+        | leftPressed || rightPressed                    -> PauseMenuTauntingInfoSelection
         | upPressed && isMovementSkillHelpEntry          -> PauseMenuMovementSkillSelection
         | upPressed && isGunHelpEntryLeft                -> PauseMenuGunLeftSelection
         | upPressed && isWeaponHelpEntryLeft             -> PauseMenuWeaponLeftSelection
@@ -167,13 +195,12 @@ readSelection inputState prevGameMode pauseMenuData = case _selection (pauseMenu
 
     Just PauseMenuSecondarySkillMidSelection
         | leftPressed && isSecondarySkillHelpEntryLeft   -> PauseMenuSecondarySkillLeftSelection
-        | leftPressed && isSecondarySkillHelpEntryRight  -> PauseMenuSecondarySkillRightSelection
+        | leftPressed && isMovementSkillHelpEntry        -> PauseMenuMovementSkillSelection
         | rightPressed && isSecondarySkillHelpEntryRight -> PauseMenuSecondarySkillRightSelection
-        | rightPressed && isSecondarySkillHelpEntryLeft  -> PauseMenuSecondarySkillLeftSelection
         | rightPressed && upgradeSelectionCount > 2      -> PauseMenuUpgradeSelection 2
         | rightPressed && upgradeSelectionCount > 1      -> PauseMenuUpgradeSelection 1
         | rightPressed && upgradeSelectionCount > 0      -> PauseMenuUpgradeSelection 0
-        | leftPressed || rightPressed                    -> PauseMenuTargetingInfoSelection
+        | leftPressed || rightPressed                    -> PauseMenuTauntingInfoSelection
         | upPressed && isMovementSkillHelpEntry          -> PauseMenuMovementSkillSelection
         | upPressed && isGunHelpEntryRight               -> PauseMenuGunRightSelection
         | upPressed && isGunHelpEntryLeft                -> PauseMenuGunLeftSelection
@@ -184,10 +211,11 @@ readSelection inputState prevGameMode pauseMenuData = case _selection (pauseMenu
     Just PauseMenuSecondarySkillRightSelection
         | leftPressed && isSecondarySkillHelpEntryMid  -> PauseMenuSecondarySkillMidSelection
         | leftPressed && isSecondarySkillHelpEntryLeft -> PauseMenuSecondarySkillLeftSelection
+        | leftPressed && isMovementSkillHelpEntry      -> PauseMenuMovementSkillSelection
         | rightPressed && upgradeSelectionCount > 2    -> PauseMenuUpgradeSelection 2
         | rightPressed && upgradeSelectionCount > 1    -> PauseMenuUpgradeSelection 1
         | rightPressed && upgradeSelectionCount > 0    -> PauseMenuUpgradeSelection 0
-        | rightPressed || leftPressed                  -> PauseMenuTargetingInfoSelection
+        | rightPressed || leftPressed                  -> PauseMenuTauntingInfoSelection
         | upPressed && isMovementSkillHelpEntry        -> PauseMenuMovementSkillSelection
         | upPressed && isGunHelpEntryRight             -> PauseMenuGunRightSelection
         | upPressed && isGunHelpEntryLeft              -> PauseMenuGunLeftSelection
@@ -204,8 +232,7 @@ readSelection inputState prevGameMode pauseMenuData = case _selection (pauseMenu
         | leftPressed && isSecondarySkillHelpEntryRight -> PauseMenuSecondarySkillRightSelection
         | leftPressed && isSecondarySkillHelpEntryMid   -> PauseMenuSecondarySkillMidSelection
         | leftPressed && isSecondarySkillHelpEntryLeft  -> PauseMenuSecondarySkillLeftSelection
-        | leftPressed                                   -> PauseMenuGeneralInfoSelection
-        | rightPressed                                  -> PauseMenuGeneralInfoSelection
+        | leftPressed || rightPressed                   -> PauseMenuGeneralInfoSelection
         | upPressed                                     -> PauseMenuSettingsSelection
         | downPressed && upgradeSelectionCount > 1      -> PauseMenuUpgradeSelection 1
         | downPressed                                   -> PauseMenuSettingsSelection
@@ -219,8 +246,7 @@ readSelection inputState prevGameMode pauseMenuData = case _selection (pauseMenu
         | leftPressed && isSecondarySkillHelpEntryRight -> PauseMenuSecondarySkillRightSelection
         | leftPressed && isSecondarySkillHelpEntryMid   -> PauseMenuSecondarySkillMidSelection
         | leftPressed && isSecondarySkillHelpEntryLeft  -> PauseMenuSecondarySkillLeftSelection
-        | leftPressed                                   -> PauseMenuGeneralInfoSelection
-        | rightPressed                                  -> PauseMenuTargetingInfoSelection
+        | leftPressed || rightPressed                   -> PauseMenuTargetingInfoSelection
         | upPressed                                     -> PauseMenuUpgradeSelection 0
         | downPressed && upgradeSelectionCount > 2      -> PauseMenuUpgradeSelection 2
         | downPressed                                   -> PauseMenuSettingsSelection
@@ -234,8 +260,7 @@ readSelection inputState prevGameMode pauseMenuData = case _selection (pauseMenu
         | leftPressed && isGunHelpEntryLeft             -> PauseMenuGunLeftSelection
         | leftPressed && isWeaponHelpEntryRight         -> PauseMenuWeaponRightSelection
         | leftPressed && isWeaponHelpEntryLeft          -> PauseMenuWeaponLeftSelection
-        | leftPressed                                   -> PauseMenuGeneralInfoSelection
-        | rightPressed                                  -> PauseMenuTargetingInfoSelection
+        | leftPressed || rightPressed                   -> PauseMenuTauntingInfoSelection
         | upPressed                                     -> PauseMenuUpgradeSelection 1
         | downPressed                                   -> PauseMenuSettingsSelection
 

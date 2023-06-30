@@ -68,6 +68,7 @@ mkRefreshStation (Pos2 x y) =
             , _think           = thinkRefreshStation
             , _update          = updateRefreshStation
             , _playerCollision = refreshStationPlayerCollision
+            , _inInteractRange = _touchingPlayer . _data
             }
 
 isRefreshStationFilled :: RoomItem RefreshStationData -> Bool

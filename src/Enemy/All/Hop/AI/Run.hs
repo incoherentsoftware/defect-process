@@ -31,6 +31,7 @@ runBehaviorInstr aiEnabled cmd enemy
             SetHopLongVelInstr                -> setHopLongVelMessages enemy
             SetHopShortVelInstr               -> setHopShortVelMessages enemy
             StartAttackHopLongInstr           -> startAttackHopLongBehavior enemy
+            StartAttackHopLongLandInstr       -> startAttackHopLongLandBehavior enemy
             StartAttackHopShortInstr          -> startAttackHopShortBehavior enemy
             StartAttackHopShortLandInstr      -> startAttackHopShortLandBehavior enemy
             FlipHopDirectionInstr             -> flipHopDirectionMessages enemy
@@ -59,6 +60,7 @@ runBehaviorInstr aiEnabled cmd enemy
                 StartHopShortInstr           -> setIdleMsgs
                 StartHopShortLandInstr       -> setIdleMsgs
                 StartAttackHopLongInstr      -> setIdleMsgs
+                StartAttackHopLongLandInstr  -> setIdleMsgs
                 StartAttackHopShortInstr     -> setIdleMsgs
                 StartAttackHopShortLandInstr -> setIdleMsgs
                 _                            -> aiEnabledMsgs
@@ -216,15 +218,19 @@ setAttackMessages atkDescF enemy = mkMsgToEx (EnemyMsgSetAttackDesc atkDesc) ene
         behavior
             | attackDescIn [_attackPreHopLong, _attackHopLong]   = AttackHopLongBehavior
             | attackDescIn [_attackPreHopShort, _attackHopShort] = AttackHopShortBehavior
+            | atkDesc == _attackHopLongLand atkDescs             = AttackHopLongLandBehavior
             | atkDesc == _attackHopShortLand atkDescs            = AttackHopShortLandBehavior
             | otherwise                                          = _behavior enemyData
 
         setBehaviorMsgs = mkEnemyUpdateMsg enemy $ \e -> e
-            { _data = (_data e) { _behavior = behavior}
+            { _data = (_data e) {_behavior = behavior}
             }
 
 startAttackHopLongBehavior :: Enemy HopEnemyData -> [Msg ThinkEnemyMsgsPhase]
 startAttackHopLongBehavior enemy = setAttackMessages _attackPreHopLong enemy
+
+startAttackHopLongLandBehavior :: Enemy HopEnemyData -> [Msg ThinkEnemyMsgsPhase]
+startAttackHopLongLandBehavior enemy = setAttackMessages _attackHopLongLand enemy
 
 startAttackHopShortBehavior :: Enemy HopEnemyData -> [Msg ThinkEnemyMsgsPhase]
 startAttackHopShortBehavior enemy = setAttackMessages _attackPreHopShort enemy

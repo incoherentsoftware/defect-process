@@ -64,7 +64,7 @@ mkBossEnemy pos dir = do
     enemy             <- mkEnemy enemyData pos dir
     bossCfg           <- readEnemyConfig _boss
     lockOnReticleData <- readEnemyLockOnConfig _boss
-    tauntedData       <- mkEnemyTauntedData $ _tauntUnderlayDrawScale bossCfg
+    tauntedData       <- mkEnemyTauntedData $ _tauntedUnderlayDrawScale bossCfg
 
     return . Some $ enemy
         { _type                   = Just BossEnemy

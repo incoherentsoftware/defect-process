@@ -56,15 +56,9 @@ enemyGravityVel enemyData = Vel2 0.0 (gravity * timeStep)
 
 mkEnemyUpdateDataMsgs :: Enemy HopEnemyData -> [Msg ThinkEnemyMsgsPhase]
 mkEnemyUpdateDataMsgs enemy = mkEnemyUpdateMsg enemy $ \e ->
-    let
-        eData        = _data e
-        atkCooldown  = max 0.0 (_attackCooldown eData - timeStep)
-        prevBehavior = _behavior $ _data enemy
+    let prevBehavior = _behavior $ _data enemy
     in e
-        { _data = eData
-            { _attackCooldown = atkCooldown
-            , _prevBehavior   = prevBehavior
-            }
+        { _data = (_data e) {_prevBehavior = prevBehavior}
         }
 
 thinkHurtBehaviorInstrs :: Secs -> HurtType -> Enemy HopEnemyData -> [HopEnemyBehaviorInstr]
@@ -154,7 +148,7 @@ thinkBehaviorInstrs enemy = case _behavior enemyData of
         Nothing                                                                        -> [StartIdleInstr]
         Just atk
             | projReleaseFrameTagName `isAttackFrameTag` atk && attackFrameChanged atk -> [CreateAttackProjInstr]
-            | _done atk                                                                -> if
+            | _done atk || (isTauntedActive && attackIsLastFrameIndex atk)             -> if
                 | isFacingPlayer enemy -> [StartAttackHopLongInstr]
                 | otherwise            -> [ClearAttackInstr, StartHopLongInstr]
             | otherwise                                                                -> []
@@ -164,9 +158,17 @@ thinkBehaviorInstrs enemy = case _behavior enemyData of
         Just atk
             | projReleaseFrameTagName `isAttackFrameTag` atk && attackFrameChanged atk -> [CreateAttackProjInstr]
             | _done atk && enemyTouchingGround enemy                                   ->
-                [ClearAttackInstr, StartHopLongLandInstr]
+                [ClearAttackInstr, StartAttackHopLongLandInstr]
             | enemyTouchingWall enemy                                                  -> [FlipHopDirectionInstr]
             | otherwise                                                                -> []
+
+    AttackHopLongLandBehavior -> case _attack enemy of
+        Nothing                                                            -> [StartIdleInstr]
+        Just atk
+            | _done atk || (isTauntedActive && attackIsLastFrameIndex atk) -> if
+                | isFacingPlayer enemy -> [StartAttackHopShortInstr]
+                | otherwise            -> [ClearAttackInstr, StartHopShortInstr]
+            | otherwise                                                    -> []
 
     HurtBehavior hurtTtl hurtType -> thinkHurtBehaviorInstrs hurtTtl hurtType enemy
 
@@ -198,10 +200,11 @@ thinkBehaviorInstrs enemy = case _behavior enemyData of
     _ -> []
 
     where
-        health        = E._health enemy
-        enemyData     = _data enemy
-        prevBehavior  = _prevBehavior enemyData
-        sprFinished   = enemySpriteFinished enemy
-        cfg           = _config enemyData
-        inHangtimeVel = enemyInHangtimeVel enemy cfg
-        onGround      = enemyTouchingGround enemy
+        health          = E._health enemy
+        enemyData       = _data enemy
+        prevBehavior    = _prevBehavior enemyData
+        sprFinished     = enemySpriteFinished enemy
+        cfg             = _config enemyData
+        inHangtimeVel   = enemyInHangtimeVel enemy cfg
+        onGround        = enemyTouchingGround enemy
+        isTauntedActive = enemyTauntedStatus enemy == EnemyTauntedActive

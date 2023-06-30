@@ -5,6 +5,7 @@ module Level.Room.Item.Types
     , RoomItemUpdateDynamic
     , RoomItemDraw
     , RoomItemPlayerCollision
+    , RoomItemInInteractRange
     , RoomItemInit
     , RoomItem(..)
     ) where
@@ -39,6 +40,7 @@ type RoomItemUpdate d m        = RoomItem d -> m (RoomItem d)
 type RoomItemUpdateDynamic d   = Dynamic -> RoomItem d -> RoomItem d
 type RoomItemDraw d m          = RoomItem d -> m ()
 type RoomItemPlayerCollision d = Player -> RoomItem d -> [Msg ThinkCollisionMsgsPhase]
+type RoomItemInInteractRange d = RoomItem d -> Bool
 
 type RoomItemInit p = Pos2 -> AppEnv p (Some RoomItem)
 
@@ -55,6 +57,7 @@ data RoomItem d = RoomItem
     , _updateDynamic   :: RoomItemUpdateDynamic d
     , _draw            :: RoomItemDraw d (AppEnv DrawMsgsPhase)
     , _playerCollision :: RoomItemPlayerCollision d
+    , _inInteractRange :: RoomItemInInteractRange d
     }
 
 instance CollisionEntity (RoomItem d) where

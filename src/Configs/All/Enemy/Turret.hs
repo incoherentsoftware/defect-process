@@ -30,7 +30,8 @@ data TurretEnemyConfig = TurretEnemyConfig
     , _attackMouthMidBeamOffsetX :: PosX
     , _staggerThreshold          :: Stagger
 
-    , _tauntUnderlayDrawScale      :: DrawScale
+    , _tauntedAttackCooldown    :: Secs
+    , _tauntedUnderlayDrawScale :: DrawScale
 
     , _hurtEffectData  :: EnemyHurtEffectData
     , _deathEffectData :: EnemyDeathEffectData

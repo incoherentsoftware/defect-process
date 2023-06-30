@@ -24,7 +24,7 @@ data BlobEnemyConfig = BlobEnemyConfig
     , _staggerThreshold   :: Stagger
     , _tauntedIdleSecs    :: Secs
 
-    , _tauntUnderlayDrawScale      :: DrawScale
+    , _tauntedUnderlayDrawScale    :: DrawScale
     , _groundImpactEffectDrawScale :: DrawScale
     , _wallImpactEffectDrawScale   :: DrawScale
 

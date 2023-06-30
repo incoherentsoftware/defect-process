@@ -15,6 +15,7 @@ import Enemy as E
 import Enemy.All.Wall.AI.Run
 import Enemy.All.Wall.Behavior
 import Enemy.All.Wall.Data
+import Enemy.All.Wall.Util
 import InfoMsg.Util
 import Msg
 import Util
@@ -57,12 +58,15 @@ enemyGravityVel enemyData = Vel2 0.0 (gravity * timeStep)
 mkEnemyUpdateDataMsgs :: Enemy WallEnemyData -> [Msg ThinkEnemyMsgsPhase]
 mkEnemyUpdateDataMsgs enemy = mkEnemyUpdateMsg enemy $ \e ->
     let
-        eData        = _data e
-        atkCooldown  = max 0.0 (_attackCooldown eData - timeStep)
         prevBehavior = _behavior $ _data enemy
+        eData        = _data e
+        atkCooldown  = _attackCooldown eData
+        atkCooldown' = case (enemyTauntedPrevStatus e, enemyTauntedStatus e) of
+            (EnemyTauntedInactive, EnemyTauntedActive) -> atkCooldown * attackCooldownMultiplier e
+            _                                          -> max 0.0 (atkCooldown - timeStep)
     in e
         { _data = eData
-            { _attackCooldown = atkCooldown
+            { _attackCooldown = atkCooldown'
             , _prevBehavior   = prevBehavior
             }
         }

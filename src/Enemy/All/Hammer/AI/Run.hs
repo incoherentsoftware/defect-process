@@ -24,7 +24,7 @@ atkMeteorBodyLandPath = packPath "attack-meteor-body-land.spr"   :: PackResource
 
 runBehaviorInstr :: Bool -> HammerEnemyBehaviorInstr -> Enemy HammerEnemyData -> [Msg ThinkEnemyMsgsPhase]
 runBehaviorInstr aiEnabled cmd enemy
-    | aiEnabled = aiEnabledMsgs
+    | aiEnabled = aiEnabledMsgs'
     | otherwise = aiDisabledMsgs
     where
         aiEnabledMsgs = case cmd of
@@ -51,6 +51,16 @@ runBehaviorInstr aiEnabled cmd enemy
             StartDeathInstr                        -> startDeathBehavior enemy
             SetDeadInstr                           -> enemySetDeadMessages enemy
 
+        cfg             = _hammer $ _config (_data enemy)
+        tauntedIdleSecs = _tauntedIdleSecs cfg
+
+        aiEnabledMsgs' = case enemyTauntedStatus enemy of
+            EnemyTauntedInactive -> aiEnabledMsgs
+            EnemyTauntedActive   -> case cmd of
+                UpdateIdleInstr idleTtl
+                    | idleTtl > tauntedIdleSecs -> updateIdleBehavior tauntedIdleSecs enemy
+                _                               -> aiEnabledMsgs
+
         aiDisabledMsgs =
             let
                 setIdleMsgs = case _behavior (E._data enemy) of
@@ -61,7 +71,7 @@ runBehaviorInstr aiEnabled cmd enemy
                 UpdatePatrolInstr  -> setIdleMsgs
                 StartTeleportInstr -> setIdleMsgs
                 StartAttackInstr _ -> setIdleMsgs
-                _                  -> aiEnabledMsgs
+                _                  -> aiEnabledMsgs'
 
 mkEnemyUpdateBehaviorMsg :: Enemy HammerEnemyData -> HammerEnemyBehavior -> [Msg ThinkEnemyMsgsPhase]
 mkEnemyUpdateBehaviorMsg enemy behavior = mkEnemyUpdateMsg enemy $ \e ->
@@ -263,7 +273,9 @@ updatePatrolBehavior enemy = mkEnemyUpdateMsgM enemy $ \e ->
         eData       = _data e
         cfg         = _config eData
         hammerCfg   = _hammer cfg
-        patrolSpeed = _patrolSpeed hammerCfg
+        patrolSpeed = case enemyTauntedStatus enemy of
+            EnemyTauntedInactive -> _patrolSpeed hammerCfg
+            EnemyTauntedActive   -> _tauntedPatrolSpeed hammerCfg
         vel         = Vel2 (patrolSpeed * directionNeg dir) 0.0
 
         reroll = case E._sprite e of

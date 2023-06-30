@@ -8,6 +8,7 @@ data PauseMenuSelection
     | PauseMenuSettingsSelection
     | PauseMenuGeneralInfoSelection
     | PauseMenuTargetingInfoSelection
+    | PauseMenuTauntingInfoSelection
     | PauseMenuWeaponLeftSelection
     | PauseMenuWeaponRightSelection
     | PauseMenuGunLeftSelection

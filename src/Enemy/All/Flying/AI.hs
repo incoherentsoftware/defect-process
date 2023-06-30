@@ -54,7 +54,7 @@ mkEnemyUpdateDataMsg enemy = mkEnemyUpdateMsg enemy $ \e ->
         prevBehavior = _behavior $ E._data enemy
         eData        = E._data e
         atkCooldown  = _attackCooldown eData
-        atkCooldown' = case (enemyTauntedPrevStatus enemy, enemyTauntedStatus enemy) of
+        atkCooldown' = case (enemyTauntedPrevStatus e, enemyTauntedStatus e) of
             (EnemyTauntedInactive, EnemyTauntedActive) -> atkCooldown * attackCooldownMultiplier e
             _                                          -> max 0.0 (atkCooldown - timeStep)
     in e

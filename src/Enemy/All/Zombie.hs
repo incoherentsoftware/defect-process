@@ -43,7 +43,7 @@ mkZombieEnemy pos dir = do
     enemy             <- mkEnemyWithId enemyId enemyData pos dir
     zombieCfg         <- readEnemyConfig _zombie
     lockOnReticleData <- readEnemyLockOnConfig _zombie
-    tauntedData       <- mkEnemyTauntedData $ _tauntUnderlayDrawScale zombieCfg
+    tauntedData       <- mkEnemyTauntedData $ _tauntedUnderlayDrawScale zombieCfg
 
     return . Some $ enemy
         { _type                   = Just ZombieEnemy

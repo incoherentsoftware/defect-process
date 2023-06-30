@@ -37,7 +37,7 @@ mkBubbleTurretEnemy pos dir = do
     enemy             <- mkEnemy enemyData pos dir
     bubbleTurretCfg   <- readEnemyConfig _bubbleTurret
     lockOnReticleData <- readEnemyLockOnConfig _bubbleTurret
-    tauntedData       <- mkEnemyTauntedData $ _tauntUnderlayDrawScale bubbleTurretCfg
+    tauntedData       <- mkEnemyTauntedData $ _tauntedUnderlayDrawScale bubbleTurretCfg
 
     return . Some $ enemy
         { _type                 = Just BubbleTurretEnemy

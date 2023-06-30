@@ -24,6 +24,7 @@ data HopEnemyBehaviorInstr
     | SetHopShortVelInstr
     | FlipHopDirectionInstr
     | StartAttackHopLongInstr
+    | StartAttackHopLongLandInstr
     | StartAttackHopShortInstr
     | StartAttackHopShortLandInstr
     | CreateAttackProjInstr
@@ -59,6 +60,7 @@ data HopEnemyBehavior
     | HurtBehavior Secs HurtType
     | LaunchedBehavior Secs
     | AttackHopLongBehavior
+    | AttackHopLongLandBehavior
     | AttackHopShortBehavior
     | AttackHopShortLandBehavior
     | FallenBehavior Secs

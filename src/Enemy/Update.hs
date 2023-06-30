@@ -2,7 +2,7 @@ module Enemy.Update
     ( updateEnemy
     ) where
 
-import Control.Monad          (unless)
+import Control.Monad          (unless, when)
 import Control.Monad.IO.Class (MonadIO)
 import Control.Monad.State    (get, gets, execStateT, lift, modify, put)
 import Data.Dynamic           (toDyn)
@@ -33,6 +33,7 @@ maxOnPlatformDistanceY = 25.0 :: PosY
 
 stasisHitEffectPath =
     PackResourceFilePath "data/player/player-skills.pack" "stasis-blast-hit-effect.spr" :: PackResourceFilePath
+tauntedSoundPath    = "event:/SFX Events/Enemy/taunted"                                 :: FilePath
 
 updateEnemyMessages :: Enemy d -> AppEnv UpdateEnemyMsgsPhase (Enemy d)
 updateEnemyMessages enemy =
@@ -279,11 +280,17 @@ processHurtMessages enemy =
                 { _stasisData = (_stasisData e) {_deferredAttackHits = []}
                 }
 
-processTauntMessages :: forall m d. MsgsRead UpdateEnemyMsgsPhase m => Enemy d -> m (Enemy d)
-processTauntMessages enemy = processMsgs <$> readMsgs
+processTauntMessages :: forall m d. MsgsReadWrite UpdateEnemyMsgsPhase m => Enemy d -> m (Enemy d)
+processTauntMessages enemy = processMsgs =<< readMsgs
     where
-        processMsgs :: [PlayerMsgPayload] -> Enemy d
-        processMsgs []     = enemy
+        processMsgs :: [PlayerMsgPayload] -> m (Enemy d)
+        processMsgs []     = return enemy
         processMsgs (p:ps) = case p of
-            PlayerMsgActivateTaunt -> enemy {_tauntedData = activateEnemyTauntedData <$> _tauntedData enemy}
-            _                      -> processMsgs ps
+            PlayerMsgActivateTaunt -> case _tauntedData enemy of
+                Nothing          -> return enemy
+                Just tauntedData -> do
+                    when (_status tauntedData == EnemyTauntedInactive) $
+                        writeMsgs [mkMsg $ AudioMsgPlaySound tauntedSoundPath (E._pos enemy)]
+                    return $ enemy {_tauntedData = Just (activateEnemyTauntedData tauntedData)}
+
+            _ -> processMsgs ps

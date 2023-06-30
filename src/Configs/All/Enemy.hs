@@ -27,19 +27,20 @@ import Configs.All.Enemy.Zombie
 import Util
 
 data EnemyConfig = EnemyConfig
-    { _defaultHealth           :: Health
-    , _sightRange              :: Distance
-    , _gravity                 :: Float
-    , _minHangtimeSecs         :: Secs
-    , _maxHangtimeSpeedX       :: Speed
-    , _minHangtimeVelY         :: VelY
-    , _maxHangtimeVelY         :: VelY
-    , _minWallSplatImpactSpeed :: Speed
-    , _minWallSplatSecs        :: Secs
-    , _minFallenSecs           :: Secs
-    , _minHurtSecs             :: Secs
-    , _hitstunLogBase          :: Float
-    , _tauntedDamageMultiplier :: Float
+    { _defaultHealth                     :: Health
+    , _sightRange                        :: Distance
+    , _gravity                           :: Float
+    , _minHangtimeSecs                   :: Secs
+    , _maxHangtimeSpeedX                 :: Speed
+    , _minHangtimeVelY                   :: VelY
+    , _maxHangtimeVelY                   :: VelY
+    , _minWallSplatImpactSpeed           :: Speed
+    , _minWallSplatSecs                  :: Secs
+    , _minFallenSecs                     :: Secs
+    , _minHurtSecs                       :: Secs
+    , _hitstunLogBase                    :: Float
+    , _tauntedDamageMultiplier           :: Float
+    , _tauntedMeterRewardRequiresHitstun :: Bool
 
     , _axe          :: AxeEnemyConfig
     , _bat          :: BatEnemyConfig

@@ -73,6 +73,7 @@ mkJukebox json =
             , _think           = thinkJukebox
             , _update          = updateJukebox
             , _playerCollision = jukeboxPlayerCollision
+            , _inInteractRange = _touchingPlayer . _data
             }
 
 thinkJukebox :: MsgsRead ThinkLevelMsgsPhase m => RoomItemThink JukeboxData m

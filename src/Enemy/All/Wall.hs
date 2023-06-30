@@ -40,7 +40,7 @@ mkWallEnemy pos dir = do
     enemy             <- mkEnemyWithId enemyId enemyData pos dir
     wallCfg           <- readEnemyConfig _wall
     lockOnReticleData <- readEnemyLockOnConfig _wall
-    tauntedData       <- mkEnemyTauntedData $ _tauntUnderlayDrawScale wallCfg
+    tauntedData       <- mkEnemyTauntedData $ _tauntedUnderlayDrawScale wallCfg
 
     return . Some $ enemy
         { _type                   = Just WallEnemy

@@ -41,7 +41,7 @@ data DogEnemyConfig = DogEnemyConfig
     , _shootProjectileAliveSecs :: Secs
     , _willUseProjectileChance  :: Float
 
-    , _tauntUnderlayDrawScale      :: DrawScale
+    , _tauntedUnderlayDrawScale    :: DrawScale
     , _groundImpactEffectDrawScale :: DrawScale
     , _wallImpactEffectDrawScale   :: DrawScale
 

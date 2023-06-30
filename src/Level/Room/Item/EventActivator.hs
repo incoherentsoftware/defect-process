@@ -85,6 +85,7 @@ mkEventActivator eventType (Pos2 x y) =
             , _think           = thinkEventActivator
             , _update          = updateEventActivator
             , _playerCollision = eventActivatorPlayerCollision
+            , _inInteractRange = _touchingPlayer . _data
             }
 
 thinkEventActivator :: MsgsRead ThinkLevelMsgsPhase m => RoomItemThink EventActivatorData m

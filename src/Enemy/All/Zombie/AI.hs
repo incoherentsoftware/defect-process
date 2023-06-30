@@ -58,15 +58,22 @@ enemyGravityVel enemyData = Vel2 0.0 (gravity * timeStep)
 
 mkEnemyUpdateDataMsgs :: Enemy ZombieEnemyData -> [Msg ThinkEnemyMsgsPhase]
 mkEnemyUpdateDataMsgs enemy = mkEnemyUpdateMsg enemy $ \e ->
-    let eData = _data e
+    let
+        prevBehavior          = _behavior $ _data enemy
+        eData                 = _data e
+        tauntedMaxAtkCooldown = _tauntedMaxAtkCooldown $ _zombie (_config eData)
+        atkCooldown           = _attackCooldown eData
+        atkCooldown'          = case enemyTauntedStatus e of
+            EnemyTauntedActive
+                | atkCooldown > tauntedMaxAtkCooldown -> tauntedMaxAtkCooldown
+            _                                         -> max 0.0 (atkCooldown - timeStep)
     in e
         { _data = eData
-            { _attackCooldown            = max 0.0 (_attackCooldown eData - timeStep)
+            { _attackCooldown            = atkCooldown'
             , _postSpawnNoAttackCooldown = max 0.0 (_postSpawnNoAttackCooldown eData - timeStep)
             , _prevBehavior              = prevBehavior
             }
         }
-    where prevBehavior = _behavior $ _data enemy
 
 canAttackPlayer :: Enemy ZombieEnemyData -> Bool
 canAttackPlayer enemy = isAtkableBehavior && not isPostSpawnAtkCooldown && (atkOffCooldown || inForceAtkRange)

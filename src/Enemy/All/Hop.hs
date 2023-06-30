@@ -41,7 +41,7 @@ mkHopEnemy pos dir = do
     enemy             <- mkEnemyWithId enemyId enemyData pos dir
     hopCfg            <- readEnemyConfig _hop
     lockOnReticleData <- readEnemyLockOnConfig _hop
-    tauntedData       <- mkEnemyTauntedData $ _tauntUnderlayDrawScale hopCfg
+    tauntedData       <- mkEnemyTauntedData $ _tauntedUnderlayDrawScale hopCfg
 
     return . Some $ enemy
         { _type                   = Just HopEnemy
@@ -98,8 +98,9 @@ updateSpr enemy = case _behavior enemyData of
     HopLongLandBehavior                -> setOrUpdateEnemySpr $ _hopLongLand sprs
     HopShortBehavior                   -> setOrUpdateEnemySpr $ _hopShort sprs
     HopShortLandBehavior               -> setOrUpdateEnemySpr $ _hopShortLand sprs
-    DeathBehavior                      -> (setOrUpdateEnemySpr (_death sprs)) {_draw = Just drawEnemyDeath}
+    DeathBehavior                      -> (setOrUpdateEnemySpr $ _death sprs) {_draw = Just drawEnemyDeath}
     AttackHopLongBehavior              -> clearEnemySpr
+    AttackHopLongLandBehavior          -> clearEnemySpr
     AttackHopShortBehavior             -> clearEnemySpr
     AttackHopShortLandBehavior         -> clearEnemySpr
     SpawnBehavior                      -> setOrUpdateEnemySpr $ _spawn sprs

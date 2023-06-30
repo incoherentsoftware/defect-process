@@ -37,7 +37,7 @@ mkTurretEnemy pos dir = do
     enemy             <- mkEnemy enemyData pos dir
     turretCfg         <- readEnemyConfig _turret
     lockOnReticleData <- readEnemyLockOnConfig _turret
-    tauntedData       <- mkEnemyTauntedData $ _tauntUnderlayDrawScale turretCfg
+    tauntedData       <- mkEnemyTauntedData $ _tauntedUnderlayDrawScale turretCfg
 
     return . Some $ enemy
         { _type                 = Just TurretEnemy

@@ -40,6 +40,7 @@ data PauseMenuData = PauseMenuData
     , _changeSlotInputDisplayText             :: InputDisplayText
     , _generalHelpEntry                       :: PauseMenuHelpEntry ()
     , _targetingHelpEntry                     :: PauseMenuHelpEntry ()
+    , _tauntingHelpEntry                      :: PauseMenuHelpEntry ()
     , _weaponHelpEntries                      :: [PauseMenuHelpEntry WeaponType]
     , _gunHelpEntries                         :: [PauseMenuHelpEntry GunType]
     , _movementSkillHelpEntries               :: [PauseMenuHelpEntry MovementSkillType]

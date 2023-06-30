@@ -41,7 +41,7 @@ data ClawsEnemyConfig = ClawsEnemyConfig
     , _tauntedMaxRetreatSecs :: Secs
     , _tauntedIdleSecs       :: Secs
 
-    , _tauntUnderlayDrawScale      :: DrawScale
+    , _tauntedUnderlayDrawScale    :: DrawScale
     , _groundImpactEffectDrawScale :: DrawScale
     , _wallImpactEffectDrawScale   :: DrawScale
 

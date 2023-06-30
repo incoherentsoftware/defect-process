@@ -44,6 +44,7 @@ data PlayerInput
     | LockOnCursorInput
     | LockOnClearInput
     | LockOnSwitchTargetInput
+    | TauntInput
     deriving (Eq, Ord, Show)
 
 data PlayerBufferedInputState = PlayerBufferedInputState

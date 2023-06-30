@@ -35,7 +35,7 @@ data BubbleTurretEnemyConfig = BubbleTurretEnemyConfig
     , _bubbleProjRiseFallPeriodSecs :: Secs
     , _staggerThreshold             :: Stagger
 
-    , _tauntUnderlayDrawScale :: DrawScale
+    , _tauntedUnderlayDrawScale :: DrawScale
 
     , _hurtEffectData  :: EnemyHurtEffectData
     , _deathEffectData :: EnemyDeathEffectData

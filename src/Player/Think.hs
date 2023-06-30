@@ -12,6 +12,7 @@ import Attack
 import Configs
 import Configs.All.Settings
 import Configs.All.Settings.Debug
+import InfoMsg.Util
 import Msg
 import Player
 import Player.BufferedInputState
@@ -38,24 +39,25 @@ playerInteractMsgs inputState player
     | InteractAlias `aliasPressed` inputState = [mkMsg $ PlayerMsgInteract (_gold player)]
     | otherwise                               = []
 
+canPlayerAttack :: Player -> Bool
+canPlayerAttack player = and
+    [ not $ _gettingHit flags
+    , gunManagerCancelable $ _gunManager player
+    , playerMovementSkillCancelable player
+    , playerAttackCancelable player
+    , not $ _onSpeedRail flags
+    ]
+    where flags = _flags player
+
 playerWeaponMsgs :: Player -> AppEnv ThinkPlayerMsgsPhase [Msg ThinkPlayerMsgsPhase]
 playerWeaponMsgs player = concat <$> traverse thinkWeapon (zip [0..] weapons)
     where
         thinkWeapon :: (Int, Some Weapon) -> AppEnv ThinkPlayerMsgsPhase [Msg ThinkPlayerMsgsPhase]
         thinkWeapon (i, Some wpn) = (W._think wpn) wpnThinkStatus player (_attack player) wpn
             where
-                flags     = _flags player
-                canAttack = and
-                    [ not $ _gettingHit flags
-                    , gunManagerCancelable $ _gunManager player
-                    , playerMovementSkillCancelable player
-                    , playerAttackCancelable player
-                    , not $ _onSpeedRail flags
-                    ]
-
                 wpnAtkStatus
-                    | canAttack = WeaponAttackReady
-                    | otherwise = WeaponAttackNotReady
+                    | canPlayerAttack player = WeaponAttackReady
+                    | otherwise              = WeaponAttackNotReady
                 wpnThinkStatus
                     | i == 0    = WeaponThinkForeground wpnAtkStatus
                     | otherwise = WeaponThinkBackground
@@ -147,24 +149,38 @@ playerInvalidActionUiMsgs inputState player =
         unlessM (gets null) $
             modify (mkMsg (AudioMsgPlaySoundCentered invalidActionSoundPath):)
 
+readPlayerInItemInteractRange :: MsgsRead ThinkPlayerMsgsPhase m => m Bool
+readPlayerInItemInteractRange = processMsgs <$> readMsgs
+    where
+        processMsgs :: [InfoMsgPayload] -> Bool
+        processMsgs []     = False
+        processMsgs (p:ps) = case p of
+            InfoMsgPlayer playerInfo -> _inItemInteractRange playerInfo
+            _                        -> processMsgs ps
+
 playerTauntMsgs
     :: (ConfigsRead m, InputRead m, MsgsRead ThinkPlayerMsgsPhase m)
     => Player
     -> m [Msg ThinkPlayerMsgsPhase]
 playerTauntMsgs player = do
-    isTauntEnabled <- not <$> readSettingsConfig _debug _disablePlayerTaunt
-    inputState     <- readInputState
+    isTauntDisabled     <- readSettingsConfig _debug _disablePlayerTaunt
+    inItemInteractRange <- readPlayerInItemInteractRange
+    inputState          <- readInputState
 
     let
-        onGround     = _touchingGround $ _flags player
-        isTauntInput =
-            (UpAlias `aliasHold` inputState || DownAlias `aliasHold` inputState) &&
-            InteractAlias `aliasPressed` inputState
+        onGround      = _touchingGround (_flags player :: PlayerFlags)
+        isUpDownInput = UpAlias `aliasHold` inputState || DownAlias `aliasHold` inputState
+        isTauntInput  =
+            (isUpDownInput && InteractAlias `aliasPressed` inputState) || TauntInput `inPlayerInputBuffer` player
         tauntState   = _tauntState player
 
     flip execStateT [] $ do
-        when (isTauntEnabled && onGround && isTauntInput) $
-            modify (mkMsg (PlayerMsgSetAttackDesc $ _tauntAttack tauntState):)
+        if
+            | isTauntDisabled                        -> return ()
+            | inItemInteractRange                    ->
+                modify (mkMsg (PlayerMsgClearInputBuffer $ S.singleton TauntInput):)
+            | otherwise                              -> when (onGround && canPlayerAttack player && isTauntInput) $
+                modify (mkMsg (PlayerMsgSetAttackDesc $ _tauntAttack tauntState):)
 
         case playerAttackSprite player of
             Just atkSpr ->
@@ -174,10 +190,10 @@ playerTauntMsgs player = do
                     frameIdx     = _frameIndex atkSpr
                 in do
                     when (isFrameTag preTauntFrameTagName && frameChanged && frameIdx == 0) $
-                        modify (playerTauntStateClearHitstunEnemyIdsMsg tauntState:)
+                        modify (playerTauntStateClearQueuedEnemyIdsMsg tauntState:)
 
                     when (isFrameTag preTauntFrameTagName) $ do
-                        msg <- lift $ playerTauntStateUpdateHitstunEnemyIdsMsg tauntState
+                        msg <- lift $ playerTauntStateUpdateEnemyIdsMsg tauntState
                         modify (msg:)
 
                     when (isFrameTag tauntActivateFrameTagName && frameChanged) $ do

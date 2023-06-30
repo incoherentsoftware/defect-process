@@ -71,7 +71,7 @@ changeSlotText = "Reassign Input: {MenuSlotChangeAlias}" :: T.Text
 selectionInfoCenterTextPos@(Pos2 selectionInfoCenterTextX selectionInfoCenterTextY) = Pos2 960.0 834.0 :: Pos2
 selectionInfoSpacerWidth                                                            = 30.0             :: Float
 
-infoOverlayLeftImagePos                     = Pos2 37.0 498.0   :: Pos2
+infoOverlayLeftImagePos                     = Pos2 37.0 593.0   :: Pos2
 infoOverlayRightImagePos                    = Pos2 1260.0 249.0 :: Pos2
 emptySecondarySkillUpDownIconOverlayOpacity = Opacity 128       :: Opacity
 upgradeCountOverlayOffset                   = Pos2 10.0 10.0    :: Pos2
@@ -108,6 +108,8 @@ mkPauseMenuData = do
     generalHelpEntry   <- mkPauseMenuHelpEntry (_pausedGeneralInfoHelpEntryPos cfg) () generalInfoHelpPopupDescription
     targetingHelpEntry <-
         mkPauseMenuHelpEntry (_pausedTargetingInfoHelpEntryPos cfg) () (targetingInfoHelpPopupDescription cfg)
+    tauntingHelpEntry  <-
+        mkPauseMenuHelpEntry (_pausedTauntingInfoHelpEntryPos cfg) () tauntingInfoHelpPopupDescription
 
     musicIndex   <- getFmodMusic menuMusicPath
     soundIndices <- mkMenuSoundIndices
@@ -130,6 +132,7 @@ mkPauseMenuData = do
         , _changeSlotInputDisplayText             = changeSlotInputDisplayTxt
         , _generalHelpEntry                       = generalHelpEntry
         , _targetingHelpEntry                     = targetingHelpEntry
+        , _tauntingHelpEntry                      = tauntingHelpEntry
         , _weaponHelpEntries                      = []
         , _gunHelpEntries                         = []
         , _movementSkillHelpEntries               = []
@@ -146,7 +149,11 @@ mkPauseMenuData = do
 
 allOverlaysInactive :: PauseMenuData -> Bool
 allOverlaysInactive pauseMenuData = and
-    [ allInactive [_generalHelpEntry pauseMenuData, _targetingHelpEntry pauseMenuData]
+    [ allInactive
+        [ _generalHelpEntry pauseMenuData
+        , _targetingHelpEntry pauseMenuData
+        , _tauntingHelpEntry pauseMenuData
+        ]
     , allInactive $ _weaponHelpEntries pauseMenuData
     , allInactive $ _gunHelpEntries pauseMenuData
     , allInactive $ _movementSkillHelpEntries pauseMenuData
@@ -400,6 +407,8 @@ updatePauseMenuData prevGameMode equipmentInfo pauseMenuData = do
             generalHelpEntry   <- updateMenuHelpEntry' PauseMenuGeneralInfoSelection (_generalHelpEntry pauseMenuData')
             targetingHelpEntry <-
                 updateMenuHelpEntry' PauseMenuTargetingInfoSelection (_targetingHelpEntry pauseMenuData')
+            tauntingHelpEntry  <-
+                updateMenuHelpEntry' PauseMenuTauntingInfoSelection (_tauntingHelpEntry pauseMenuData')
 
             slotComboBoxes <- get >>= \selection ->
                 let
@@ -430,6 +439,7 @@ updatePauseMenuData prevGameMode equipmentInfo pauseMenuData = do
                 , _settingsMenuData               = settingsMenuData'
                 , _generalHelpEntry               = generalHelpEntry
                 , _targetingHelpEntry             = targetingHelpEntry
+                , _tauntingHelpEntry              = tauntingHelpEntry
                 , _weaponHelpEntries              = weaponHelpEntries'
                 , _gunHelpEntries                 = gunHelpEntries'
                 , _movementSkillHelpEntries       = movementSkillHelpEntries'
@@ -488,6 +498,7 @@ selectionToHelpEntry :: PauseMenuData -> Maybe PauseMenuSelection -> Maybe (Some
 selectionToHelpEntry pauseMenuData selection = case selection of
     Just PauseMenuGeneralInfoSelection         -> Just $ Some (_generalHelpEntry pauseMenuData)
     Just PauseMenuTargetingInfoSelection       -> Just $ Some (_targetingHelpEntry pauseMenuData)
+    Just PauseMenuTauntingInfoSelection        -> Just $ Some (_tauntingHelpEntry pauseMenuData)
     Just PauseMenuWeaponLeftSelection          -> Some <$> _weaponHelpEntries pauseMenuData !!? 0
     Just PauseMenuWeaponRightSelection         -> Some <$> _weaponHelpEntries pauseMenuData !!? 1
     Just PauseMenuGunLeftSelection             -> Some <$> _gunHelpEntries pauseMenuData !!? 0
@@ -582,6 +593,7 @@ drawPauseMenu game =
         unlessM (readSettingsConfig _debug _disableMenuHelpEntries) $ do
             drawPauseMenuHelpEntry $ _generalHelpEntry pauseMenuData
             drawPauseMenuHelpEntry $ _targetingHelpEntry pauseMenuData
+            drawPauseMenuHelpEntry $ _tauntingHelpEntry pauseMenuData
 
             when (_equipmentInfo pauseMenuData == worldPlayerEquipmentInfo world) $
                 let

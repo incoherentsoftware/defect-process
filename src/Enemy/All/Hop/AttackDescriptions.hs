@@ -12,6 +12,7 @@ import Window.Graphics
 data EnemyAttackDescriptions = EnemyAttackDescriptions
     { _attackPreHopLong   :: AttackDescription
     , _attackHopLong      :: AttackDescription
+    , _attackHopLongLand  :: AttackDescription
     , _attackPreHopShort  :: AttackDescription
     , _attackHopShort     :: AttackDescription
     , _attackHopShortLand :: AttackDescription
@@ -23,6 +24,7 @@ mkEnemyAttackDescs =
     EnemyAttackDescriptions <$>
     loadAtk "attack-pre-hop-long.atk" <*>
     loadAtk "attack-hop-long.atk" <*>
+    loadAtk "attack-hop-long-land.atk" <*>
     loadAtk "attack-pre-hop-short.atk" <*>
     loadAtk "attack-hop-short.atk" <*>
     loadAtk "attack-hop-short-land.atk" <*>

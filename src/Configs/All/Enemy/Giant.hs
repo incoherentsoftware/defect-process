@@ -33,7 +33,9 @@ data GiantEnemyConfig = GiantEnemyConfig
     , _smashRangeY           :: Distance
     , _idleSecs              :: Secs
 
-    , _tauntUnderlayDrawScale :: DrawScale
+    , _tauntedIdleSecs          :: Secs
+    , _tauntedMaxRetreatSecs    :: Secs
+    , _tauntedUnderlayDrawScale :: DrawScale
 
     , _hurtEffectData  :: EnemyHurtEffectData
     , _deathEffectData :: EnemyDeathEffectData

@@ -16,13 +16,14 @@ import Enemy.All.Spear.AttackType
 import Enemy.All.Spear.Behavior
 import Enemy.All.Spear.Data
 import Enemy.All.Spear.Projectile
+import Enemy.All.Spear.Util
 import Msg
 import Util
 import Window.Graphics
 
 runBehaviorInstr :: Bool -> SpearEnemyBehaviorInstr -> Enemy SpearEnemyData -> [Msg ThinkEnemyMsgsPhase]
 runBehaviorInstr aiEnabled cmd enemy
-    | aiEnabled = aiEnabledMsgs
+    | aiEnabled = aiEnabledMsgs'
     | otherwise = aiDisabledMsgs
     where
         aiEnabledMsgs = case cmd of
@@ -49,6 +50,22 @@ runBehaviorInstr aiEnabled cmd enemy
             StartDeathInstr                   -> startDeathBehavior enemy
             SetDeadInstr                      -> enemySetDeadMessages enemy
 
+        cfg                = _spear $ _config (_data enemy)
+        tauntedIdleSecs    = _tauntedIdleSecs cfg
+        tauntedRetreatSecs = _tauntedRetreatSecs cfg
+        tauntedMaxWalkSecs = _tauntedMaxWalkSecs cfg
+
+        aiEnabledMsgs' = case enemyTauntedStatus enemy of
+            EnemyTauntedInactive -> aiEnabledMsgs
+            EnemyTauntedActive   -> case cmd of
+                UpdateIdleInstr idleTtl
+                    | idleTtl > tauntedIdleSecs       -> updateIdleBehavior tauntedIdleSecs enemy
+                UpdateRetreatInstr retreatTtl
+                    | retreatTtl > tauntedRetreatSecs -> updateRetreatBehavior tauntedRetreatSecs enemy
+                UpdateWalkInstr walkTtl
+                    | walkTtl > tauntedMaxWalkSecs    -> updateWalkBehavior walkTtl enemy
+                _                                     -> aiEnabledMsgs
+
         aiDisabledMsgs =
             let
                 setIdleMsgs = case _behavior (_data enemy) of
@@ -61,7 +78,7 @@ runBehaviorInstr aiEnabled cmd enemy
                 UpdateRetreatInstr _ -> setIdleMsgs
                 StartAttackInstr _   -> setIdleMsgs
                 FlipDirectionInstr   -> setIdleMsgs
-                _                    -> aiEnabledMsgs
+                _                    -> aiEnabledMsgs'
 
 mkEnemyUpdateBehaviorMsg :: Enemy SpearEnemyData -> SpearEnemyBehavior -> [Msg ThinkEnemyMsgsPhase]
 mkEnemyUpdateBehaviorMsg enemy behavior = mkEnemyUpdateMsg enemy $ \e ->
@@ -88,19 +105,21 @@ updateBehaviorIfMatching enemy behavior = case (behavior, existingBehavior) of
 setThrowAtkCooldownMessages :: Enemy SpearEnemyData -> [Msg ThinkEnemyMsgsPhase]
 setThrowAtkCooldownMessages enemy = mkEnemyUpdateMsg enemy $ \e ->
     let
-        eData = E._data e
-        cfg   = _spear $ _config eData
+        eData                = E._data e
+        cfg                  = _spear $ _config eData
+        throwAtkCooldownSecs = _throwAtkCooldownSecs cfg * attackCooldownMultiplier e
     in e
-        { _data = eData {_throwAtkCooldownTtl = _throwAtkCooldownSecs cfg}
+        { _data = eData {_throwAtkCooldownTtl = throwAtkCooldownSecs}
         }
 
 setShoveAtkCooldownMessages :: Enemy SpearEnemyData -> [Msg ThinkEnemyMsgsPhase]
 setShoveAtkCooldownMessages enemy = mkEnemyUpdateMsg enemy $ \e ->
     let
-        eData = E._data e
-        cfg   = _spear $ _config eData
+        eData                = E._data e
+        cfg                  = _spear $ _config eData
+        shoveAtkCooldownSecs = _shoveAtkCooldownSecs cfg * attackCooldownMultiplier e
     in e
-        { _data = eData {_shoveAtkCooldownTtl = _shoveAtkCooldownSecs cfg}
+        { _data = eData {_shoveAtkCooldownTtl = shoveAtkCooldownSecs}
         }
 
 startDeathBehavior :: Enemy SpearEnemyData -> [Msg ThinkEnemyMsgsPhase]

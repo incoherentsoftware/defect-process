@@ -38,7 +38,7 @@ mkGiantEnemy pos dir = do
     enemy             <- mkEnemy enemyData pos dir
     giantCfg          <- readEnemyConfig _giant
     lockOnReticleData <- readEnemyLockOnConfig _giant
-    tauntedData       <- mkEnemyTauntedData $ _tauntUnderlayDrawScale giantCfg
+    tauntedData       <- mkEnemyTauntedData $ _tauntedUnderlayDrawScale giantCfg
 
     return . Some $ enemy
         { _type                 = Just GiantEnemy

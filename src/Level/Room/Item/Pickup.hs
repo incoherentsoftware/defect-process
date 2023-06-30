@@ -172,6 +172,7 @@ mkItemPickup (Pos2 x y) itemType itemData =
             , _update          = updateItemPickup
             , _draw            = drawItemPickup
             , _playerCollision = itemPickupPlayerCollision
+            , _inInteractRange = _touchingPlayer . _data
             }
 
 itemPickupSetNormalStatusMessage :: RoomItem ItemPickupData -> Msg ThinkLevelMsgsPhase

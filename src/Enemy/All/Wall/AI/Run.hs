@@ -14,6 +14,7 @@ import Enemy as E
 import Enemy.All.Wall.AttackDescriptions
 import Enemy.All.Wall.Behavior
 import Enemy.All.Wall.Data
+import Enemy.All.Wall.Util
 import Enemy.All.Wall.WallProjectile
 import InfoMsg.Util
 import Msg
@@ -22,7 +23,7 @@ import Window.Graphics
 
 runBehaviorInstr :: Bool -> WallEnemyBehaviorInstr -> Enemy WallEnemyData -> [Msg ThinkEnemyMsgsPhase]
 runBehaviorInstr aiEnabled cmd enemy
-    | aiEnabled = aiEnabledMsgs
+    | aiEnabled = aiEnabledMsgs'
     | otherwise = aiDisabledMsgs
     where
         aiEnabledMsgs = case cmd of
@@ -47,6 +48,19 @@ runBehaviorInstr aiEnabled cmd enemy
             StartDeathInstr                   -> startDeathBehavior enemy
             SetDeadInstr                      -> enemySetDeadMessages enemy
 
+        cfg                = _wall $ _config (_data enemy)
+        tauntedIdleSecs    = _tauntedIdleSecs cfg
+        tauntedMaxWalkSecs = _tauntedMaxWalkSecs cfg
+
+        aiEnabledMsgs' = case enemyTauntedStatus enemy of
+            EnemyTauntedInactive -> aiEnabledMsgs
+            EnemyTauntedActive   -> case cmd of
+                UpdateIdleInstr idleTtl
+                    | idleTtl > tauntedIdleSecs    -> updateIdleBehavior tauntedIdleSecs enemy
+                UpdateWalkInstr walkTtl
+                    | walkTtl > tauntedMaxWalkSecs -> updateWalkBehavior tauntedMaxWalkSecs enemy
+                _                                  -> aiEnabledMsgs
+
         aiDisabledMsgs =
             let
                 setIdleMsgs = case _behavior (E._data enemy) of
@@ -59,7 +73,7 @@ runBehaviorInstr aiEnabled cmd enemy
                 UpdateBackWalkInstr _ -> setIdleMsgs
                 FacePlayerInstr       -> setIdleMsgs
                 StartAttackInstr      -> setIdleMsgs
-                _                     -> aiEnabledMsgs
+                _                     -> aiEnabledMsgs'
 
 mkEnemyUpdateBehaviorMsg :: Enemy WallEnemyData -> WallEnemyBehavior -> [Msg ThinkEnemyMsgsPhase]
 mkEnemyUpdateBehaviorMsg enemy behavior = mkEnemyUpdateMsg enemy $ \e ->
@@ -158,10 +172,11 @@ startAttackBehavior enemy = attackMsg:behaviorDataMsgs
                     Just aiInfo
                         | vecX (playerInfoPos aiInfo) < posX -> LeftDir
                         | otherwise                          -> RightDir
+                cfg   = _wall $ _config eData
             in e
                 { _dir  = dir
                 , _data = eData
-                    { _attackCooldown = _releaseWallProjCooldown $ _wall (_config eData)
+                    { _attackCooldown = _releaseWallProjCooldown cfg * attackCooldownMultiplier e
                     , _behavior       = AttackBehavior
                     }
                 }

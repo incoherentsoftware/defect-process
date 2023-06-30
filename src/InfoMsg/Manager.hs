@@ -11,9 +11,9 @@ import Configs.All.Enemy
 import Enemy as E
 import Enemy.Manager
 import InfoMsg.Util
+import Level.Room
 import Level.Room.ArenaWalls
-import Level.Room.Bounds
-import Level.Room.Types
+import Level.Room.Item
 import Level.Types
 import Msg
 import Player
@@ -35,13 +35,12 @@ thinkInfoMsgManager world =
         player      = _player (world :: World)
         enemies     = enemyManagerRealEnemies $ _enemyManager world
         projectiles = _projectiles $ _projectileManager world
-        surfaces    = worldSurfaces world
         room        = _room $ _level (world :: World)
     in do
         enemyCfg <- _enemy <$> readConfigs
 
         writeMsgs $ concat
-            [ processPlayerInfoMsgs player surfaces enemies enemyCfg
+            [ processPlayerInfoMsgs player enemies room enemyCfg
             , processEnemyPosMsgs enemies
             , processEnemyInStasisMsgs enemies
             , processEnemyInHitstunMsgs enemies
@@ -50,24 +49,23 @@ thinkInfoMsgManager world =
             , processMusicInfoMsgs $ _audio world
             ]
 
-calculatePlayerInfo :: Player -> [Surface] -> PlayerInfo
-calculatePlayerInfo player surfaces = PlayerInfo
-    { _msgId            = _msgId (player :: Player)
-    , _vel              = _vel (player :: Player)
-    , _dir              = _dir (player :: Player)
-    , _hitbox           = playerHitbox player
-    , _groundBeneathPos = beneathGroundPos
-    , _touchingGround   = touchingGround
-    , _touchingWall     = _touchingWall (playerFlags :: PlayerFlags)
-    , _onPlatform       = _onPlatform (playerFlags :: PlayerFlags)
-    , _equipment        = mkPlayerEquipmentInfo player
-    , _meter            = _meter (player :: Player)
-    , _enemyLockOn      = _enemyLockOn (_lockOnAim player :: PlayerLockOnAim)
-    }
+processPlayerInItemInteractRange :: Room -> Bool
+processPlayerInItemInteractRange room = or
+    [ (_inInteractRange item) item
+    | Some item <- _items room
+    ]
+
+processPlayerGroundPos :: Player -> Room -> Pos2
+processPlayerGroundPos player room = fromMaybe playerPos (foldr processGroundPos Nothing surfaces)
     where
         playerPos@(Pos2 playerX playerY) = _pos (player :: Player)
+        surfaces                         = roomSurfaces room
+        playerHbx                        = playerHitbox player
+        playerHbxTopLeft                 = hitboxTopLeft playerHbx
+        playerHbxWidth                   = hitboxWidth playerHbx
+        playerProjHbx                    = rectHitbox playerHbxTopLeft playerHbxWidth playerProjectedGroundHbxHeight
 
-        -- Psuedo ray cast (downwards extended player hitbox) to determine ground pos
+        -- psuedo ray cast (downwards extended player hitbox) to determine ground pos
         processGroundPos :: Surface -> Maybe Pos2 -> Maybe Pos2
         processGroundPos surface !groundPos
             | intersectsSurface && surfaceTop > playerY =
@@ -79,25 +77,36 @@ calculatePlayerInfo player surfaces = PlayerInfo
                         | otherwise            -> groundPos
             | otherwise                                 = groundPos
             where
-                playerHbx        = playerHitbox player
-                playerHbxTopLeft = hitboxTopLeft playerHbx
-                playerHbxWidth   = hitboxWidth playerHbx
-                playerProjHbx    = rectHitbox playerHbxTopLeft playerHbxWidth playerProjectedGroundHbxHeight
-
                 surfaceHbx        = _hitbox (surface :: Surface)
                 intersectsSurface = playerProjHbx `intersectsHitbox` surfaceHbx
                 surfaceTop        = hitboxTop surfaceHbx
 
+calculatePlayerInfo :: Player -> Room -> PlayerInfo
+calculatePlayerInfo player room = PlayerInfo
+    { _msgId               = _msgId (player :: Player)
+    , _vel                 = _vel (player :: Player)
+    , _dir                 = _dir (player :: Player)
+    , _hitbox              = playerHitbox player
+    , _groundBeneathPos    = beneathGroundPos
+    , _touchingGround      = touchingGround
+    , _touchingWall        = _touchingWall (playerFlags :: PlayerFlags)
+    , _onPlatform          = _onPlatform (playerFlags :: PlayerFlags)
+    , _inItemInteractRange = processPlayerInItemInteractRange room
+    , _equipment           = mkPlayerEquipmentInfo player
+    , _meter               = _meter (player :: Player)
+    , _enemyLockOn         = _enemyLockOn (_lockOnAim player :: PlayerLockOnAim)
+    }
+    where
         playerFlags          = _flags (player :: Player)
         touchingGround       = _touchingGround (playerFlags :: PlayerFlags)
         beneathGroundPos
-            | touchingGround = playerPos
-            | otherwise      = fromMaybe playerPos (foldr processGroundPos Nothing surfaces)
+            | touchingGround = _pos (player :: Player)
+            | otherwise      = processPlayerGroundPos player room
 
-processPlayerInfoMsgs :: Player -> [Surface] -> [Some Enemy] -> EnemyConfig -> [Msg ThinkInfoMsgsPhase]
-processPlayerInfoMsgs player surfaces enemies enemyCfg = playerInfoMsg:(L.foldl' processSight [] enemies)
+processPlayerInfoMsgs :: Player -> [Some Enemy] -> Room -> EnemyConfig -> [Msg ThinkInfoMsgsPhase]
+processPlayerInfoMsgs player enemies room enemyCfg = playerInfoMsg:(L.foldl' processSight [] enemies)
     where
-        playerInfo    = calculatePlayerInfo player surfaces
+        playerInfo    = calculatePlayerInfo player room
         playerInfoMsg = mkMsg $ InfoMsgPlayer playerInfo
 
         processSight :: [Msg ThinkInfoMsgsPhase] -> Some Enemy -> [Msg ThinkInfoMsgsPhase]
@@ -111,7 +120,7 @@ processPlayerInfoMsgs player surfaces enemies enemyCfg = playerInfoMsg:(L.foldl'
 
                 sightBlocked = any isJust $
                     [ intersectsLineHitbox enSightPos plSightPos hitbox
-                    | surface <- surfaces
+                    | surface <- roomSurfaces room
                     , let hitbox = _hitbox (surface :: Surface)
                     ]
 

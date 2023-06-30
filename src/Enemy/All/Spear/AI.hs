@@ -17,6 +17,7 @@ import Enemy.All.Spear.AttackDescriptions
 import Enemy.All.Spear.AttackType
 import Enemy.All.Spear.Behavior
 import Enemy.All.Spear.Data
+import Enemy.All.Spear.Util
 import Msg
 import Util
 import Window.Graphics
@@ -57,11 +58,23 @@ enemyGravityVel enemyData = Vel2 0.0 (gravity * timeStep)
 
 mkEnemyUpdateDataMsgs :: Enemy SpearEnemyData -> [Msg ThinkEnemyMsgsPhase]
 mkEnemyUpdateDataMsgs enemy = mkEnemyUpdateMsg enemy $ \e ->
-    let eData = _data e
+    let
+        eData                                      = _data e
+        atkCooldownMultiplier                      = attackCooldownMultiplier e
+        (throwAtkCooldownTtl, shoveAtkCooldownTtl) =
+            case (enemyTauntedPrevStatus e, enemyTauntedStatus e) of
+                (EnemyTauntedInactive, EnemyTauntedActive) ->
+                    ( _throwAtkCooldownTtl eData * atkCooldownMultiplier
+                    , _shoveAtkCooldownTtl eData * atkCooldownMultiplier
+                    )
+                _                                          ->
+                    ( max 0.0 (_throwAtkCooldownTtl eData - timeStep)
+                    , max 0.0 (_shoveAtkCooldownTtl eData - timeStep)
+                    )
     in e
         { _data = eData
-            { _throwAtkCooldownTtl = max 0.0 (_throwAtkCooldownTtl eData - timeStep)
-            , _shoveAtkCooldownTtl = max 0.0 (_shoveAtkCooldownTtl eData - timeStep)
+            { _throwAtkCooldownTtl = throwAtkCooldownTtl
+            , _shoveAtkCooldownTtl = shoveAtkCooldownTtl
             , _prevBehavior        = prevBehavior
             }
         }

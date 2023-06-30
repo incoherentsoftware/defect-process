@@ -38,7 +38,7 @@ mkBatEnemy pos dir = do
     enemy             <- mkEnemy enData pos dir
     batCfg            <- readEnemyConfig _bat
     lockOnReticleData <- readEnemyLockOnConfig _bat
-    tauntedData       <- mkEnemyTauntedData $ _tauntUnderlayDrawScale batCfg
+    tauntedData       <- mkEnemyTauntedData $ _tauntedUnderlayDrawScale batCfg
 
     return . Some $ enemy
         { _type                   = Just BatEnemy

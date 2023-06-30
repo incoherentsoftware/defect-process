@@ -128,7 +128,8 @@ readInputs prevTapInputs = do
 
     let
         addInput :: (InputState -> Bool) -> PlayerInput -> State [PlayerInput] ()
-        addInput inInputState input = when (inInputState inputState) $ modify (input:)
+        addInput inInputState input = when (inInputState inputState) $
+            modify (input:)
 
         downAliasHold     = DownAlias `aliasHold` inputState
         upAliasHold       = UpAlias `aliasHold` inputState
@@ -138,9 +139,9 @@ readInputs prevTapInputs = do
 
     return . flip execState [] $ do
         if
-            | downAliasHold && LeftAlias `aliasPressed` inputState                       ->
+            | downAliasHold && LeftAlias `aliasPressed` inputState                                          ->
                 modify (DownLeftInput:)
-            | downAliasHold && RightAlias `aliasPressed` inputState                      ->
+            | downAliasHold && RightAlias `aliasPressed` inputState                                         ->
                 modify (DownRightInput:)
             | wasDownLeftInput && DownAlias `aliasNotHold` inputState && LeftAlias `aliasHold` inputState   ->
                 modify (LeftInput:)
@@ -182,6 +183,7 @@ readInputs prevTapInputs = do
         addInput (LockOnCursorAlias `aliasPressed`) LockOnCursorInput
         addInput (LockOnClearAlias `aliasPressed`) LockOnClearInput
         addInput (LockOnSwitchTargetAlias `aliasPressed`) LockOnSwitchTargetInput
+        addInput (\i -> InteractAlias `aliasPressed` i && (upAliasHold || downAliasHold)) TauntInput
 
 playerBufferedInputStateTapInputs :: PlayerBufferedInputState -> [PlayerInput]
 playerBufferedInputStateTapInputs bufferedInputState = map fst (_tapInputs bufferedInputState)

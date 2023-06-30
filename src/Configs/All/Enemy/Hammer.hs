@@ -26,8 +26,10 @@ data HammerEnemyConfig = HammerEnemyConfig
     , _willUseTeleportChance    :: Float
     , _teleportOffsetX          :: PosX
     , _rerollPerPatrolLoopCount :: Int
+    , _tauntedIdleSecs          :: Secs
+    , _tauntedPatrolSpeed       :: Speed
 
-    , _tauntUnderlayDrawScale      :: DrawScale
+    , _tauntedUnderlayDrawScale    :: DrawScale
     , _groundImpactEffectDrawScale :: DrawScale
     , _wallImpactEffectDrawScale   :: DrawScale
 

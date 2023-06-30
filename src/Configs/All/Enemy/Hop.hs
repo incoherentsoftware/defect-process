@@ -19,13 +19,12 @@ data HopEnemyConfig = HopEnemyConfig
 
     , _idleSecs                      :: Secs
     , _staggerThreshold              :: Stagger
-    , _hopProjCooldown               :: Secs
     , _hopLongReleaseProjOffset      :: Pos2
     , _hopShortLandReleaseProjOffset :: Pos2
     , _hopLongVel                    :: Vel2
     , _hopShortVel                   :: Vel2
 
-    , _tauntUnderlayDrawScale      :: DrawScale
+    , _tauntedUnderlayDrawScale    :: DrawScale
     , _groundImpactEffectDrawScale :: DrawScale
     , _wallImpactEffectDrawScale   :: DrawScale
 

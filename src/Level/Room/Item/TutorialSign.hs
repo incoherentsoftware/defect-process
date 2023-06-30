@@ -67,6 +67,7 @@ mkTutorialSign (Pos2 x y) =
             { _draw            = drawTutorialSign
             , _update          = updateTutorialSign
             , _playerCollision = tutorialSignPlayerCollision
+            , _inInteractRange = _touchingPlayer . _data
             }
 
 updateTutorialSign

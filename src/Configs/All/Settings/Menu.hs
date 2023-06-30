@@ -80,6 +80,7 @@ data MenuConfig = MenuConfig
     , _pausedSettingsButtonPos                 :: Pos2
     , _pausedGeneralInfoHelpEntryPos           :: Pos2
     , _pausedTargetingInfoHelpEntryPos         :: Pos2
+    , _pausedTauntingInfoHelpEntryPos          :: Pos2
     , _pausedWeaponHelpEntryPositions          :: [Pos2]
     , _pausedGunHelpEntryPositions             :: [Pos2]
     , _pausedMovementSkillHelpEntryPositions   :: [Pos2]

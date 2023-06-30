@@ -41,7 +41,7 @@ mkDogEnemy pos dir = do
     enemy             <- mkEnemy enemyData pos dir
     dogCfg            <- readEnemyConfig _dog
     lockOnReticleData <- readEnemyLockOnConfig _dog
-    tauntedData       <- mkEnemyTauntedData $ _tauntUnderlayDrawScale dogCfg
+    tauntedData       <- mkEnemyTauntedData $ _tauntedUnderlayDrawScale dogCfg
 
     return . Some $ enemy
         { _type                   = Just ClawsEnemy

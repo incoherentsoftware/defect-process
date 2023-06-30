@@ -40,8 +40,8 @@ restoreDefaultsButtonImgPath = settingsMenuPack "restore-default-game.image"    
 
 enemyHealthText       = "Enemy Health"     :: T.Text
 pauseMenuHintsText    = "Pause Menu Hints" :: T.Text
-enemyHealthTextPos    = Pos2 825.0 191.0   :: Pos2
-pauseMenuHintsTextPos = Pos2 825.0 272.0   :: Pos2
+enemyHealthTextPos    = Pos2 876.0 191.0   :: Pos2
+pauseMenuHintsTextPos = Pos2 876.0 272.0   :: Pos2
 
 comboBoxImgPath              = settingsMenuPack "game-combo-box.image"   :: PackResourceFilePath
 enemyHealthComboBoxValues    = map formatEnemyHealthPercent [minBound..] :: [T.Text]

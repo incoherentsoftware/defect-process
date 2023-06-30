@@ -38,7 +38,7 @@ mkBlobEnemy pos dir = do
     enemy             <- mkEnemy enemyData pos dir
     blobCfg           <- readEnemyConfig _blob
     lockOnReticleData <- readEnemyLockOnConfig _blob
-    tauntedData       <- mkEnemyTauntedData $ _tauntUnderlayDrawScale blobCfg
+    tauntedData       <- mkEnemyTauntedData $ _tauntedUnderlayDrawScale blobCfg
 
     return . Some $ enemy
         { _type                   = Just BlobEnemy

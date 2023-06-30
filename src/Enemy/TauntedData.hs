@@ -14,6 +14,10 @@ import FileCache
 import Util
 import Window.Graphics
 import World.ZIndex
+import qualified Data.List.NonEmpty as NE
+
+underlayOpacity          = Opacity 0.65                             :: Opacity
+underlayInitialFrameIdxs = NE.fromList [FrameIndex 0..FrameIndex 4] :: NE.NonEmpty FrameIndex
 
 underlaySpritePath =
     PackResourceFilePath "data/particles/particles-enemy.pack" "enemy-taunted-underlay.spr" :: PackResourceFilePath
@@ -21,6 +25,7 @@ underlaySpritePath =
 data EnemyTauntedStatus
     = EnemyTauntedActive
     | EnemyTauntedInactive
+    deriving Eq
 
 data EnemyTauntedData = EnemyTauntedData
     { _status            :: EnemyTauntedStatus
@@ -31,11 +36,14 @@ data EnemyTauntedData = EnemyTauntedData
 
 mkEnemyTauntedData :: (FileCache m, GraphicsRead m, MonadIO m) => DrawScale -> m EnemyTauntedData
 mkEnemyTauntedData underlayDrawScale = do
-    spr <- loadPackSprite underlaySpritePath
+    spr  <- loadPackSprite underlaySpritePath
+    -- randomize starting frame so that multiple underlays don't all perfectly sync up
+    spr' <- advanceSprite <$> randomChoice underlayInitialFrameIdxs <*> pure spr
+
     return $ EnemyTauntedData
         { _status            = EnemyTauntedInactive
         , _prevStatus        = EnemyTauntedInactive
-        , _underlaySprite    = spr
+        , _underlaySprite    = spr'
         , _underlayDrawScale = underlayDrawScale
         }
 
@@ -62,4 +70,4 @@ drawEnemyTauntedData pos dir lockOnData tauntedData = case _status tauntedData o
             pos'  = pos `vecAdd` _reticleOffset lockOnData
             scale = _underlayDrawScale tauntedData
             spr   = _underlaySprite tauntedData
-        in drawSpriteScaled pos' dir enemyUnderBodyZIndex scale spr
+        in drawSpriteEx pos' dir enemyUnderBodyZIndex 0.0 underlayOpacity scale spr

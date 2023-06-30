@@ -35,7 +35,7 @@ data FlyingEnemyConfig = FlyingEnemyConfig
     , _getUpUprightFrameIndex :: FrameIndex
     , _staggerThreshold        :: Stagger
 
-    , _tauntUnderlayDrawScale      :: DrawScale
+    , _tauntedUnderlayDrawScale    :: DrawScale
     , _groundImpactEffectDrawScale :: DrawScale
     , _wallImpactEffectDrawScale   :: DrawScale
 

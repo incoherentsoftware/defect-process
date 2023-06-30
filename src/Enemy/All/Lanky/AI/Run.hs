@@ -12,13 +12,14 @@ import Enemy.All.Lanky.AttackType
 import Enemy.All.Lanky.Behavior
 import Enemy.All.Lanky.Data
 import Enemy.All.Lanky.Projectile
+import Enemy.All.Lanky.Util
 import Msg
 import Util
 import Window.Graphics
 
 runBehaviorInstr :: Bool -> LankyEnemyBehaviorInstr -> Enemy LankyEnemyData -> [Msg ThinkEnemyMsgsPhase]
 runBehaviorInstr aiEnabled cmd enemy
-    | aiEnabled = aiEnabledMsgs
+    | aiEnabled = aiEnabledMsgs'
     | otherwise = aiDisabledMsgs
     where
         aiEnabledMsgs = case cmd of
@@ -44,6 +45,19 @@ runBehaviorInstr aiEnabled cmd enemy
             StartDeathInstr                   -> startDeathBehavior enemy
             SetDeadInstr                      -> enemySetDeadMessages enemy
 
+        cfg                = _lanky $ _config (_data enemy)
+        tauntedIdleSecs    = _tauntedIdleSecs cfg
+        tauntedRetreatSecs = _tauntedRetreatSecs cfg
+
+        aiEnabledMsgs' = case enemyTauntedStatus enemy of
+            EnemyTauntedInactive -> aiEnabledMsgs
+            EnemyTauntedActive   -> case cmd of
+                UpdateIdleInstr idleTtl
+                    | idleTtl > tauntedIdleSecs       -> updateIdleBehavior tauntedIdleSecs enemy
+                UpdateRetreatInstr retreatTtl
+                    | retreatTtl > tauntedRetreatSecs -> updateRetreatBehavior tauntedRetreatSecs enemy
+                _                                     -> aiEnabledMsgs
+
         aiDisabledMsgs =
             let
                 setIdleMsgs = case _behavior (_data enemy) of
@@ -55,7 +69,7 @@ runBehaviorInstr aiEnabled cmd enemy
                 StartRetreatInstr    -> setIdleMsgs
                 UpdateRetreatInstr _ -> setIdleMsgs
                 StartAttackInstr _   -> setIdleMsgs
-                _                    -> aiEnabledMsgs
+                _                    -> aiEnabledMsgs'
 
 mkEnemyUpdateBehaviorMsg :: Enemy LankyEnemyData -> LankyEnemyBehavior -> [Msg ThinkEnemyMsgsPhase]
 mkEnemyUpdateBehaviorMsg enemy behavior = mkEnemyUpdateMsg enemy $ \e -> e
@@ -72,20 +86,20 @@ updateBehaviorIfMatching enemy behavior = case (behavior, existingBehavior) of
 setSummonAtkCooldownMessages :: Enemy LankyEnemyData -> [Msg ThinkEnemyMsgsPhase]
 setSummonAtkCooldownMessages enemy = mkEnemyUpdateMsg enemy $ \e ->
     let
-        eData = E._data e
-        cfg   = _lanky $ _config eData
+        eData                 = E._data e
+        cfg                   = _lanky $ _config eData
+        summonAtkCooldownSecs = _summonAtkCooldownSecs cfg * attackCooldownMultiplier e
     in e
-        { _data = eData {_summonAtkCooldownTtl = _summonAtkCooldownSecs cfg}
+        { _data = eData {_summonAtkCooldownTtl = summonAtkCooldownSecs}
         }
 
 setBeamAtkCooldownMessages :: Enemy LankyEnemyData -> [Msg ThinkEnemyMsgsPhase]
 setBeamAtkCooldownMessages enemy = mkEnemyUpdateMsg enemy $ \e ->
     let
-        eData = E._data e
-        cfg   = _lanky $ _config eData
-    in e
-        { _data = eData {_beamAtkCooldownTtl = _beamAtkCooldownSecs cfg}
-        }
+        eData               = E._data e
+        cfg                 = _lanky $ _config eData
+        beamAtkCooldownSecs = _beamAtkCooldownSecs cfg * attackCooldownMultiplier e
+    in e { _data = eData {_beamAtkCooldownTtl = beamAtkCooldownSecs} }
 
 facePlayerMessages :: Enemy LankyEnemyData -> [Msg ThinkEnemyMsgsPhase]
 facePlayerMessages enemy = case vecX <$> enemyKnownPlayerPos enemy of

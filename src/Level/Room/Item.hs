@@ -26,6 +26,7 @@ mkRoomItem itemType itemData msgId hitbox = RoomItem
     , _updateDynamic   = updateDynamic
     , _draw            = const $ return ()
     , _playerCollision = \_ _ -> []
+    , _inInteractRange = const False
     }
 
 updateDynamic :: Typeable d => RoomItemUpdateDynamic d

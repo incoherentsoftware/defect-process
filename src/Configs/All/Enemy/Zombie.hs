@@ -32,7 +32,11 @@ data ZombieEnemyConfig = ZombieEnemyConfig
     , _forceAtkRangeY        :: Distance
     , _atkSpitProjOffset     :: Pos2
 
-    , _tauntUnderlayDrawScale      :: DrawScale
+    , _tauntedIdleSecs       :: Secs
+    , _tauntedMaxWalkSecs    :: Secs
+    , _tauntedMaxAtkCooldown :: Secs
+
+    , _tauntedUnderlayDrawScale    :: DrawScale
     , _groundImpactEffectDrawScale :: DrawScale
     , _wallImpactEffectDrawScale   :: DrawScale
 

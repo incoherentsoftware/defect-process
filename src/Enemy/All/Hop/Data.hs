@@ -11,16 +11,14 @@ import Enemy.All.Hop.AttackDescriptions
 import Enemy.All.Hop.Behavior
 import Enemy.All.Hop.Sprites
 import FileCache
-import Util
 import Window.Graphics
 
 data HopEnemyData = HopEnemyData
-    { _attackCooldown :: Secs
-    , _sprites        :: EnemySprites
-    , _attackDescs    :: EnemyAttackDescriptions
-    , _behavior       :: HopEnemyBehavior
-    , _prevBehavior   :: HopEnemyBehavior
-    , _config         :: EnemyConfig
+    { _sprites      :: EnemySprites
+    , _attackDescs  :: EnemyAttackDescriptions
+    , _behavior     :: HopEnemyBehavior
+    , _prevBehavior :: HopEnemyBehavior
+    , _config       :: EnemyConfig
     }
 
 mkHopEnemyData :: (ConfigsRead m, FileCache m, GraphicsRead m, MonadIO m) => m HopEnemyData
@@ -30,10 +28,9 @@ mkHopEnemyData = do
     cfg         <- _enemy <$> readConfigs
 
     return $ HopEnemyData
-        { _attackCooldown = 0.0
-        , _sprites        = sprs
-        , _attackDescs    = attackDescs
-        , _behavior       = SpawnBehavior
-        , _prevBehavior   = SpawnBehavior
-        , _config         = cfg
+        { _sprites      = sprs
+        , _attackDescs  = attackDescs
+        , _behavior     = SpawnBehavior
+        , _prevBehavior = SpawnBehavior
+        , _config       = cfg
         }

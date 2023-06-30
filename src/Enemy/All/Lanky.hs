@@ -48,7 +48,7 @@ mkLankyEnemy pos dir = do
     enemy             <- mkEnemy enemyData pos dir
     lankyCfg          <- readEnemyConfig _lanky
     lockOnReticleData <- readEnemyLockOnConfig _lanky
-    tauntedData       <- mkEnemyTauntedData $ _tauntUnderlayDrawScale lankyCfg
+    tauntedData       <- mkEnemyTauntedData $ _tauntedUnderlayDrawScale lankyCfg
 
     return . Some $ enemy
         { _type                   = Just LankyEnemy

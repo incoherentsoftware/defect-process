@@ -40,7 +40,7 @@ data BossEnemyConfig = BossEnemyConfig
     , _healthbarBackdropPos  :: Pos2
     , _hpThresholdBodyOffset :: Pos2
 
-    , _tauntUnderlayDrawScale      :: DrawScale
+    , _tauntedUnderlayDrawScale    :: DrawScale
     , _groundImpactEffectDrawScale :: DrawScale
     , _wallImpactEffectDrawScale   :: DrawScale
 
