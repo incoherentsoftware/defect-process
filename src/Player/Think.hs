@@ -169,7 +169,8 @@ playerTauntMsgs player = do
 
     let
         onGround      = _touchingGround (_flags player :: PlayerFlags)
-        isUpDownInput = UpAlias `aliasHold` inputState || DownAlias `aliasHold` inputState
+        isUpInput     = UpAlias `aliasHold` inputState
+        isUpDownInput = isUpInput || DownAlias `aliasHold` inputState
         isTauntInput  =
             (isUpDownInput && InteractAlias `aliasPressed` inputState) || TauntInput `inPlayerInputBuffer` player
         tauntState   = _tauntState player
@@ -180,7 +181,7 @@ playerTauntMsgs player = do
             | inItemInteractRange                    ->
                 modify (mkMsg (PlayerMsgClearInputBuffer $ S.singleton TauntInput):)
             | otherwise                              -> when (onGround && canPlayerAttack player && isTauntInput) $
-                modify (mkMsg (PlayerMsgSetAttackDesc $ _tauntAttack tauntState):)
+                modify (playerTauntStateStartTauntMsgs isUpInput tauntState ++)
 
         case playerAttackSprite player of
             Just atkSpr ->
@@ -197,7 +198,7 @@ playerTauntMsgs player = do
                         modify (msg:)
 
                     when (isFrameTag tauntActivateFrameTagName && frameChanged) $ do
-                        msgs <- lift $ playerTauntStateActivateMsgs tauntState
+                        msgs <- lift $ playerTauntStateActivateTauntMsgs tauntState
                         modify (msgs ++)
 
             _ -> return ()

@@ -3,10 +3,12 @@ module Player.TauntState
     , mkPlayerTauntState
     , playerTauntStateClearQueuedEnemyIdsMsg
     , playerTauntStateUpdateEnemyIdsMsg
-    , playerTauntStateActivateMsgs
+    , playerTauntStateStartTauntMsgs
+    , playerTauntStateActivateTauntMsgs
     ) where
 
 import Control.Monad.IO.Class (MonadIO)
+import Data.Tuple             (swap)
 import qualified Data.List as L
 import qualified Data.Set as S
 
@@ -26,10 +28,14 @@ packPath = \f -> PackResourceFilePath "data/player/player-movement.pack" f
 mkPlayerTauntState :: (FileCache m, GraphicsRead m, MonadIO m) => m PlayerTauntState
 mkPlayerTauntState = do
     let loadPackAtkDesc = \f -> loadPackAttackDescription $ packPath f
-    tauntAtk           <- loadPackAtkDesc "taunt-a.atk"
+    tauntAtkA          <- loadPackAtkDesc "taunt-a.atk"
+    tauntAtkB          <- loadPackAtkDesc "taunt-b.atk"
+    tauntAtkC          <- loadPackAtkDesc "taunt-c.atk"
+    tauntAtkD          <- loadPackAtkDesc "taunt-d.atk"
 
     return $ PlayerTauntState
-        { _tauntAttack           = tauntAtk
+        { _upTauntAttacks        = (tauntAtkA, tauntAtkC)
+        , _downTauntAttacks      = (tauntAtkB, tauntAtkD)
         , _tauntedEnemyIds       = S.empty
         , _queuedTauntedEnemyIds = S.empty
         }
@@ -66,11 +72,29 @@ playerTauntStateUpdateEnemyIdsMsg _ = do
     let update = \ts -> ts {_queuedTauntedEnemyIds = _queuedTauntedEnemyIds ts `S.union` enemyIds}
     return $ mkMsg (PlayerMsgUpdateTauntState update)
 
-playerTauntStateActivateMsgs
+playerTauntStateStartTauntMsgs :: Bool -> PlayerTauntState -> [Msg ThinkPlayerMsgsPhase]
+playerTauntStateStartTauntMsgs isUpInput tauntState =
+    [ mkMsg $ PlayerMsgSetAttackDesc tauntAtk
+    , mkMsg $ PlayerMsgUpdateTauntState update
+    ]
+    where
+        upTauntAtks   = _upTauntAttacks tauntState
+        downTauntAtks = _downTauntAttacks tauntState
+
+        update = \ts -> ts
+            { _upTauntAttacks   = if isUpInput then swap upTauntAtks else upTauntAtks
+            , _downTauntAttacks = if isUpInput then downTauntAtks else swap downTauntAtks
+            }
+
+        tauntAtk
+            | isUpInput = fst $ upTauntAtks
+            | otherwise = fst $ downTauntAtks
+
+playerTauntStateActivateTauntMsgs
     :: (ConfigsRead m, MsgsRead ThinkPlayerMsgsPhase m)
     => PlayerTauntState
     -> m [Msg ThinkPlayerMsgsPhase]
-playerTauntStateActivateMsgs tauntState =
+playerTauntStateActivateTauntMsgs tauntState =
     let
         queuedEnemyIds       = _queuedTauntedEnemyIds tauntState
         enemyIds             = _tauntedEnemyIds tauntState

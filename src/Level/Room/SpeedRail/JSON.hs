@@ -5,12 +5,12 @@ module Level.Room.SpeedRail.JSON
 import Data.Aeson.Types (FromJSON, genericParseJSON, parseJSON)
 import GHC.Generics     (Generic)
 
-import Collision.Hitbox.Types
 import Util
 
 data SpeedRailJSON = SpeedRailJSON
-    { _direction :: Direction
-    , _hitbox    :: RectHitboxJSON
+    { _pos         :: Pos2
+    , _direction   :: Direction
+    , _numSegments :: Int
     }
     deriving Generic
 

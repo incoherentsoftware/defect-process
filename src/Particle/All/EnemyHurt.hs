@@ -143,7 +143,7 @@ mkSpecks pos scale hitEffectType cfg =
         speckInitialAngle <- randomRIO (0.0, fromMaybe 0.0 (listToMaybe speckAngles))
         angles            <- sequence
             [ randomRIO (speckInitialAngle + startAng, speckInitialAngle + endAng)
-            | (startAng, endAng) <- zip speckAngles (tail speckAngles)
+            | (startAng, endAng) <- zip speckAngles (safeTail speckAngles)
             ]
 
         initialSpeeds <- sequence

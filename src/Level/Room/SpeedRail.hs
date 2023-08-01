@@ -20,12 +20,16 @@ import Window.Graphics
 import World.Surface
 import World.ZIndex
 
+speedRailSegmentWidth = 499.0 :: Float
+speedRailHeight       = 15.0  :: Float
+
 debugHbxColor = Color 255 0 220 255 :: Color
 
 data SpeedRail = SpeedRail
-    { _dir    :: Direction
-    , _hitbox :: Hitbox
-    , _sprite :: Sprite
+    { _pos         :: Pos2
+    , _dir         :: Direction
+    , _numSegments :: Int
+    , _sprite      :: Sprite
     }
 
 mkSpeedRail :: (FileCache m, GraphicsRead m, MonadIO m) => SpeedRailJSON -> m SpeedRail
@@ -33,39 +37,44 @@ mkSpeedRail json = do
     spr <- loadPackSprite $ PackResourceFilePath "data/levels/level-items.pack" "speed-rail.spr"
 
     return $ SpeedRail
-        { _dir    = _direction (json :: SpeedRailJSON)
-        , _hitbox = _fromJSON $ _hitbox (json :: SpeedRailJSON)
+        { _pos         = _pos (json :: SpeedRailJSON)
+        , _dir         = _direction (json :: SpeedRailJSON)
+        , _numSegments = _numSegments (json :: SpeedRailJSON)
         , _sprite = spr
         }
+
+speedRailHitbox :: SpeedRail -> Hitbox
+speedRailHitbox speedRail = rectHitbox pos width speedRailHeight
+    where
+        pos         = _pos (speedRail :: SpeedRail)
+        numSegments = _numSegments (speedRail :: SpeedRail)
+        width       = fromIntegral numSegments * speedRailSegmentWidth
 
 speedRailSurface :: SpeedRail -> Surface
 speedRailSurface speedRail = Surface
     { _type   = SpeedRailSurface $ _dir speedRail
-    , _hitbox = _hitbox (speedRail :: SpeedRail)
+    , _hitbox = speedRailHitbox speedRail
     } :: Surface
 
 updateSpeedRail :: SpeedRail -> SpeedRail
 updateSpeedRail speedRail = speedRail {_sprite = updateSprite (_sprite speedRail)}
 
--- assumes total speed rail width is evenly divided by the speed rail sprite width
 drawSpeedRail :: (ConfigsRead m, GraphicsReadWrite m, MonadIO m) => SpeedRail -> m ()
 drawSpeedRail speedRail =
     let
-        hbx        = _hitbox (speedRail :: SpeedRail)
-        totalWidth = round $ hitboxWidth hbx
-        spr        = _sprite speedRail
-        sprWidthF  = spriteImageWidth spr
-        sprWidth   = round sprWidthF
-        dir        = _dir speedRail
+        hbx         = speedRailHitbox speedRail
+        numSegments = _numSegments (speedRail :: SpeedRail)
+        dir         = _dir speedRail
+        spr         = _sprite speedRail
     in do
         whenM (readSettingsConfig _debug _drawItemHitboxes) $
             drawHitbox debugHbxColor levelItemZIndex hbx
 
-        for_ [1..totalWidth `div` sprWidth] $ \i ->
+        for_ [1..numSegments] $ \i ->
             let
-                x                    = hitboxLeft hbx + (realToFrac i - 1) * sprWidthF
+                x                    = hitboxLeft hbx + (realToFrac i - 1) * speedRailSegmentWidth
                 x'
-                    | dir == LeftDir = x + sprWidthF
+                    | dir == LeftDir = x + speedRailSegmentWidth
                     | otherwise      = x
                 pos                  = Pos2 x' (hitboxBot hbx)
             in drawSprite pos dir levelItemZIndex spr

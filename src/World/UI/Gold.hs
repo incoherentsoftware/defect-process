@@ -25,6 +25,7 @@ import World.ZIndex
 
 goldBackdropColor                 = Color 0 0 0 128 :: Color
 insufficientOverlayFadeMultiplier = 2.0             :: Float
+insufficientOverlayOffsetX        = 46.0            :: Float
 
 insufficientOverlayBackdropColor :: Opacity -> Color
 insufficientOverlayBackdropColor opacity = Color 0 0 0 (opacityToAlpha opacity)
@@ -172,7 +173,18 @@ drawGoldUI goldUI = do
         insufficientOverlayOpacity = _insufficientOverlayOpacity goldUI
         insufficientOverlayImg     = _insufficientOverlayImage goldUI
         insufficientOverlayColor   = insufficientOverlayBackdropColor insufficientOverlayOpacity
+        insufficientOverlayPos     =
+            Pos2
+            (vecX backdropPos + insufficientOverlayOffsetX + (symbolTxtWidth - insufficientOverlayOffsetX) / 2.0)
+            (vecY goldCenterPos)
     drawRect backdropPos backdropWidth backdropHeight insufficientOverlayColor uiFrontZIndex
-    drawImageEx goldCenterPos RightDir uiFrontZIndex 0.0 insufficientOverlayOpacity drawScale insufficientOverlayImg
+    drawImageEx
+        insufficientOverlayPos
+        RightDir
+        uiFrontZIndex
+        0.0
+        insufficientOverlayOpacity
+        drawScale
+        insufficientOverlayImg
 
     traverse_ (drawGoldFloatingText goldRightPos drawScale) (_goldFloatingTexts goldUI)

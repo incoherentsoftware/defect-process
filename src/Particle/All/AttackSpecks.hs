@@ -114,7 +114,7 @@ mkSpecks pos hitEffectType attackHit cfg =
         Just specksType -> do
             angles <- sequence
                 [ randomRIO (startAng, endAng)
-                | (startAng, endAng) <- zip speckAngles (tail speckAngles)
+                | (startAng, endAng) <- zip speckAngles (safeTail speckAngles)
                 ]
 
             initialSpeeds <- sequence
